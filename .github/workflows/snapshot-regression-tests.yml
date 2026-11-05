@@ -7,6 +7,8 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "migration/source-branch-snapshots/**"
+      - ".github/workflows/know-place-aoi-analysis.yml"
+      - ".github/workflows/know-place-aoi-monorepo-dispatcher.yml"
       - "migration/promotion-overrides.json"
       - "docs/migration/**"
       - "migration/workflow-candidates/**"
@@ -28,6 +30,8 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "migration/source-branch-snapshots/**"
+      - ".github/workflows/know-place-aoi-analysis.yml"
+      - ".github/workflows/know-place-aoi-monorepo-dispatcher.yml"
       - "migration/promotion-overrides.json"
       - "docs/migration/**"
       - "apps/**"
