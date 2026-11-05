@@ -57,6 +57,8 @@ def mapping_or_empty(value: Any) -> dict[str, Any]:
 
 
 def normalize_permissions(value: Any) -> dict[str, str]:
+    if isinstance(value, str):
+        return {"__all__": value}
     permissions = mapping_or_empty(value)
     return {str(key): str(item) for key, item in sorted(permissions.items())}
 
@@ -120,6 +122,9 @@ def audit_workflow(source: str, path: Path) -> dict[str, Any]:
             needs = [needs]
         elif not isinstance(needs, list):
             needs = []
+
+        if job.get("uses"):
+            reusable_calls.append(str(job.get("uses")))
 
         steps = job.get("steps", [])
         if not isinstance(steps, list):
