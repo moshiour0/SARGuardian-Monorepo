@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-During local development, the API loads `apps/api/.env` through `python-dotenv`.
+During local development, the backend loads `Backend/.env` through `python-dotenv`.
 Existing host environment variables take precedence. Set `APP_ENV=production` in a
 hosted environment; production skips local dotenv loading and requires hosting-provided
 environment variables, including an explicit `CORS_ORIGINS` value.
@@ -49,7 +49,7 @@ Supabase.
 
 ## Safe local configuration preflight
 
-Do not commit `apps/api/.env`. Create it manually from `apps/api/.env.example` only after
+Do not commit `Backend/.env`. Create it manually from `Backend/.env.example` only after
 obtaining staging values. The current code expects these names:
 
 - `APP_ENV` (`development` locally; `production` on a host)
@@ -61,20 +61,18 @@ obtaining staging values. The current code expects these names:
 - `CORS_ORIGINS` (comma-separated origins; required in production)
 - `PREFLIGHT_TTL_SECONDS` (60 through 604800 seconds)
 - `DISPLACEMENT_ACTIONS_ENABLED`, `GITHUB_ACTIONS_TOKEN`, `GITHUB_ACTIONS_REPOSITORY`, `GITHUB_ACTIONS_WORKFLOW`, `GITHUB_ACTIONS_REF`, `DISPLACEMENT_CALLBACK_SECRET`, and `PUBLIC_API_URL` for durable scientific-processing dispatch
-- `KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_GITHUB_ACTIONS_REF` for the generic two-polygon workflow
-- `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF` for the separate author-exact P05023 workflow
-- Known Place worker-side GitHub Actions secrets: `EARTHDATA_USERNAME`, `EARTHDATA_PASSWORD` or `EARTHDATA_TOKEN`, `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_PARENT_FOLDER_ID`
-- API-side server secrets: `GITHUB_ACTIONS_TOKEN` must have Actions read/write access to each configured Known Place repository so the API can dispatch the workflow, poll its exact run, list its artifact, and download the artifact. The API does **not** need the worker's Google Drive OAuth credentials to retrieve the current GitHub Actions result artifact.
+- Worker-side GitHub Actions secrets: `EARTHDATA_USERNAME`, `EARTHDATA_PASSWORD` or `EARTHDATA_TOKEN`, `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
+- API runtime secrets (required on the Render `SARGuardian_Dynamic` service, and on any Vercel FastAPI deployment serving the dashboard): `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
 - `PORT` (optional; defaults to 8000)
 
 Manual setup:
 
-1. Copy `apps/api/.env.example` to `apps/api/.env` locally; do not commit the copy.
+1. Copy `Backend/.env.example` to `Backend/.env` locally; do not commit the copy.
 2. Set `APP_ENV=development` and the staging `SUPABASE_URL`.
 3. Put the modern server-only Supabase secret key in `SUPABASE_SERVICE_ROLE_KEY`.
 4. Set either `GOOGLE_APPLICATION_CREDENTIALS` to a local server-side credential path, or configure Application Default Credentials. Do not put the credential JSON in this repository.
 5. Set `ASF_CATALOG_ENABLED` deliberately, review `CORS_ORIGINS`, and keep `PREFLIGHT_TTL_SECONDS` within its supported range.
-6. From `apps/api`, run the non-networking diagnostic:
+6. From `Backend`, run the non-networking diagnostic:
 
 ```powershell
 python -m app.config_diagnostic
@@ -86,61 +84,37 @@ or read the Firebase credential file. It exits with code 0 only when all checks 
 Supabase secret is an API key for the server-side `apikey` header; it is not a Firebase token
 and is never the end-user `Authorization: Bearer` credential.
 
-## Known Place workflow routing
+## Private dashboard API storage requirements
 
-Known Place has two independent GitHub Actions destinations. The generic two-polygon analysis uses
-`KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, and
-`KNOWN_PLACE_GITHUB_ACTIONS_REF`. The author-exact P05023 reproduction uses the corresponding
-`KNOWN_PLACE_PAPER_GITHUB_ACTIONS_*` variables. The defaults in `.env.example` deliberately
-retain the existing Backend dispatchers. Set either destination to Monorepo root workflows only
-after the matching workflow is promoted, its inputs/status/artifacts are contract-tested, and the
-coordinated production cutover is approved. Do not point author-exact reproduction at the generic
-workflow or substitute the author-pinned product/code revision.
+The GitHub Actions worker uploads the completed `aoi-derived-results.zip` bundle to private Google Drive and sends a checksum-verified Drive receipt to the API. The API then downloads that same private file only after confirming the signed-in user owns the succeeded job. **The API runtime must have its own Drive OAuth configuration as well as the worker.** GitHub Actions secrets do not automatically become Render service environment variables.
 
-## Known Place result storage and retrieval
+On the Render service `SARGuardian_Dynamic` (or the FastAPI hosting environment), add these three server-only environment variables using the same values as the workflow's GitHub Actions secrets:
 
-For a raw-download run, the GitHub Actions worker builds a derived-only ZIP and uploads it to the configured
-private Google Drive parent folder using `GOOGLE_DRIVE_PARENT_FOLDER_ID`. It then writes a receipt containing
-the Drive folder/file IDs, local SHA-256 and a SHA-256 recomputed from bytes downloaded back from Drive.
-Raw HDF5 source files and credentials are excluded from that retained bundle.
+- `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`: the OAuth client JSON object, including its `web` credentials.
+- `GOOGLE_DRIVE_REFRESH_TOKEN`: the OAuth refresh token for the Drive identity that can access the private result folder.
+- `GOOGLE_DRIVE_FOLDER_ID`: the parent folder ID used by the worker.
 
-The API's current result adapter is a separate path: it locates the exact completed GitHub Actions run by
-the opaque request UUID in the run title, downloads the run's GitHub Actions artifact with the server-side
-`GITHUB_ACTIONS_TOKEN`, and validates `result.json`, the generated dashboard/map HTML, and the optional
-Drive receipt. The API's authenticated bundle endpoint returns that same bounded Actions artifact to the
-signed-in browser. It does not currently call the Google Drive API directly; do not add Drive OAuth
-credentials to the Vercel API unless a separately reviewed Drive-backed retrieval implementation is added.
-
-Keep the GitHub Actions worker secrets in the repository that runs the Known Place worker. The Vercel API
-needs its own server-side GitHub token with Actions read/write permissions on the configured dispatcher
-repository, plus the existing Firebase Admin and Supabase server-only settings. No Google Drive token,
-OAuth client JSON or parent-folder ID belongs in a browser-visible `VITE_*` variable.
-
+Keep the values private: do not commit them, put them in any `VITE_*` variable, or paste them into issues or logs. After saving the variables, redeploy/restart the API service and retry opening the existing job's dashboard; the existing ZIP is already retained, so a new NISAR processing run is not needed just to retry the dashboard. If the 503 remains, check the API's safe server log message for the sanitized Google Drive failure reason (missing configuration, OAuth authentication, or file retrieval failure).
 
 ## Vercel deployment preparation
 
-The Monorepo uses two separate Vercel projects:
+Create two Vercel projects from this repository without deploying from this phase:
 
-- Web project root: `apps/web/`; Vite build command `npm run build`; output directory `dist`.
-- API project root: `apps/api/`; Python/FastAPI runtime with `apps/api/index.py` as the entrypoint.
+- Frontend project root: `Frontend/`
+- Backend project root: `Backend/`
 
-The isolated Monorepo Preview projects have been created and the initial Web and API builds
-completed successfully from `migration/source-snapshot-import`. Preview has no production
-Supabase/Firebase/Google Drive/GitHub credentials, and processing dispatch is disabled there.
-The Preview is therefore a build and routing checkpoint, not yet an authenticated end-to-end
-processing environment. Those deployments are pinned to earlier migration commits; a fresh
-Preview build of the current branch head remains blocked by the Vercel account's deployment
-rate limit and must be refreshed before UI/API integration is accepted.
+For the backend project, use the Python runtime with `index.py` as the FastAPI entrypoint.
+Vercel installs the backend dependencies from `Backend/requirements.txt`; no separate server
+or long-running process is required. Set `APP_ENV=production` and an explicit trusted
+comma-separated `CORS_ORIGINS` value containing the final Vercel frontend origin. Also set
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `FIREBASE_SERVICE_ACCOUNT_JSON` in Vercel's
+server-side environment settings. Do not set `GOOGLE_APPLICATION_CREDENTIALS` to a Windows
+path on Vercel. Apply the timestamped SQL files in `supabase/migrations/` in ascending timestamp order through `20261027123456_place_target_contract.sql` before enabling dispatch. This latest migration adds immutable map-place context and optional in-AOI target coordinates; it must be applied before deploying code that writes those fields. The Actions worker retains private, verified results and reports them through the existing owner-scoped displacement API; see [`../docs/DISPLACEMENT_ACTIONS.md`](../docs/DISPLACEMENT_ACTIONS.md) and [`../docs/CONTROLLED_LIVE_PILOT.md`](../docs/CONTROLLED_LIVE_PILOT.md).
 
-Before production cutover, configure the Preview/Production environment variables from
-`.env.example` and `../docs/operations/deployment-and-secret-map.md` using the appropriate
-server-side secrets. Never put Firebase Admin credentials, Supabase service-role keys, GitHub
-tokens, Drive OAuth credentials, or callback secrets in browser-visible `VITE_*` variables.
-
-Supabase SQL files are retained under `../../infrastructure/supabase/migrations/`. The remote
-migration-history inventory currently has naming/version drift against the local files. Do not
-run `db push`, replay migrations, or alter the live schema until a read-only reconciliation
-proves which versions are already applied and a backup/rollback plan is approved.
+For the frontend project, use the Vite preset, root directory `Frontend/`, build command
+`npm run build`, and output directory `dist`. Set the public frontend variables documented in
+`Frontend/.env.example` before building. The existing `Frontend/vercel.json` provides the SPA
+rewrite for client-side routes such as `/landslide`.
 
 ## Run
 
