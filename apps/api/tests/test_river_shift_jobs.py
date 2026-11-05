@@ -856,3 +856,85 @@ def test_signed_validation_inputs_reject_unverified_source_receipts(monkeypatch)
         headers={"Content-Type": "application/json", "X-SARGuardian-Signature": sign_callback(body)},
     )
     assert response.status_code == 409
+
+
+def test_completed_github_run_without_signed_callback_marks_dispatch_failed(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    created = api.post("/api/river-shift/jobs", json=payload()).json()
+    job_id = created["id"]
+    run = {
+        "id": 123456789,
+        "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
+        "status": "completed",
+        "conclusion": "success",
+    }
+    monkeypatch.setattr(river_module, "_find_workflow_run", lambda *_args: run)
+
+    refreshed = river_module._refresh_workflow_state(store, store.rows[job_id])
+
+    assert refreshed["state"] == river_module.JobState.FAILED.value
+    assert refreshed["stage"] == "terminal_validation_failed"
+    assert refreshed["error_code"] == "WORKER_CALLBACK_MISSING"
+    assert refreshed["github_run_id"] == "123456789"
+
+
+def test_completed_failed_github_run_marks_running_job_failed(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    created = api.post("/api/river-shift/jobs", json=payload()).json()
+    job_id = created["id"]
+    row = store.rows[job_id]
+    row.update({"state": river_module.JobState.RUNNING.value, "callback_sequence": 1})
+    run = {
+        "id": 123456789,
+        "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
+        "status": "completed",
+        "conclusion": "failure",
+    }
+    monkeypatch.setattr(river_module, "_github_get_json", lambda *_args: run)
+
+    refreshed = river_module._refresh_workflow_state(store, row)
+
+    assert refreshed["state"] == river_module.JobState.FAILED.value
+    assert refreshed["stage"] == "terminal_validation_failed"
+    assert refreshed["error_code"] == "GITHUB_ACTIONS_WORKER_FAILED"
+    assert refreshed["callback_sequence"] == 1
+
+
+def test_missing_workflow_run_after_dispatch_timeout_marks_job_failed(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    created = api.post("/api/river-shift/jobs", json=payload()).json()
+    job_id = created["id"]
+    row = store.rows[job_id]
+    row["created_at"] = datetime(2020, 1, 1, tzinfo=UTC)
+    monkeypatch.setattr(river_module, "_github_get_json", lambda *_args: None)
+    monkeypatch.setattr(river_module, "_find_workflow_run", lambda *_args: None)
+
+    refreshed = river_module._refresh_workflow_state(store, row)
+
+    assert refreshed["state"] == river_module.JobState.FAILED.value
+    assert refreshed["stage"] == "workflow_start_timeout"
+    assert refreshed["error_code"] == "RIVERSHIFT_WORKFLOW_START_TIMEOUT"
+
+
+def test_final_signed_success_is_not_overwritten_by_later_run_level_failure(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    created = api.post("/api/river-shift/jobs", json=payload()).json()
+    job_id = created["id"]
+    row = store.rows[job_id]
+    row.update({"state": river_module.JobState.SUCCEEDED.value, "callback_sequence": 9})
+    monkeypatch.setattr(river_module, "_github_get_json", lambda *_args: (_ for _ in ()).throw(
+        AssertionError("a verified terminal callback must not be replaced by run-level history")
+    ))
+    monkeypatch.setattr(river_module, "_find_workflow_run", lambda *_args: (_ for _ in ()).throw(
+        AssertionError("a verified terminal callback must not be polled again")
+    ))
+
+    refreshed = river_module._refresh_workflow_state(store, row)
+
+    assert refreshed["state"] == river_module.JobState.SUCCEEDED.value
+    assert refreshed["callback_sequence"] == 9
+
