@@ -201,7 +201,7 @@ def validate_tool_paths(text: str, label: str) -> None:
         candidate = ROOT / relative
         if not candidate.exists():
             fail(f"{label}: promoted tool path does not exist: {relative}")
-    if "dashboard-source/engines/find-displacements/tools/aggregate_aoi_run.py" not in text:
+    if label == "dashboard" and "dashboard-source/engines/find-displacements/tools/aggregate_aoi_run.py" not in text:
         fail(f"{label}: dashboard aggregator is not mapped to promoted engine")
 
 
