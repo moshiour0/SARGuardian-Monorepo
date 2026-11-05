@@ -69,11 +69,15 @@ They are **inactive compatibility fixtures**. GitHub Actions only activates work
 
 The Known Place PR #85 test environment initially lacked SciPy; its isolated test dependency was corrected, after which all 318 tests passed. An earlier NISAR cleanup issue caused by disabling pip cache was also corrected. These were CI environment corrections only.
 
+## Historical secret scan
+
+The full-history Gitleaks scan [41959790362](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41959790362) passed after review of 20 test-only `generic-api-key` false positives. Exact fingerprints are recorded in `.gitleaksignore`; there is no broad path or rule suppression. `tools/validate_gitleaks_allowlist.py` enforces the allowlist scope in metadata CI. The scan used the checksum-verified Gitleaks 8.30.1 binary and `--log-opts=--all`, covering reachable Git history rather than only the working tree. No raw report artifact or secret value was retained in logs.
+
 ## Embedded source-reference discovery
 
 The pin scanner reviewed 867 text files and found 48 distinct 40-character commit-like strings in pin-related context. These are candidates, not 48 confirmed science pins: they include source checkout refs, historical code commits, and validation-evidence references. Confirmed checkout pins and their ancestry/divergence status are separately classified in `docs/migration/source-pins.json` and `docs/migration/source-import-report.md`.
 
-The pin scan is not a secret scan. Automated secret scanning remains a separate pre-cutover gate.
+The pin scan is separate from credential scanning. Historical Git credential scanning is complete; live Vercel/GitHub/Supabase variable-name, value, and permission mapping remains a pre-cutover gate.
 
 ## What this validation establishes
 
