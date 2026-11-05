@@ -2,7 +2,7 @@
 
 **Scope:** Monorepo RiverShift GCOV engine, FastAPI dispatch, GitHub Actions workflow, retries, private Drive storage and status reconciliation.  
 **Branch:** migration/source-snapshot-import  
-**Disposition:** source promotion and static contract review complete; runner-backed tests and runtime integration remain unverified. Production dispatch remains disabled.
+**Disposition:** source promotion and static contract review complete; current-head GitHub regression tests pass. The credentialed 20-job RiverShift end-to-end dry-run, signed callback/Drive receipt integration and runtime data pilot remain unverified. Production dispatch remains disabled.
 
 ## 1. Source lineage and exact promoted blobs
 
@@ -125,20 +125,19 @@ These counts describe test functions present in the repository, not executed tes
 
 ## 7. Validation state and release gates
 
-The current GitHub Actions runner issue prevents execution of both the 17-job Monorepo regression matrix and any real RiverShift runner-backed smoke test: all jobs examined have runner_id=0, blank runner_name and empty steps. A credential-free one-job ubuntu-latest diagnostic reproduces the same pre-run failure, so the problem is not isolated to the RiverShift workflow or its Python dependencies.
+The runner-allocation failures recorded in the following 2026-11-05 sections are historical and have been superseded by the current-head verification recorded below. On 2026-11-06, the Monorepo Snapshot Regression Tests completed with **17/17 jobs successful**. The RiverShift GCOV worker regression job, promoted RiverShift GCOV engine regression job, active API regression job and full source/history checks all completed their steps successfully. The minimal credential-free Runner Allocation Diagnostic also completed successfully, proving that a GitHub-hosted runner was allocated and executed shell steps.
 
-Until the diagnostic receives a nonzero runner ID and executes shell steps:
+The successful CI run does not itself execute the credentialed RiverShift 20-job processing workflow against ASF/Earthdata/Google Drive. Keep all release gates below:
 
-- do not declare the RiverShift CI or new config tests passed;
-- do not enable MONOREPO_RIVERSHIFT_PROCESSING_ENABLED;
-- do not set the API RIVERSHIFT_ACTIONS_ENABLED=true against the Monorepo;
-- do not dispatch a real GCOV workflow or copy Production secrets into Preview;
+- do not enable `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` until the 20-job mock/dry-run, artifact failure cases and callback contract pass;
+- do not set API `RIVERSHIFT_ACTIONS_ENABLED=true` against the Monorepo until API-to-workflow request/run/status binding is tested;
+- do not dispatch real GCOV downloads or copy Production secrets into Preview;
 - do not promote the migration PR to production.
 
-After runner access is restored, execute the focused RiverShift worker/API/config tests, then the full source-integrity and regression workflows. Only after those pass should an approved non-production configuration test the signed callback and private Drive receipts end to end. Production cutover remains a separate explicit decision.
+After CI pass, use approved non-production credentials for the signed callback, artifact and private Drive receipt integration test. Production cutover remains a separate explicit decision.
 
 
-## Latest Preview deployment state
+## Historical Preview deployment state — 2026-11-05 (superseded by current 2026-11-06 build)
 
 The RiverShift API configuration-hardening change and its tests are committed in the migration branch, but the latest API Preview deployment is still older (commit 4f9ed1ad09cce1261afd5e68938bc4a12a8685cc). A direct API Preview deployment request for migration branch head 280af486a49eb42b18e0de41aaa7817a287b2591 returned Vercel HTTP 402, resource api-deployments-free-per-day, because the free API deployment allowance (>100) had been reached; Vercel indicated a 24-hour retry window. No new deployment was created. Therefore the new API config code remains unbuilt by Vercel and must not be considered deployment-verified.
 
@@ -248,3 +247,15 @@ The minimal credential-free diagnostic was retriggered by a one-line diagnostic-
 This is the latest direct evidence: the platform blocker remains. The RiverShift worker, API and new tests have not executed. No additional runner retries should be spent until the repository owner confirms GitHub Actions is enabled and the account has no usage/billing restriction, or GitHub Support confirms hosted-runner provisioning is healthy. Local clone fallback was also attempted but the container could not resolve github.com, so local test execution was unavailable in this session.
 
 The latest branch head changes only the diagnostic workflow output and audit documentation relative to the RiverShift code/test commit 70c780d2bee11dc2a821040b4d10209ac519affa; no processing code or live configuration was changed by this final recheck.
+
+
+## Current-head CI and Preview confirmation — 2026-11-06
+
+Current migration branch head: `96bcdee42b5b6871f5638dd3e41161cccc966130`.
+
+- [Snapshot Regression Tests 42108970979](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42108970979): 17/17 jobs completed successfully. The RiverShift jobs were `RiverShift GCOV worker regression tests` and `Promoted RiverShift GCOV engine regression tests`; both executed their test steps. The active API regression job and promoted API/Web jobs also passed.
+- [Runner Allocation Diagnostic 42108970973](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42108970973), [Migration Metadata Validation 42108971099](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42108971099) and [Historical Secret Scan 42108971031](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42108971031) all completed successfully.
+- Vercel API Preview deployment `sar-guardian-monorepo-1zt05usqy.vercel.app` and Web Preview deployment `sar-guardian-monorepo-3rqjt3ztu.vercel.app` both reached `READY` for this exact commit. These are Preview deployments (target=null) and SSO-protected. No API health/auth/persistence/callback route smoke test is claimed.
+- The API still points by default to the existing Backend worker targets. All Monorepo RiverShift processing gates remain off/unset. No NISAR GCOV product download, Drive upload, callback round-trip or real-data result was generated by this CI validation.
+
+The next RiverShift acceptance gate is a deterministic full workflow mock/dry-run covering all 15-product batch barriers, failed-only retry waves, malformed/missing artifact receipts, callback sequencing, final nonzero failure propagation and private Drive receipt verification. A unit/regression pass must not be described as an end-to-end processing pass.
