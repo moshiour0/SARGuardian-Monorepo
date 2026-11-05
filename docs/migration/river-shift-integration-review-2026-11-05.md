@@ -191,3 +191,32 @@ The entire source directory tools/river_shift/ and promoted directory engines/ri
 - both tree responses complete (not truncated)
 
 This upgrades the earlier selected-file spot checks to complete byte/object-and-mode parity for the entire 74-file RiverShift runtime/test/environment package. The root processing workflow remains a separate intentional adaptation: one fail-closed Monorepo preflight gate, pinned action references and path adaptation; the source's 20 processing jobs remain present. This does not execute or validate the tests.
+
+
+## Workflow action pinning and secret-scope audit — 2026-11-05
+
+The Monorepo root workflow file is blob e5dc6ae68c3effba0392c3fb766f77ea5a61c1bd. Every external action reference is pinned to a full commit SHA:
+
+| Action | Pinned commit |
+|---|---|
+| actions/checkout | 3d3c42e5aac5ba805825da76410c181273ba90b1 |
+| mamba-org/setup-micromamba | f457c30a868e4760d3a6fcea5f25dc655b8edf39 |
+| actions/upload-artifact | cf430e030ddbb5b0abf93d22962f4752f3646cd9 |
+| actions/download-artifact | 9000827ccba6bdab643e8b6fd33ac0654aef8333 |
+
+The preflight gate has no `uses` action and no secret input. It reads only repository variable `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` and fails closed unless the value is exactly `true`. The first worker job, `prepare`, has `needs: preflight`; all later product, retry, status and assembly jobs depend transitively or directly on it.
+
+A complete job-to-secret scan found the following scope:
+
+| Job class | Secrets passed |
+|---|---|
+| `prepare` | RIVERSHIFT_CALLBACK_SECRET; EARTHDATA_TOKEN or username/password fallback; GOOGLE_DRIVE_OAUTH_CLIENT_JSON; GOOGLE_DRIVE_REFRESH_TOKEN; GOOGLE_DRIVE_PARENT_FOLDER_ID |
+| First-attempt and retry product matrix jobs (15 max parallel) | EARTHDATA_TOKEN or username/password fallback only |
+| Batch status jobs | RIVERSHIFT_CALLBACK_SECRET only |
+| Retry reconciliation/status job | RIVERSHIFT_CALLBACK_SECRET only |
+| `assemble` | RIVERSHIFT_CALLBACK_SECRET; Earthdata token/fallback; Google Drive OAuth client, refresh token and parent-folder ID |
+| Retry-prepare and retry-matrix-validation jobs | No secrets |
+
+This matches the worker call graph: prepare calls `_ensure_credentials()` before discovery to validate Earthdata configuration and private Drive parent-folder access; product runners only need Earthdata for exact granule download; status jobs only send signed callbacks; assembly validates storage again and publishes private results. This is an environment-variable scope audit, not a proof that hosted runner secrets have been configured.
+
+The Actions event/workflow-level permissions remain read-only `contents: read`; no `GITHUB_TOKEN` write permission is requested by the root processing workflow. The external repository dispatch uses the API's separately configured server-side GitHub token, which remains pointed at the Backend main worker by default. The Monorepo root gate and worker credentials remain inactive until explicit cutover.
