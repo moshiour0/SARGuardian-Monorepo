@@ -118,10 +118,10 @@ The following suites were statically inspected:
 | test_workflow_retry_contract.py | 4 |
 | test_validate_retry_matrix.py | 8 |
 | test_process_gcov_job.py | 25 |
-| Dynamic API test_river_shift_jobs.py | 24 |
+| Dynamic API test_river_shift_jobs.py | 28 |
 | API test_config.py after the new target-validation tests | 14 |
 
-These counts describe test functions present in the repository, not executed tests. They include the batch barrier, failed-only retry, fresh runner wave, matrix identity, callback ordering/HMAC, idempotency/owner scoping, private artifact verification, dispatch target and failure-path contracts.
+These counts describe test functions present in the repository, not executed tests. The API suite now includes four direct workflow-status reconciliation tests: terminal GitHub success without a signed success callback becomes failed, a completed failed GitHub run fails the durable job, a dispatch timeout fails a job with no run, and a previously verified signed success is not overwritten by later run-level history. The other tests cover the batch barrier, failed-only retry, fresh runner wave, matrix identity, callback ordering/HMAC, idempotency/owner scoping, private artifact verification, dispatch target and failure-path contracts.
 
 ## 7. Validation state and release gates
 
@@ -141,3 +141,16 @@ After runner access is restored, execute the focused RiverShift worker/API/confi
 ## Latest Preview deployment state
 
 The RiverShift API configuration-hardening change and its tests are committed in the migration branch, but the latest API Preview deployment is still older (commit 4f9ed1ad09cce1261afd5e68938bc4a12a8685cc). A direct API Preview deployment request for migration branch head 280af486a49eb42b18e0de41aaa7817a287b2591 returned Vercel HTTP 402, resource api-deployments-free-per-day, because the free API deployment allowance (>100) had been reached; Vercel indicated a 24-hour retry window. No new deployment was created. Therefore the new API config code remains unbuilt by Vercel and must not be considered deployment-verified.
+
+
+## Latest validation observation — 2026-11-05
+
+After the RiverShift API config hardening and status-polling tests, the latest PR head is 70c780d2bee11dc2a821040b4d10209ac519affa. The newest Actions attempts were still **queued** when inspected:
+- Runner Allocation Diagnostic: run 42002234943 (one minimal ubuntu-latest job).
+- Snapshot Regression Tests: run 42002235091 (17 regression jobs).
+- Migration Metadata Validation: run 42002235044.
+- Historical Secret Scan: run 42002234981.
+
+At that observation all jobs had null runner IDs, no runner names and zero steps, but were not yet completed. This differs from the earlier immediate pre-allocation failures; it is not yet a successful runner allocation. Recheck these same run IDs before deciding whether the GitHub runner issue is resolved.
+
+The latest API Preview code has not been deployed. Vercel rejected a direct Preview redeploy with HTTP 402 (api-deployments-free-per-day; daily free API deployment allowance exceeded). Latest inspectable API Preview remains older than the RiverShift API hardening commit. Do not treat the added config/status tests as passed or the new API code as Vercel-built until runner access and deployment quota both permit validation.
