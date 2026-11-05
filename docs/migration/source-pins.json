@@ -8,7 +8,12 @@
       "repository": "moshiour0/SARGuardian_Dynamic",
       "audited_default_branch": "main",
       "audited_commit": "dd64b7adc90594f1d7f316b352e39fbac2013cb6",
-      "role": ["react_vite_frontend", "active_firebase_supabase_fastapi_api", "job_persistence_and_callbacks", "deployment_adapters"],
+      "role": [
+        "react_vite_frontend",
+        "active_firebase_supabase_fastapi_api",
+        "job_persistence_and_callbacks",
+        "deployment_adapters"
+      ],
       "import_status": "not_imported",
       "notes": "Includes Frontend and the active Backend/app. Not frontend-only."
     },
@@ -17,7 +22,12 @@
       "repository": "moshiour0/SARGuardian-backend",
       "audited_default_branch": "main",
       "audited_commit": "97d849454918b1425ac41bb70e7a32d11cfd3833",
-      "role": ["processing_workers", "find_displacements_diagnostics", "river_shift_gcov_engine", "github_actions_workflows"],
+      "role": [
+        "processing_workers",
+        "find_displacements_diagnostics",
+        "river_shift_gcov_engine",
+        "github_actions_workflows"
+      ],
       "import_status": "not_imported",
       "notes": "Contains a separate legacy app/ service. Main does not contain the full Known Place implementation."
     },
@@ -26,7 +36,9 @@
       "repository": "moshiour0/SARGuardian",
       "audited_default_branch": "main",
       "audited_commit": "9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec",
-      "role": ["pinned_nisar_science_source"],
+      "role": [
+        "pinned_nisar_science_source"
+      ],
       "import_status": "not_imported",
       "notes": "Current main is not a substitute for historically pinned revisions."
     }
@@ -52,19 +64,25 @@
       "repository": "moshiour0/SARGuardian",
       "ref": "10639a916c9829850775410b3ed7de62e527770d",
       "role": "immutable science source used by Dynamic callback adapter / NISAR pipeline",
-      "import_status": "not_imported"
+      "import_status": "not_imported",
+      "commit": "10639a916c9829850775410b3ed7de62e527770d",
+      "ref_kind": "commit"
     },
     {
       "repository": "moshiour0/SARGuardian",
       "ref": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
       "role": "immutable source used by backend dynamic AOI worker",
-      "import_status": "not_imported"
+      "import_status": "not_imported",
+      "commit": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
+      "ref_kind": "commit"
     },
     {
       "repository": "moshiour0/SARGuardian",
       "ref": "ab547ecc82bcc4d6ccef545a59852536c2beacc6",
       "role": "immutable source used for fixed source-AOI streaming / extended science",
-      "import_status": "not_imported"
+      "import_status": "not_imported",
+      "commit": "ab547ecc82bcc4d6ccef545a59852536c2beacc6",
+      "ref_kind": "commit"
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update."
