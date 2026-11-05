@@ -123,3 +123,53 @@ def test_enabled_river_shift_actions_accept_valid_https_callback_configuration()
         "RIVERSHIFT_PUBLIC_API_URL": "https://api.example.test",
     })
     assert config.validate_production_settings(settings) is settings
+
+
+def test_known_place_workflow_targets_keep_backend_compatibility_defaults() -> None:
+    settings = config.get_settings({})
+    assert settings.known_place_github_actions_repository == "moshiour0/SARGuardian-backend"
+    assert settings.known_place_github_actions_workflow == "know-place-aoi-dispatcher.yml"
+    assert settings.known_place_github_actions_ref == "main"
+    assert settings.known_place_paper_github_actions_repository == "moshiour0/SARGuardian-backend"
+    assert settings.known_place_paper_github_actions_workflow == "know-place-paper-reproduction-dispatcher.yml"
+    assert settings.known_place_paper_github_actions_ref == "main"
+
+
+def test_known_place_workflow_targets_are_independently_configurable() -> None:
+    settings = config.get_settings({
+        "KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY": "moshiour0/SARGuardian-Monorepo",
+        "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW": "known-place-aoi.yml",
+        "KNOWN_PLACE_GITHUB_ACTIONS_REF": "migration/known-place",
+        "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY": "moshiour0/SARGuardian-Monorepo",
+        "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW": "known-place-author-exact.yml",
+        "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF": "migration/author-exact",
+    })
+    assert settings.known_place_github_actions_repository == "moshiour0/SARGuardian-Monorepo"
+    assert settings.known_place_github_actions_workflow == "known-place-aoi.yml"
+    assert settings.known_place_github_actions_ref == "migration/known-place"
+    assert settings.known_place_paper_github_actions_repository == "moshiour0/SARGuardian-Monorepo"
+    assert settings.known_place_paper_github_actions_workflow == "known-place-author-exact.yml"
+    assert settings.known_place_paper_github_actions_ref == "migration/author-exact"
+
+
+def test_production_rejects_unsafe_known_place_workflow_filename() -> None:
+    settings = config.get_settings({
+        "APP_ENV": "production",
+        "CORS_ORIGINS": "https://app.example.test",
+        "SUPABASE_URL": "https://project.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "sb_secret_test_only",
+        "DISPLACEMENT_ACTIONS_ENABLED": "true",
+        "GITHUB_ACTIONS_TOKEN": "server-token",
+        "GITHUB_ACTIONS_REPOSITORY": "moshiour0/SARGuardian-backend",
+        "GITHUB_ACTIONS_WORKFLOW": "sarguardian-displacement.yml",
+        "GITHUB_ACTIONS_REF": "main",
+        "DISPLACEMENT_CALLBACK_SECRET": "callback-secret",
+        "PUBLIC_API_URL": "https://api.example.test",
+        "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW": "../unsafe.yml",
+    })
+    try:
+        config.validate_production_settings(settings)
+    except config.SettingsError as error:
+        assert "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW" in str(error)
+    else:
+        raise AssertionError("production validation unexpectedly accepted an unsafe Known Place workflow path")
