@@ -62,7 +62,7 @@ def _workflow_target(
 
     if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise KnownPlaceWorkflowError("The configured Known Place repository is invalid.")
-    if not isinstance(workflow, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+\\.ya?ml", workflow):
+    if not isinstance(workflow, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+\.ya?ml", workflow):
         raise KnownPlaceWorkflowError("The configured Known Place workflow filename is invalid.")
     if (
         not isinstance(ref, str)
