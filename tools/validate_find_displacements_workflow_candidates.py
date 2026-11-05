@@ -191,7 +191,14 @@ def validate_inputs(dashboard: dict[str, Any]) -> None:
 
 
 def validate_tool_paths(text: str, label: str) -> None:
-    if "python tools/" in text or "tools/requirements-retention.txt" in text:
+    # Match only a root-relative command/reference. The old substring check also
+    # matched the valid promoted path under engines/find-displacements/tools/.
+    legacy_root_command = re.search(r"(?m)^\s*python\s+tools/", text)
+    legacy_root_requirements = re.search(
+        r"(?m)^\s*(?:-r\s+)?tools/requirements-retention\.txt(?:\s|$)",
+        text,
+    )
+    if legacy_root_command or legacy_root_requirements:
         fail(f"{label}: old root tools path remains")
     refs = re.findall(
         r"(?:python\s+| -r\s+|environment-file:\s*)([A-Za-z0-9_./-]*engines/find-displacements/tools/[A-Za-z0-9_./-]+)",
