@@ -57,7 +57,7 @@ Source snapshots remain immutable, and promoted paths are exact copies. Original
 
 ## Verified CI baseline
 
-Latest complete source-and-promoted-path parity run: [GitHub Actions run 41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548), with 16/16 jobs green.
+Latest complete source-and-promoted-path parity run: [GitHub Actions run 41967622599](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622599), with 16/16 jobs green.
 
 <badge color="success">16/16 jobs passed</badge>
 
@@ -69,9 +69,9 @@ The run recorded:
 - Workflow dependency parser: 82 variants, 135 jobs, 20 reusable call edges (12 local, 8 external), and 141 external checkout steps.
 - RiverShift candidate workflow validation: 20-job graph, 15-product batches, failed-only retries, artifact/retention/callback contract, and immutable Node 24 action pins unchanged.
 
-The latest full-history Gitleaks scan [41966982003](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966982003) also passed with zero unreviewed findings.
+The latest full-history Gitleaks scan [41967622669](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622669) also passed with zero unreviewed findings.
 
-See the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
+See the [readiness and remaining-work report](docs/migration/readiness-and-remaining-work.md), the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
