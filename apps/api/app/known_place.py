@@ -45,6 +45,39 @@ KNOWN_PLACE_PAPER_WORKFLOW_PAGE = (
 KNOWN_PLACE_MAX_DATE_WINDOW_DAYS = 90
 
 
+def _workflow_target(
+    settings: RuntimeSettings,
+    *,
+    paper_reproduction: bool = False,
+) -> tuple[str, str, str, str]:
+    """Resolve a workflow destination while retaining legacy-safe defaults."""
+    if paper_reproduction:
+        repository = getattr(settings, "known_place_paper_github_actions_repository", KNOWN_PLACE_PAPER_REPOSITORY)
+        workflow = getattr(settings, "known_place_paper_github_actions_workflow", KNOWN_PLACE_PAPER_WORKFLOW)
+        ref = getattr(settings, "known_place_paper_github_actions_ref", KNOWN_PLACE_PAPER_REF)
+    else:
+        repository = getattr(settings, "known_place_github_actions_repository", KNOWN_PLACE_REPOSITORY)
+        workflow = getattr(settings, "known_place_github_actions_workflow", KNOWN_PLACE_WORKFLOW)
+        ref = getattr(settings, "known_place_github_actions_ref", KNOWN_PLACE_REF)
+
+    if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        raise KnownPlaceWorkflowError("The configured Known Place repository is invalid.")
+    if not isinstance(workflow, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+\\.ya?ml", workflow):
+        raise KnownPlaceWorkflowError("The configured Known Place workflow filename is invalid.")
+    if (
+        not isinstance(ref, str)
+        or not re.fullmatch(r"[A-Za-z0-9._/-]+", ref)
+        or ".." in ref
+        or ref.startswith("/")
+        or ref.endswith("/")
+        or "//" in ref
+    ):
+        raise KnownPlaceWorkflowError("The configured Known Place workflow ref is invalid.")
+
+    page = f"https://github.com/{repository}/actions/workflows/{workflow}"
+    return repository, workflow, ref, page
+
+
 class KnownPlaceRequestError(ValueError):
     """A malformed or scientifically unsupported Known Place request."""
 
@@ -269,9 +302,8 @@ def dispatch_known_place_analysis(
     if not settings.displacement_actions_enabled:
         raise KnownPlaceWorkflowError("Processing is disabled by server configuration.")
     request_id = str(uuid4())
-    workflow_path = (
-        f"/repos/{KNOWN_PLACE_REPOSITORY}/actions/workflows/{KNOWN_PLACE_WORKFLOW}/dispatches"
-    )
+    repository, workflow, ref, workflow_page = _workflow_target(settings)
+    workflow_path = f"/repos/{repository}/actions/workflows/{workflow}/dispatches"
     inputs = {
         "request_id": request_id,
         "aoi_wkt": payload.aoi_wkt,
@@ -297,7 +329,7 @@ def dispatch_known_place_analysis(
         settings,
         "POST",
         workflow_path,
-        {"ref": KNOWN_PLACE_REF, "inputs": inputs},
+        {"ref": ref, "inputs": inputs},
     )
     if status != 204:
         raise KnownPlaceWorkflowError("GitHub Actions did not accept the Known Place request.")
@@ -305,7 +337,7 @@ def dispatch_known_place_analysis(
         request_id=request_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=KNOWN_PLACE_WORKFLOW_PAGE,
+        github_run_url=workflow_PAGE,
         execute_downloads=payload.execute_downloads,
         notice=(
             "Raw GOFF downloads and derived outputs were requested; check the run status for credential preflight and selected product inventory."
@@ -325,9 +357,8 @@ def dispatch_known_place_paper_reproduction(
     if payload.confirm_raw_downloads is not True:
         raise KnownPlaceWorkflowError("Explicit author-exact raw-download consent is required.")
     request_id = str(uuid4())
-    workflow_path = (
-        f"/repos/{KNOWN_PLACE_PAPER_REPOSITORY}/actions/workflows/{KNOWN_PLACE_PAPER_WORKFLOW}/dispatches"
-    )
+    repository, workflow, ref, workflow_page = _workflow_target(settings, paper_reproduction=True)
+    workflow_path = f"/repos/{repository}/actions/workflows/{workflow}/dispatches"
     inputs = {
         "request_id": request_id,
         "consent_marker": "[run-know-place]",
@@ -339,7 +370,7 @@ def dispatch_known_place_paper_reproduction(
         settings,
         "POST",
         workflow_path,
-        {"ref": KNOWN_PLACE_PAPER_REF, "inputs": inputs},
+        {"ref": ref, "inputs": inputs},
     )
     if status != 204:
         raise KnownPlaceWorkflowError("GitHub Actions did not accept the author-exact paper reproduction request.")
@@ -347,7 +378,7 @@ def dispatch_known_place_paper_reproduction(
         request_id=request_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=KNOWN_PLACE_PAPER_WORKFLOW_PAGE,
+        github_run_url=workflow_PAGE,
         execute_downloads=True,
         notice=(
             "Author-exact Bhote Koshi P05023 replay requested. The workflow checks Earthdata and Drive credentials before any raw download; "
@@ -364,10 +395,9 @@ def get_known_place_paper_reproduction_status(
         normalized_id = str(UUID(request_id))
     except (ValueError, TypeError, AttributeError):
         raise KnownPlaceWorkflowError("Invalid Known Place paper-reproduction request ID.") from None
-    query = urlencode({"branch": KNOWN_PLACE_PAPER_REF, "event": "workflow_dispatch", "per_page": "30"})
-    path = (
-        f"/repos/{KNOWN_PLACE_PAPER_REPOSITORY}/actions/workflows/{KNOWN_PLACE_PAPER_WORKFLOW}/runs?{query}"
-    )
+    repository, workflow, ref, workflow_page = _workflow_target(settings, paper_reproduction=True)
+    query = urlencode({"branch": ref, "event": "workflow_dispatch", "per_page": "30"})
+    path = f"/repos/{repository}/actions/workflows/{workflow}/runs?{query}"
     _status, response = _github_request(settings, "GET", path)
     runs = response.get("workflow_runs")
     if not isinstance(runs, list):
@@ -378,8 +408,8 @@ def get_known_place_paper_reproduction_status(
             continue
         if (
             run.get("display_title") != expected_title
-            or run.get("path") != f".github/workflows/{KNOWN_PLACE_PAPER_WORKFLOW}"
-            or run.get("head_branch") != KNOWN_PLACE_PAPER_REF
+            or run.get("path") != f".github/workflows/{workflow}"
+            or run.get("head_branch") != ref
             or run.get("event") != "workflow_dispatch"
         ):
             continue
@@ -389,7 +419,7 @@ def get_known_place_paper_reproduction_status(
             request_id=normalized_id,
             status=state,
             github_run_id=str(run.get("id")) if run.get("id") is not None else None,
-            github_run_url=str(run.get("html_url") or KNOWN_PLACE_PAPER_WORKFLOW_PAGE),
+            github_run_url=str(run.get("html_url") or workflow_PAGE),
             conclusion=str(run.get("conclusion")) if run.get("conclusion") is not None else None,
             created_at=str(run.get("created_at")) if run.get("created_at") else None,
             updated_at=str(run.get("updated_at")) if run.get("updated_at") else None,
@@ -400,7 +430,7 @@ def get_known_place_paper_reproduction_status(
         request_id=normalized_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=KNOWN_PLACE_PAPER_WORKFLOW_PAGE,
+        github_run_url=workflow_PAGE,
         execute_downloads=True,
         notice="GitHub accepted the author-exact request. The workflow run is still being allocated; refresh status shortly.",
     )
@@ -414,10 +444,9 @@ def get_known_place_analysis_status(
         normalized_id = str(UUID(request_id))
     except (ValueError, TypeError, AttributeError):
         raise KnownPlaceWorkflowError("Invalid Known Place request ID.") from None
-    query = urlencode({"branch": KNOWN_PLACE_REF, "event": "workflow_dispatch", "per_page": "30"})
-    path = (
-        f"/repos/{KNOWN_PLACE_REPOSITORY}/actions/workflows/{KNOWN_PLACE_WORKFLOW}/runs?{query}"
-    )
+    repository, workflow, ref, workflow_page = _workflow_target(settings)
+    query = urlencode({"branch": ref, "event": "workflow_dispatch", "per_page": "30"})
+    path = f"/repos/{repository}/actions/workflows/{workflow}/runs?{query}"
     _status, response = _github_request(settings, "GET", path)
     runs = response.get("workflow_runs")
     if not isinstance(runs, list):
@@ -428,8 +457,8 @@ def get_known_place_analysis_status(
             continue
         if (
             run.get("display_title") != expected_title
-            or run.get("path") != f".github/workflows/{KNOWN_PLACE_WORKFLOW}"
-            or run.get("head_branch") != KNOWN_PLACE_REF
+            or run.get("path") != f".github/workflows/{workflow}"
+            or run.get("head_branch") != ref
             or run.get("event") != "workflow_dispatch"
         ):
             continue
@@ -439,7 +468,7 @@ def get_known_place_analysis_status(
             request_id=normalized_id,
             status=state,
             github_run_id=str(run.get("id")) if run.get("id") is not None else None,
-            github_run_url=str(run.get("html_url") or KNOWN_PLACE_WORKFLOW_PAGE),
+            github_run_url=str(run.get("html_url") or workflow_PAGE),
             conclusion=str(run.get("conclusion")) if run.get("conclusion") is not None else None,
             created_at=str(run.get("created_at")) if run.get("created_at") else None,
             updated_at=str(run.get("updated_at")) if run.get("updated_at") else None,
@@ -450,7 +479,7 @@ def get_known_place_analysis_status(
         request_id=normalized_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=KNOWN_PLACE_WORKFLOW_PAGE,
+        github_run_url=workflow_PAGE,
         execute_downloads=None,
         notice="GitHub accepted the request. The workflow run is still being allocated; refresh status shortly.",
     )
@@ -473,10 +502,9 @@ def _normalize_known_place_request_id(request_id: str) -> str:
 
 
 def _find_generic_known_place_run(settings: RuntimeSettings, normalized_id: str) -> dict[str, Any]:
-    query = urlencode({"branch": KNOWN_PLACE_REF, "event": "workflow_dispatch", "per_page": "100"})
-    path = (
-        f"/repos/{KNOWN_PLACE_REPOSITORY}/actions/workflows/{KNOWN_PLACE_WORKFLOW}/runs?{query}"
-    )
+    repository, workflow, ref, _workflow_page_url = _workflow_target(settings)
+    query = urlencode({"branch": ref, "event": "workflow_dispatch", "per_page": "100"})
+    path = f"/repos/{repository}/actions/workflows/{workflow}/runs?{query}"
     _status, response = _github_request(settings, "GET", path)
     runs = response.get("workflow_runs")
     if not isinstance(runs, list):
@@ -487,8 +515,8 @@ def _find_generic_known_place_run(settings: RuntimeSettings, normalized_id: str)
             continue
         if (
             run.get("display_title") == expected_title
-            and run.get("path") == f".github/workflows/{KNOWN_PLACE_WORKFLOW}"
-            and run.get("head_branch") == KNOWN_PLACE_REF
+            and run.get("path") == f".github/workflows/{workflow}"
+            and run.get("head_branch") == ref
             and run.get("event") == "workflow_dispatch"
         ):
             if run.get("status") != "completed":
@@ -506,8 +534,9 @@ def _download_known_place_artifact(settings: RuntimeSettings, artifact_id: int) 
     token = settings.github_actions_token.strip()
     if not token:
         raise KnownPlaceWorkflowError("Known Place result retrieval is not configured on this server.")
+    repository, _workflow, _ref, _workflow_page_url = _workflow_target(settings)
     request = Request(
-        f"https://api.github.com/repos/{KNOWN_PLACE_REPOSITORY}/actions/artifacts/{artifact_id}/zip",
+        f"https://api.github.com/repos/{repository}/actions/artifacts/{artifact_id}/zip",
         method="GET",
         headers={
             "Accept": "application/vnd.github+json",
@@ -561,7 +590,8 @@ def _load_generic_known_place_artifact(
     run_id = run.get("id")
     if isinstance(run_id, bool) or not isinstance(run_id, int):
         raise KnownPlaceWorkflowError("GitHub returned an invalid Known Place run identity.")
-    path = f"/repos/{KNOWN_PLACE_REPOSITORY}/actions/runs/{run_id}/artifacts?per_page=100"
+    repository, _workflow, _ref, _workflow_page_url = _workflow_target(settings)
+    path = f"/repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100"
     _status, response = _github_request(settings, "GET", path)
     artifacts = response.get("artifacts")
     if not isinstance(artifacts, list):
