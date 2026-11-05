@@ -46,6 +46,12 @@ This avoids the incomplete result that would come from copying backend `main` al
 
 All source files are nested below `migration/source-snapshots/`. Their embedded `.github/workflows/` folders are archival snapshots and are **not active root workflows**. No production workflow was copied into the active root `.github/workflows/` directory, and no duplicate processing can be triggered by these snapshots.
 
+## Runtime regression result
+
+The isolated snapshot regression workflow [41956286197](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41956286197) completed with all seven jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,084 imported entries. Details are in [validation-baseline.md](validation-baseline.md).
+
+The Dynamic/backend same-path collision audit found 24 overlaps, including 19 different-content paths; see [path-collision-report.md](path-collision-report.md).
+
 ## What this does not mean
 
 This is a provenance-preserving import, not yet the final consolidated application layout. The next phase must:
