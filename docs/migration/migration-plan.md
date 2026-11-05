@@ -1,7 +1,7 @@
 # SARGuardian monorepo migration plan
 
 **Plan date:** 2026-11-05  
-**Execution state:** nine immutable source snapshots imported; app and engine paths promoted on an isolated migration branch; 14/14 source/promoted CI jobs pass. Workflow cutover and production deployment remain blocked pending the remaining integration/security gates.
+**Execution state:** ten source snapshots preserved (nine commit-backed histories plus the divergent Known Place author-exact code tree); app and engine paths promoted on an isolated migration branch. The 14-job parity baseline passed before this tenth snapshot and is being rerun now. Workflow cutover and production deployment remain blocked pending the remaining integration/security gates.
 
 ## Executive decision
 
@@ -12,7 +12,8 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 - [x] Verify target repository exists and connected GitHub integration has push/admin access.
 - [x] Record current default-branch SHAs for Dynamic, backend, and NISAR science sources.
 - [x] Record Known Place feature-branch base and open PR #85 separately from backend main.
-- [x] Import nine exact source trees and retain source commit history.
+- [x] Import nine commit-backed source trees and retain their source commit history.
+- [x] Preserve the divergent Known Place author-exact `backend_code_ref` (`b825df…`) as an additional exact 277-path tree snapshot.
 - [x] Inventory all 42 Dynamic/backend-main workflow files with source blob SHAs, triggers, jobs, checkout repositories/pins, and credential-risk notes.
 - [x] Record the Known Place PR #85 workflow delta: 15 added workflows, 8 modified same-path workflows, and 10 backend-main-only workflows.
 - [x] Parse all 82 workflow variants and inventory permissions, action pins, secret references, external checkouts, artifacts, retries, reusable calls, and triggers; see `docs/migration/workflow-contract-audit.md`.
@@ -32,7 +33,7 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 
 ## Phase 2 — immutable imports and source integrity
 
-- [x] Import nine source snapshots under `migration/source-snapshots/` (1,408 tracked paths).
+- [x] Import nine commit-backed snapshots plus one divergent exact tree snapshot under `migration/source-snapshots/` (1,685 tracked paths).
 - [x] Preserve source commit histories through Git parent relationships.
 - [x] Compare every imported snapshot path, file mode, object type, and Git blob SHA.
 - [x] Preserve divergent historical worker checkouts (Dynamic API, backend reassembly, legacy Sagormodak science fork) separately rather than overlaying them.
@@ -96,11 +97,11 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 ## Current CI acceptance baseline
 
-Latest full parity run: [41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), 14/14 jobs passed:
+Previous full parity run: [41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), 14/14 jobs passed before the additional `b825df` snapshot was imported. CI must re-run against the full ten-snapshot tree:
 - source snapshot tests: 1,463 passed, 1 skipped;
 - promoted-path tests: 1,231 passed;
 - total: 2,694 passing test executions, 1 skipped;
-- exact source blob/history checks: 1,408 snapshot paths plus promoted path/fixture mappings.
+- exact source blob/history checks: the previous 1,408 snapshot paths plus the new 277-path `b825df` source tree and promoted path/fixture mappings.
 
 See `docs/migration/validation-baseline.md`.
 
