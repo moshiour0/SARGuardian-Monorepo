@@ -70,7 +70,7 @@ The Dynamic/backend same-path collision audit found 24 overlaps, including 19 di
 The provenance-preserving source import and first exact-copy app/engine promotion are complete. Remaining work is:
 - resolve shared utility collisions from their real import/call graphs;
 - complete workflow permission, caller, callback, artifact, retention, and duplicate-dispatch review before root workflow activation;
-- run automated secret scanning and map configuration names without transferring secret values;
+- map runtime configuration names without transferring secret values;
 - verify Vercel project roots and deploy Preview without changing production aliases;
 - verify Supabase project/schema linkage without applying migrations;
 - run callback/retention mocks, then isolated pilot and rollback rehearsal.
