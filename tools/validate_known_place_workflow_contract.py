@@ -13,7 +13,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 API_PATH = ROOT / "apps" / "api" / "app" / "known_place.py"
-DISPATCHER_PATH = ROOT / ".github" / "workflows" / "know-place-aoi-monorepo-dispatcher.yml"
+DISPATCHER_PATH = ROOT / ".github" / "workflows" / "know-place-aoi-dispatcher.yml"
 REUSABLE_PATH = ROOT / ".github" / "workflows" / "know-place-aoi-analysis.yml"
 UPLOAD_ARTIFACT_SHA = "cf430e030ddbb5b0abf93d22962f4752f3646cd9"
 
@@ -115,13 +115,33 @@ def main() -> int:
         fail("Dispatcher permissions must remain contents: read only.")
 
     jobs = mapping(dispatcher.get("jobs"), "dispatcher jobs")
-    if set(jobs) != {"analyze"}:
-        fail("Dispatcher must contain exactly one reusable analysis job.")
-    analyze = mapping(jobs["analyze"], "dispatcher analyze job")
+    if set(jobs) != {"known-place-preflight", "known-place-aoi-analysis"}:
+        fail("Dispatcher must contain exactly the guarded preflight and reusable analysis jobs.")
+    dispatch_preflight = mapping(jobs["known-place-preflight"], "dispatcher preflight job")
+    preflight_steps = dispatch_preflight.get("steps")
+    if not isinstance(preflight_steps, list) or len(preflight_steps) != 1:
+        fail("Dispatcher must have one credential-free preflight step.")
+    dispatch_gate = preflight_steps[0]
+    if not isinstance(dispatch_gate, dict) or "uses" in dispatch_gate:
+        fail("Dispatcher preflight must not invoke an external action.")
+    dispatch_gate_env = mapping(dispatch_gate.get("env"), "dispatcher preflight env")
+    if (
+        dispatch_gate_env.get("MONOREPO_KNOWN_PLACE_ENABLED") != expression("vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED")
+        or dispatch_gate_env.get("EXECUTE_DOWNLOADS") != expression("inputs.execute_downloads")
+    ):
+        fail("Dispatcher preflight must read the repository opt-in and requested execution mode.")
+    dispatch_gate_run = str(dispatch_gate.get("run", ""))
+    for marker in ('if [[ "$EXECUTE_DOWNLOADS" == "true" ]]', '!= "true"', "RAW_SOURCE_DOWNLOADS=DISABLED", "DRIVE_UPLOAD=DISABLED"):
+        if marker not in dispatch_gate_run:
+            fail("Dispatcher preflight must fail closed for raw downloads while allowing catalog-only dry runs.")
+    if "secrets." in str(dispatch_preflight):
+        fail("Dispatcher preflight must not receive credentials.")
+
+    analyze = mapping(jobs["known-place-aoi-analysis"], "dispatcher analyze job")
+    if analyze.get("needs") != "known-place-preflight":
+        fail("Dispatcher analysis job must depend on its fail-closed preflight.")
     if analyze.get("uses") != "./.github/workflows/know-place-aoi-analysis.yml":
         fail("Dispatcher must call the Monorepo-local Known Place reusable workflow.")
-    if analyze.get("secrets") != "inherit":
-        fail("Dispatcher must explicitly inherit server-side secrets into the local reusable workflow.")
     forwarded = mapping(analyze.get("with"), "dispatcher workflow-call inputs")
     if set(forwarded) != set(call_inputs):
         fail(
@@ -133,6 +153,24 @@ def main() -> int:
         expected = expression(f"inputs.{name}")
         if forwarded[name] != expected:
             fail(f"Dispatcher input {name!r} must pass through unchanged as {expected!r}.")
+
+    expected_secrets = {
+        "EARTHDATA_TOKEN",
+        "EARTHDATA_USERNAME",
+        "EARTHDATA_PASSWORD",
+        "GOOGLE_DRIVE_OAUTH_CLIENT_JSON",
+        "GOOGLE_DRIVE_REFRESH_TOKEN",
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID",
+    }
+    declared_secrets = mapping(mapping(reusable_events["workflow_call"], "workflow_call").get("secrets"), "workflow_call secrets")
+    if set(declared_secrets) != expected_secrets:
+        fail("Reusable workflow secret contract does not match the six scoped worker secrets.")
+    forwarded_secrets = mapping(analyze.get("secrets"), "dispatcher secret forwarding")
+    if set(forwarded_secrets) != expected_secrets:
+        fail("Dispatcher must forward exactly the six worker secrets, not inherit the repository-wide secret set.")
+    for name in expected_secrets:
+        if forwarded_secrets[name] != expression("secrets." + name):
+            fail(f"Dispatcher worker secret {name!r} must be mapped explicitly.")
 
     for name in ("aoi_wkt", "start_date", "end_date"):
         if mapping(dispatch_inputs[name], name).get("required") != "true":
