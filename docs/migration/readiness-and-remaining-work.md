@@ -15,13 +15,16 @@ The Monorepo now contains:
 - Supabase config and seven SQL migration files under `infrastructure/supabase/`;
 - static workflow inventory, reusable workflow call graph, source pin inventory, and workflow migration/cutover documentation.
 
-Latest full code/test baseline:
-- [GitHub Actions run 41980756059](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41980756059): **17/17 jobs passed** after the Known Place routing/integrity changes. Later migration-documentation, branch-archive and CI path-filter commits still need a fresh full regression/secret-scan confirmation.
+Latest full code/test baseline and follow-up execution:
+- [GitHub Actions run 41980756059](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41980756059): **17/17 jobs passed** for the promoted application/engine code and the Known Place configurable-routing changes.
+- The later source-branch archive gate was added to `tools/verify_source_snapshots.py`. It pins five OPERA/Run #36 source files against `migration/source-branch-snapshots/rivershift-validation-pins.json`; the archive is evidence-only and does not activate those workflows.
+- Latest-head runs [41983005054](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41983005054), [41983005055](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41983005055), and [41983005107](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41983005107) all concluded `failure`, but every job returned `steps=null`, no start-step/log artifact, and log retrieval returned `BlobNotFound`. A rerun of all failed jobs produced the same pre-step failure. This is **not evidence of a code/test assertion failure**, but it is also not a passing validation. The archive verifier and full-history scan therefore still need a successful runner execution on the current branch head.
+- At the time checked, [GitHub Status](https://www.githubstatus.com/) reported all systems operational; the [incident history](https://www.githubstatus.com/history) lists the November 4 Actions incident as resolved. The repository-level pre-job failure remains unexplained; do not attribute it to billing, permissions, or a platform outage without account-specific evidence.
 - 1,463 source-snapshot test executions passed, 1 skipped.
 - 1,231 promoted-path test executions passed.
 - **2,694 passing executions, 1 skipped**. This is an execution count because source and promoted paths intentionally run the same suites twice; it is not a count of unique test cases.
 - Exact Git blob/mode/type checks passed for all 1,685 core source snapshot paths and the promoted code/config/workflow compatibility mappings. Additional OPERA/Run #36 validation files are archived separately under migration/source-branch-snapshots/ with source blob hashes; they are not active workflows.
-- Full-history Gitleaks scan [41967281531](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967281531): PASS, zero unreviewed findings.
+- Full-history Gitleaks scan [41967281531](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967281531): PASS for the earlier imported history. The latest run [41983005054](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41983005054) did not start its job steps, so the newly added branch-archive files have **not yet received a successful fresh scan**.
 - Workflow dependency parser: 82 workflow variants, 135 jobs, 20 reusable call edges (12 local and 8 external), and 141 external checkout steps.
 
 ## Completed
@@ -61,9 +64,13 @@ Two new Vercel projects are now Git-linked to `moshiour0/SARGuardian-Monorepo` w
 - Web: project `sar-guardian-monorepo-web`, root `apps/web`.
 - API: project `sar-guardian-monorepo-api`, root `apps/api`.
 
-The first isolated Preview deployments from commit `8de4f0f0edfc37a3ccc192a547942e2d84f1b59f` both reached READY with `target=null` (Preview, not Production). Preview-only API URL/CORS values are configured; Find Displacements and RiverShift dispatch are explicitly disabled. No Production credentials, Supabase service-role key, Firebase Admin credential, GitHub token, Drive OAuth or callback secret were copied to Preview.
+The isolated Preview deployments both reached READY with `target=null` (Preview, not Production):
+- Web deployment [`dpl_GMUhm39paoZgMfqyxzPSDBqaVMKe`](https://vercel.com/moshiour-rahman-sarkers-projects-2cebe363/sar-guardian-monorepo-web) uses commit `cb23414a069f3bd0c0ad466b1a581d5e26038e64`; stable branch alias: `sar-guardi-git-90a645-moshiour-rahman-sarkers-projects-2cebe363.vercel.app`.
+- API deployment [`dpl_F5m1ZnpYktLNHiQ5p7WD1kHDm6Tf`](https://vercel.com/moshiour-rahman-sarkers-projects-2cebe363/sar-guardian-monorepo-api) uses commit `f2cca2b57ccd40ad93ff1ab41a5b862f41833b51`; stable branch alias: `sar-guardi-git-ed4bd9-moshiour-rahman-sarkers-projects-2cebe363.vercel.app`.
 
-A later attempt to check/deploy the newer branch head was rejected by Vercel with `build-rate-limit`. This is a hosting build quota blocker, not a reported TypeScript/Python build failure. The current Preview URL is therefore behind the latest code commits. Full login, staging persistence, live map key/Places API, private Drive result retrieval and real processing are not yet validated on Monorepo Preview.
+The Web RiverShift page and API config/main blobs match the current branch. The deployed API `known_place.py` is one six-line correction behind current source: its workflow URL variable references were corrected from `workflow_PAGE` to `workflow_page` after that deployment. The current source is corrected, but Known Place dispatch/status must not be treated as tested on this Preview until the API is redeployed. Preview-only API URL/CORS values are configured; Find Displacements and RiverShift dispatch are explicitly disabled. No Production credentials, Supabase service-role key, Firebase Admin credential, GitHub token, Drive OAuth or callback secret were copied to Preview.
+
+Vercel's Git integration has since rejected newer deployments with `api-deployments-free-per-day` (`more than 100`), shown in its PR bot comment. This is a hosting deployment quota blocker, not a reported TypeScript/Python build failure. The current Preview projects remain SSO-protected and behind the latest source commit; the API also needs the six-line Known Place URL-reference correction deployed. Full login, staging persistence, live map key/Places API, private Drive result retrieval and real processing are not yet validated on Monorepo Preview.
 
 Do not repoint either existing Production project. Keep Preview dispatch disabled until staging auth/database and callback contracts are ready.
 
@@ -92,4 +99,4 @@ Still required:
 
 ## What remains in plain terms
 
-The core source import, promoted paths and a 17/17 regression baseline are complete for the audited sources. The newer archival validation snapshots and documentation have not yet received a fresh full CI/secret-scan confirmation. What remains is the operational integration: safe workflow activation, latest Preview redeployment/smoke tests, callback/retention dry-runs, Supabase history reconciliation, and finally real-data pilot, independent review, rollback and cutover. **It is not production-ready yet.**
+The core source import and promoted paths have a verified 17/17 historical regression baseline. The latest source-archive verifier and secret-scan checks have not yet completed because GitHub created jobs but no runner steps/logs; the current CI result is therefore unresolved, not green. Latest Preview builds are READY but stale; the API's Known Place URL-reference correction remains undeployed. What remains is to recover CI execution, refresh both Preview deployments, complete workflow dry-runs, reconcile Supabase history, then run real-data pilots, independent review, rollback and controlled cutover. **It is not production-ready yet.**
