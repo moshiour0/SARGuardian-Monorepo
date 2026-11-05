@@ -1,14 +1,14 @@
 # Migration and promoted-path validation baseline
 
-**Latest full parity run:** [GitHub Actions run 41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808)  
-**Validated code commit:** `99afa557fa4557c5269851da4aba76e2e0aa2679`  
-**Result:** <badge>14/14 jobs passed</badge>  
+**Latest full parity run:** [GitHub Actions run 41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688)  
+**Validated code commit:** `5a9881f751b245abdfeb32ce055c62882cbf6c36`  
+**Result:** **14/14 jobs passed**.  
 **Source snapshot scope:** nine immutable snapshots, 1,408 tracked paths.  
 **Promoted scope:** `apps/web`, `apps/api`, Find Displacements, Known Place, RiverShift, and NISAR science.
 
 ## Test results
 
-The CI deliberately runs source-snapshot tests and promoted-path tests separately. This shows both source preservation and path-promotion parity.
+The workflow runs source-snapshot tests and promoted-path tests separately. This checks both source preservation and path-promotion parity.
 
 | Validation group | Result | Evidence |
 |---|---|---:|
@@ -18,7 +18,7 @@ The CI deliberately runs source-snapshot tests and promoted-path tests separatel
 | Known Place PR #85 snapshot | PASS | 318 tests |
 | RiverShift GCOV snapshot | PASS | 259 tests |
 | NISAR science snapshot | PASS | 180 tests |
-| Promoted `apps/web` | PASS | 155 tests; build and lint pass |
+| Promoted `apps/web` | PASS | 155 tests; 20 test files; build and lint pass |
 | Promoted `apps/api` | PASS | 215 tests |
 | Promoted Find Displacements | PASS | 104 dashboard/worker-tools tests |
 | Promoted Known Place | PASS | 318 tests |
@@ -27,15 +27,15 @@ The CI deliberately runs source-snapshot tests and promoted-path tests separatel
 
 **Snapshot-path executions:** 1,463 passed, 1 skipped.  
 **Promoted-path executions:** 1,231 passed.  
-**Combined:** **2,694 passing test executions, 1 skipped**. Frontend/API/science/engine test groups intentionally run twice—once at the immutable source path and once at the promoted path—so this combined number is execution count, not unique test-case count.
+**Combined:** **2,694 passing test executions, 1 skipped**.
 
-The remaining two jobs validate source provenance and discover embedded revision pins. All 14 jobs completed successfully.
+These are test executions, not unique test-case count: source and promoted paths intentionally run the same frontend/API/engine/science suites separately. The backend core suite also overlaps with focused Find Displacements coverage; the combined figure is not a count of distinct logical behaviours.
 
-## Exact source integrity
+The other two jobs validate exact source/promoted Git object integrity and scan embedded commit-like source references. All 14 jobs completed successfully.
 
-The integrity job used a full-history checkout and compared Git object identity, not decoded/re-encoded file text.
+## Exact source and promotion integrity
 
-For each of the nine imported source trees, it compared every tracked path, file mode, object type, and Git blob SHA:
+The integrity job checked all nine imported source trees using a full-history checkout and compared every tracked path, Git file mode, object type, and blob SHA:
 - Dynamic main: 185 paths.
 - Backend main: 244 paths.
 - Known Place PR #85 head: 277 paths.
@@ -47,38 +47,47 @@ For each of the nine imported source trees, it compared every tracked path, file
 
 **Result: 1,408/1,408 source snapshot entries exact.**
 
-The validator also confirms exact Git object identity for the promoted application/tool/workflow paths, all promoted engine directories, and their workflow/dependency compatibility fixtures (701 promoted path/file entries in total). It verifies that:
-- Known Place feature base `bd7a59c54ddae7c19fd88896e877c3a530b43d9e` is an ancestor of imported PR #85 head `bfde7dde8ada92a03054cd8dbad8daa7a5c119f8`;
-- NISAR pin `ab547ecc82bcc4d6ccef545a59852536c2beacc6` is an ancestor of NISAR science main `9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec`.
+The validator also verified all **701 promoted tracked entries**:
+- Dynamic app/API compatibility paths: 173 entries.
+- Known Place: 277 entries.
+- NISAR science: 110 entries.
+- Find Displacements: 65 entries.
+- RiverShift: 76 entries.
+
+These copies use the original Git blobs/modes; no decoding/re-encoding or source file rewriting occurred during promotion. The validator verifies:
+- Known Place feature base `bd7a59c54ddae7c19fd88896e877c3a530b43d9e` is an ancestor of PR #85 head `bfde7dde8ada92a03054cd8dbad8daa7a5c119f8`;
+- NISAR pin `ab547ecc82bcc4d6ccef545a59852536c2beacc6` is an ancestor of NISAR science main `9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec`;
+- the exact source and destination objects for engine-local workflow/dependency fixtures.
 
 No original source repository was modified.
 
 ## Workflow and engine-path corrections
 
-The first promoted engine regression attempt exposed missing repository-root-relative workflow fixtures:
-- Find Displacements tests expected four additional backend-root workflows that the initial engine promotion did not include.
-- RiverShift tests expected its independent-reference validation workflow beside the GCOV process fixture.
+The first promoted engine regression attempt identified missing repository-root-relative workflow fixtures. Find Displacements tests expected four additional backend-root workflow files; RiverShift expected its independent-reference validation workflow. Those exact backend-main blobs were added below each engine's nested `.github/workflows/` directory and included in the integrity validator.
 
-Those exact backend-main Git blobs were added beneath each engine's nested `.github/workflows/` directory and registered in the exact-object validator. They are **inactive compatibility fixtures**; only repository-root `.github/workflows/` is executable by GitHub Actions. The subsequent full run passed. No production workflow was activated and no science algorithm was changed.
+They are **inactive compatibility fixtures**. GitHub Actions only activates workflows below the repository-root `.github/workflows/`; these nested engine copies do not run. No production workflow was activated and no science algorithm was changed.
 
-The Known Place PR #85 source initially failed test collection because SciPy was missing from the isolated test environment. The dependency was added to CI; all 318 tests passed. A separate earlier NISAR cleanup failure caused by `--no-cache-dir` was corrected. Neither correction changes source science code.
+The Known Place PR #85 test environment initially lacked SciPy; its isolated test dependency was corrected, after which all 318 tests passed. An earlier NISAR cleanup issue caused by disabling pip cache was also corrected. These were CI environment corrections only.
 
 ## Embedded source-reference discovery
 
-The pin scanner reviewed 867 text files and found 48 distinct 40-character commit-like strings in pin-related context. These are **candidate references**, not 48 confirmed science pins: the result includes historical code commits and validation-evidence references as well as actual workflow checkout refs. Confirmed workflow checkout pins are separately classified in `source-pins.json`, `source-import-report.md`, and `workflow-register.md`.
+The pin scanner reviewed 867 text files and found 48 distinct 40-character commit-like strings in pin-related context. These are candidates, not 48 confirmed science pins: they include source checkout refs, historical code commits, and validation-evidence references. Confirmed checkout pins and their ancestry/divergence status are separately classified in `docs/migration/source-pins.json` and `docs/migration/source-import-report.md`.
+
+The pin scan is not a secret scan. Automated secret scanning remains a separate pre-cutover gate.
 
 ## What this validation establishes
 
-- The nine immutable source snapshots are exact and retain their source histories.
-- Promoted application and engine directories are exact copies of their source trees or documented exact subtrees.
-- The existing frontend/API/engine tests execute successfully at both original and promoted paths.
-- The current path layout does not silently overwrite the 19 divergent Dynamic/backend same-path files.
+- All nine immutable source snapshots are exact and their source histories remain reachable.
+- Promoted application and engine paths are exact copies of their mapped source trees/subtrees.
+- The source and promoted frontend/API/engine suites run successfully at both locations.
+- The current path layout does not overwrite the 19 divergent Dynamic/backend same-path files.
+- Engine-specific test fixtures are present without activating nested source workflows.
 
 ## What this validation does not establish
 
 - Production Vercel root/domain and environment configuration is ready to switch.
 - Firebase, Supabase, Google Drive, ASF credentials, callback secrets, or GitHub token permissions are configured safely in the target deployment.
-- All original workflows are ready to move into root `.github/workflows/`; the workflow caller, permission, artifact, retention, callback, and duplicate-dispatch audit remains in progress.
+- All original workflows are ready to move into root `.github/workflows/`; the workflow caller, permission, artifact, retention, callback, and duplicate-dispatch audit is still in progress.
 - Real-data output parity or independent geophysical validation has passed.
 - A production cutover or rollback rehearsal has been performed.
 
