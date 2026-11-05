@@ -29,7 +29,8 @@ EXPECTED_COUNTS = {
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 REUSABLE_RE = re.compile(
     r"^(?P<repo>[^/]+/[^/]+)/\.github/workflows/(?P<path>[^@]+)@(?P<ref>.+)$"
-)
+) 
+LOCAL_RE = re.compile(r"^\./\.github/workflows/(?P<path>[^@]+)$")
 SECRET_RE = re.compile(r"\$\{\{\s*secrets\.([A-Za-z_][A-Za-z0-9_]*)")
 VAR_RE = re.compile(r"\$\{\{\s*vars\.([A-Za-z_][A-Za-z0-9_]*)")
 
@@ -123,6 +124,40 @@ def main() -> int:
                     )
                 for key in (job.get("env") or {}):
                     env_names.add(str(key))
+
+                # Reusable workflows are declared on a job's top-level "uses",
+                # not inside steps. Record external and local calls separately.
+                job_uses = str(job.get("uses") or "")
+                match = REUSABLE_RE.match(job_uses)
+                if match:
+                    edge = {
+                        "source": rel,
+                        "job": str(job_name),
+                        "call_kind": "external_reusable_workflow",
+                        "target_repo": match.group("repo"),
+                        "target_workflow": match.group("path"),
+                        "target_ref": match.group("ref"),
+                    }
+                    workflow_calls.append(
+                        f"{edge['target_repo']}/{edge['target_workflow']}@{edge['target_ref']}"
+                    )
+                    global_call_edges.append(edge)
+                else:
+                    local_match = LOCAL_RE.match(job_uses)
+                    if local_match:
+                        edge = {
+                            "source": rel,
+                            "job": str(job_name),
+                            "call_kind": "local_reusable_workflow",
+                            "target_repo": "<same-repository>",
+                            "target_workflow": local_match.group("path"),
+                            "target_ref": "<same-commit>",
+                        }
+                        workflow_calls.append(
+                            f"./.github/workflows/{edge['target_workflow']}@<same-commit>"
+                        )
+                        global_call_edges.append(edge)
+
                 for step in job.get("steps") or []:
                     if not isinstance(step, dict):
                         continue
@@ -197,6 +232,7 @@ def main() -> int:
         "total_workflows": len(all_workflows),
         "total_jobs": total_jobs,
         "reusable_workflow_calls": len(global_call_edges),
+        "reusable_calls_by_kind": dict(Counter(x["call_kind"] for x in global_call_edges)),
         "external_checkout_steps": len(global_checkouts),
         "secret_variable_names": sorted(all_secret_names),
         "repository_variable_names": sorted(all_var_names),
