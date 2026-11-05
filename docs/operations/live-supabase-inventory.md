@@ -67,3 +67,20 @@ This is **migration-history naming/version drift**, not evidence that the live s
 ## No migration performed
 
 No table, column, index, trigger, policy, extension, privilege, row, or migration-history entry was changed by this audit. Supabase remains the existing production data store; the Monorepo should reuse it during first Preview only after environment mapping, not create a new database or migrate live rows.
+
+## Performance-advisor recheck — 2026-11-05 03:31 UTC
+
+A second read-only call to the Supabase Performance Advisor returned:
+- one INFO `unindexed_foreign_keys` finding: `processing_jobs.preflight_id` has no covering B-tree index;
+- four WARN `auth_rls_initplan` findings, one for each owner-read policy;
+- two INFO `unused_index` findings for `catalog_preflights_owner_created_idx` and `processing_jobs_state_idx`.
+
+The four live policy definitions were inspected directly through `pg_policies`. Each uses the scalar-subquery form:
+`(( SELECT (auth.jwt() ->> 'sub'::text)) = owner_uid)`.
+This is already the documented init-plan pattern for avoiding per-row JWT function evaluation. The advisor warning appears inconsistent with the live policy expression; classify it as a likely advisor false positive, not an instruction to rewrite an already-correct owner check. The policy remains an owner filter and is not relaxed.
+
+The live index list for `processing_jobs` confirms there is no index whose leading key covers `preflight_id`; the only indexes are the primary key, owner/created ordering, owner/idempotency uniqueness, state, and one-active-heavy uniqueness. A small supporting index on `preflight_id` is a performance candidate, but do not apply it during source migration. Evaluate query plans and expected preflight/job retention volume first, then add a reviewed migration after local/remote migration history is reconciled.
+
+The two unused-index notices are low-confidence at the current small row counts (2 rows in `processing_jobs`, 3 in `catalog_preflights`) and must not trigger index removal. Keep them until representative production workload evidence exists.
+
+**Change scope remains read-only:** no SQL DDL, policy, index, table, data, or migration-history entry was changed during this recheck.
