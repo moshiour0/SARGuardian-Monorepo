@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-During local development, the backend loads `Backend/.env` through `python-dotenv`.
+During local development, the API loads `apps/api/.env` through `python-dotenv`.
 Existing host environment variables take precedence. Set `APP_ENV=production` in a
 hosted environment; production skips local dotenv loading and requires hosting-provided
 environment variables, including an explicit `CORS_ORIGINS` value.
@@ -49,7 +49,7 @@ Supabase.
 
 ## Safe local configuration preflight
 
-Do not commit `Backend/.env`. Create it manually from `Backend/.env.example` only after
+Do not commit `apps/api/.env`. Create it manually from `apps/api/.env.example` only after
 obtaining staging values. The current code expects these names:
 
 - `APP_ENV` (`development` locally; `production` on a host)
@@ -69,12 +69,12 @@ obtaining staging values. The current code expects these names:
 
 Manual setup:
 
-1. Copy `Backend/.env.example` to `Backend/.env` locally; do not commit the copy.
+1. Copy `apps/api/.env.example` to `apps/api/.env` locally; do not commit the copy.
 2. Set `APP_ENV=development` and the staging `SUPABASE_URL`.
 3. Put the modern server-only Supabase secret key in `SUPABASE_SERVICE_ROLE_KEY`.
 4. Set either `GOOGLE_APPLICATION_CREDENTIALS` to a local server-side credential path, or configure Application Default Credentials. Do not put the credential JSON in this repository.
 5. Set `ASF_CATALOG_ENABLED` deliberately, review `CORS_ORIGINS`, and keep `PREFLIGHT_TTL_SECONDS` within its supported range.
-6. From `Backend`, run the non-networking diagnostic:
+6. From `apps/api`, run the non-networking diagnostic:
 
 ```powershell
 python -m app.config_diagnostic
