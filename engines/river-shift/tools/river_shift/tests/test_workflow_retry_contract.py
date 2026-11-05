@@ -1,7 +1,9 @@
 from __future__ import annotations
 from pathlib import Path
+import re
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = REPOSITORY_ROOT / ".github" / "workflows" / "river-shift-gcov-process.yml"
+
 def _job_block(workflow: str, job_name: str, next_job: str) -> str:
     start_marker = f"  {job_name}:"
     end_marker = f"  {next_job}:"
@@ -10,6 +12,7 @@ def _job_block(workflow: str, job_name: str, next_job: str) -> str:
     assert start >= 0, f"Missing RiverShift job: {job_name}"
     assert end > start, f"Missing next job after {job_name}"
     return workflow[start:end]
+
 def test_every_retry_wave_uses_a_fresh_runner_and_validated_matrix():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     assert "\\" + "$" + "{{" not in workflow
@@ -30,6 +33,7 @@ def test_every_retry_wave_uses_a_fresh_runner_and_validated_matrix():
         assert "RIVERSHIFT_RETRY_ATTEMPT: " + "$" + "{{ matrix.retry_attempt }}" in retry
         assert "RIVERSHIFT_PRODUCT_OUTPUT_DIR: product-output/wave-" + "$" + "{{ matrix.retry_attempt }}" in retry
         assert "rivershift-retry-wave-" + "$" + "{{ matrix.retry_attempt }}" + "-product-" in retry
+
 def test_later_waves_run_even_when_previous_worker_failed_but_validation_passed():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     wave_two = _job_block(workflow, "retry_prepare_2", "retry_dispatch_2")
@@ -40,6 +44,7 @@ def test_later_waves_run_even_when_previous_worker_failed_but_validation_passed(
     assert "needs: [retry_prepare_2, retry_dispatch_2, retry_2]" in wave_three
     assert "needs.retry_prepare_2.result == 'success'" in wave_three
     assert "needs.retry_dispatch_2.result == 'success'" in wave_three
+
 def test_retry_status_reconciles_every_wave_and_assembly_waits_for_it():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     retry_status = _job_block(workflow, "retry_status", "assemble")
@@ -52,6 +57,7 @@ def test_retry_status_reconciles_every_wave_and_assembly_waits_for_it():
     assert "if: always()" in retry_status
     assemble = workflow[workflow.find("  assemble:"):]
     assert "needs.retry_status.result == 'success'" in assemble
+
 def test_initial_retry_worker_is_not_suppressed_by_failed_first_attempt_ancestors():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     retry = _job_block(workflow, "retry", "retry_prepare_2")
@@ -61,6 +67,7 @@ def test_initial_retry_worker_is_not_suppressed_by_failed_first_attempt_ancestor
     assert "needs.retry_dispatch.result == 'success'" in retry
     assert "needs.retry_prepare.outputs.retry_count != '0'" in retry
     assert "matrix: " + "$" + "{{ fromJSON(needs.retry_prepare.outputs.retry_matrix) }}" in retry
+
 def test_root_workflow_exposes_the_complete_gated_twenty_job_processing_graph():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     jobs_section = workflow.split("\njobs:\n", 1)[1]
@@ -81,6 +88,7 @@ def test_root_workflow_exposes_the_complete_gated_twenty_job_processing_graph():
     assert "permissions:\n  contents: read\n" in workflow
     assert "actions: write" not in workflow
     assert "needs: preflight" in _job_block(workflow, "prepare", "batch_1")
+
 def test_processing_gate_is_fail_closed_and_receives_no_secret():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     preflight = _job_block(workflow, "preflight", "prepare")
@@ -88,6 +96,7 @@ def test_processing_gate_is_fail_closed_and_receives_no_secret():
     assert '!= "true"' in preflight
     assert "secrets." not in preflight
     assert "MONOREPO_PROCESSING_ENABLED" in preflight
+
 def test_first_attempt_batches_are_sequential_with_verified_status_barriers():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     cases = [
@@ -121,6 +130,7 @@ def test_first_attempt_batches_are_sequential_with_verified_status_barriers():
         assert f"needs: [prepare, {batch}]" in status_block
         if release_gate:
             assert f"needs.{release_gate}.result == 'success'" in block
+
 def test_secret_scope_keeps_worker_data_credentials_out_of_product_and_status_jobs():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     prepare = _job_block(workflow, "prepare", "batch_1")
@@ -148,6 +158,7 @@ def test_secret_scope_keeps_worker_data_credentials_out_of_product_and_status_jo
     assert "secrets.RIVERSHIFT_CALLBACK_SECRET" in status
     assert "secrets.EARTHDATA_TOKEN" not in status
     assert "secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON" not in status
+
 def test_product_matrix_failures_remain_visible_and_are_not_continue_on_error():
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     product_jobs = [
