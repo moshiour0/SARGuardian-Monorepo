@@ -636,3 +636,101 @@ def test_known_place_feature_join_keeps_same_date_pairs_in_separate_orbit_chains
     })
     assert rows[0]["median_horizontal_displacement_rate_m_per_day"] == 0.1
     assert rows[1]["median_horizontal_displacement_rate_m_per_day"] == 2.5
+
+
+def test_generic_and_author_exact_workflows_use_independent_configured_targets(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings_with_monorepo_targets = SimpleNamespace(
+        displacement_actions_enabled=True,
+        github_actions_token="test-token",
+        known_place_github_actions_repository="moshiour0/SARGuardian-Monorepo",
+        known_place_github_actions_workflow="known-place-aoi.yml",
+        known_place_github_actions_ref="migration/known-place",
+        known_place_paper_github_actions_repository="moshiour0/SARGuardian-Monorepo",
+        known_place_paper_github_actions_workflow="known-place-author-exact.yml",
+        known_place_paper_github_actions_ref="migration/author-exact",
+    )
+    requests: list[dict] = []
+
+    def fake_request(_settings, method, path, body=None):
+        requests.append({"method": method, "path": path, "body": body})
+        return 204, {}
+
+    monkeypatch.setattr(known_place, "_github_request", fake_request)
+    generic = known_place.dispatch_known_place_analysis(
+        settings_with_monorepo_targets,
+        known_place.KnownPlaceAnalysisRequest(**REQUEST),
+    )
+    paper = known_place.dispatch_known_place_paper_reproduction(
+        settings_with_monorepo_targets,
+        known_place.KnownPlacePaperReproductionRequest(confirm_raw_downloads=True),
+    )
+
+    assert requests[0]["path"] == (
+        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/known-place-aoi.yml/dispatches"
+    )
+    assert requests[0]["body"]["ref"] == "migration/known-place"
+    assert generic.github_run_url == (
+        "https://github.com/moshiour0/SARGuardian-Monorepo/actions/workflows/known-place-aoi.yml"
+    )
+    assert requests[1]["path"] == (
+        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/known-place-author-exact.yml/dispatches"
+    )
+    assert requests[1]["body"]["ref"] == "migration/author-exact"
+    assert paper.github_run_url == (
+        "https://github.com/moshiour0/SARGuardian-Monorepo/actions/workflows/known-place-author-exact.yml"
+    )
+
+    request_id = "c19a7630-9f19-4b38-ae0e-88d53ad7c8f2"
+
+    def fake_status_request(_settings, method, path, body=None):
+        assert method == "GET"
+        if "known-place-aoi.yml/runs" in path:
+            return 200, {"workflow_runs": [{
+                "id": 70001,
+                "display_title": f"Known Place Analysis {request_id}",
+                "path": ".github/workflows/known-place-aoi.yml",
+                "head_branch": "migration/known-place",
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "success",
+            }]}
+        if "known-place-author-exact.yml/runs" in path:
+            return 200, {"workflow_runs": [{
+                "id": 70002,
+                "display_title": f"Known Place Paper Reproduction {request_id}",
+                "path": ".github/workflows/known-place-author-exact.yml",
+                "head_branch": "migration/author-exact",
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "success",
+            }]}
+        raise AssertionError(f"Unexpected Known Place status path: {path}")
+
+    monkeypatch.setattr(known_place, "_github_request", fake_status_request)
+    generic_status = known_place.get_known_place_analysis_status(settings_with_monorepo_targets, request_id)
+    paper_status = known_place.get_known_place_paper_reproduction_status(settings_with_monorepo_targets, request_id)
+    assert generic_status.github_run_id == "70001"
+    assert paper_status.github_run_id == "70002"
+
+
+def test_known_place_artifact_download_uses_configured_repository(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings_with_monorepo_target = SimpleNamespace(
+        github_actions_token="test-token",
+        known_place_github_actions_repository="moshiour0/SARGuardian-Monorepo",
+        known_place_github_actions_workflow="known-place-aoi.yml",
+        known_place_github_actions_ref="migration/known-place",
+    )
+    observed: dict = {}
+
+    def fake_urlopen(request, timeout=0):
+        observed["url"] = request.full_url
+        observed["timeout"] = timeout
+        from io import BytesIO
+        return BytesIO(b"artifact-zip-bytes")
+
+    monkeypatch.setattr(known_place, "urlopen", fake_urlopen)
+    result = known_place._download_known_place_artifact(settings_with_monorepo_target, 12345)
+    assert result == b"artifact-zip-bytes"
+    assert observed["url"] == (
+        "https://api.github.com/repos/moshiour0/SARGuardian-Monorepo/actions/artifacts/12345/zip"
+    )
