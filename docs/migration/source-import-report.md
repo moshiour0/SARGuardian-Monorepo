@@ -6,7 +6,7 @@
 
 ## Result
 
-Six immutable source trees were imported under `migration/source-snapshots/`. Their exact source commit IDs are retained in the Git parent graph and in `docs/migration/source-pins.json`.
+Nine immutable source trees were imported under `migration/source-snapshots/`. Their exact source commit IDs are retained in the Git parent graph and in `docs/migration/source-pins.json`.
 
 | Snapshot | Immutable source ref | Tracked paths |
 |---|---|---:|
@@ -61,16 +61,16 @@ All source files are nested below `migration/source-snapshots/`. Their embedded 
 
 ## Runtime regression result
 
-The expanded isolated snapshot regression workflow [41957402595](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41957402595) completed with all ten jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,408 imported entries. This run includes all nine snapshots. The promoted-path parity run [41957169272](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41957169272) also passed, including `apps/web` and `apps/api` build/test jobs and exact comparison of all four promoted compatibility paths. Details are in [validation-baseline.md](validation-baseline.md).
+The full source-and-promoted-path parity run [41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808) completed with all 14 jobs passing. Across source snapshot and promoted-path jobs it recorded 2,694 passing test executions and 1 skipped; exact Git object checks covered all 1,408 snapshot entries and promoted app/engine mappings. See [validation-baseline.md](validation-baseline.md) for the per-job breakdown.
 
 The Dynamic/backend same-path collision audit found 24 overlaps, including 19 different-content paths; see [path-collision-report.md](path-collision-report.md).
 
 ## What this does not mean
 
-This is a provenance-preserving import, not yet the final consolidated application layout. The next phase must:
-- trace imports and build roots before promoting Dynamic frontend/API paths;
-- separate Find Displacements, Known Place, and RiverShift into their target engine boundaries;
-- classify every original workflow by purpose and trigger before promoting selected workflows to root;
-- resolve duplicate/shared utility files from their actual call graphs;
-- run source-level test parity and a secrets scan;
-- keep production Vercel, Supabase, callback, and dispatch configuration unchanged until preview validation.
+The provenance-preserving source import and first exact-copy app/engine promotion are complete. Remaining work is:
+- resolve shared utility collisions from their real import/call graphs;
+- complete workflow permission, caller, callback, artifact, retention, and duplicate-dispatch review before root workflow activation;
+- run automated secret scanning and map configuration names without transferring secret values;
+- verify Vercel project roots and deploy Preview without changing production aliases;
+- verify Supabase project/schema linkage without applying migrations;
+- run callback/retention mocks, then isolated pilot and rollback rehearsal.
