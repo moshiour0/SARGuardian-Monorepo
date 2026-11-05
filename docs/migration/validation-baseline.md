@@ -1,9 +1,9 @@
 # Migration and promoted-path validation baseline
 
-**Latest full parity run:** [GitHub Actions run 41964029591](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029591)  
-**Validated commit:** `25aa5c76f04b1b1e3a7588a24ff3b29317ebc54c`  
-**Result:** **15/15 jobs passed**.  
-**Latest historical secret scan:** [run 41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586) — PASS, zero unreviewed Gitleaks findings.  
+**Latest complete source/promoted-path run:** [GitHub Actions run 41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548)  
+**Validated commit:** `cc8f0c5f4345a65d61ecbe697302b90d38b2f0cc`  
+**Result:** **16/16 jobs passed**.  
+**Latest historical secret scan:** [run 41966982003](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966982003) — PASS, zero unreviewed Gitleaks findings.  
 **Latest migration metadata validation:** [run 41964029595](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029595) — PASS.  
 **Source snapshot scope:** 10 snapshots, 1,685 tracked source paths.  
 **Promoted scope:** `apps/web`, `apps/api`, Find Displacements, Known Place, RiverShift GCOV, and NISAR science.
@@ -28,7 +28,8 @@ Source-snapshot regression and promoted-path regression are intentionally separa
 | Promoted NISAR science | PASS | 180 tests |
 | Source workflow contract audit | PASS | 82 workflow variants parsed; zero YAML parse errors |
 | RiverShift candidate contract validator | PASS | exact source transformation, YAML parse, 20-job graph, 15-product matrices, artifact/retry/callback/retention assertions |
-| Exact Git source/promoted integrity | PASS | 1,685 source entries plus promoted path/fixture maps |
+| Workflow dependency parser | PASS | 82 YAML workflow variants, 135 jobs, 20 reusable call edges, 141 external checkout steps |
+| Exact Git source/promoted integrity | PASS | 1,685 source entries plus promoted app/engine/workflow/Supabase mappings |
 
 **Snapshot-path executions:** 1,463 passed, 1 skipped.  
 **Promoted-path executions:** 1,231 passed.  
@@ -61,7 +62,7 @@ The validator also checks exact Git object identity for the promoted Dynamic fro
 - NISAR historical pin `ab547ecc82bcc4d6ccef545a59852536c2beacc6` is an ancestor of current NISAR main `9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec`.
 - The extra author-exact `b825df` tree is preserved separately rather than being silently substituted with PR #85 code.
 
-**Integrity result:** `ALL_SNAPSHOT_BLOB_INTEGRITY_PASS total_entries=1685`.
+**Integrity result:** `ALL_SNAPSHOT_BLOB_INTEGRITY_PASS total_entries=1685`. The same run also reported `PROMOTED_PATH_BLOB_INTEGRITY_PASS Supabase configuration and migration promotion: 8 entries`.
 
 ## RiverShift Monorepo workflow candidate
 
