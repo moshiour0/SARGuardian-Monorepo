@@ -1,0 +1,136 @@
+name: SARGuardian AOI WKT dispatcher
+run-name: ${{ inputs.job_id && format('Displacement {0}', inputs.job_id) || format('SARGuardian AOI {0}', github.run_id) }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      aoi_wkt:
+        description: "AOI as a single-ring WKT POLYGON in EPSG:4326 (coordinates are longitude latitude). No holes or MULTIPOLYGON."
+        required: true
+        type: string
+      start_date:
+        description: "Inclusive lower bound for the secondary acquisition date (YYYY-MM-DD)."
+        required: true
+        type: string
+      end_date:
+        description: "Inclusive end date for the two acquisition dates (YYYY-MM-DD)."
+        required: true
+        type: string
+      date_filter_mode:
+        description: "Select by the pair’s secondary acquisition date (reference may predate start); strict mode requires both dates inside."
+        required: true
+        type: choice
+        options:
+          - both-acquisitions-in-window
+          - secondary-acquisition-in-window
+        default: secondary-acquisition-in-window
+      run_profile:
+        description: "Pilot runs the newest intersecting GUNW plus GOFF; full-aoi-baseline runs every discovered supported product."
+        required: true
+        type: choice
+        options:
+          - validation-pilot
+          - full-aoi-baseline
+        default: validation-pilot
+      retention_profile:
+        description: "Derived-only stores verified maps/tables/provenance; full-lossless also retains the complete source HDF5 archive."
+        required: true
+        type: choice
+        options:
+          - derived-only
+          - full-lossless
+        default: derived-only
+      job_id:
+        description: "Leave blank for a manual AOI run; set only for an account-owned Dynamic job."
+        required: false
+        type: string
+        default: ''
+      callback_url:
+        description: "Optional trusted SARGuardian Dynamic API base URL. Required with job_id."
+        required: false
+        type: string
+        default: ''
+      request_fingerprint:
+        description: "Immutable account request fingerprint. Required with job_id."
+        required: false
+        type: string
+        default: ''
+      place_name:
+        description: "Optional map-selected place name for dashboard context."
+        required: false
+        type: string
+        default: ''
+      place_latitude:
+        description: "Optional selected place latitude (WGS84)."
+        required: false
+        type: string
+        default: ''
+      place_longitude:
+        description: "Optional selected place longitude (WGS84)."
+        required: false
+        type: string
+        default: ''
+      target_latitude:
+        description: "Optional measurement target latitude, permitted only inside the submitted AOI."
+        required: false
+        type: string
+        default: ''
+      target_longitude:
+        description: "Optional measurement target longitude, permitted only inside the submitted AOI."
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: monorepo-displacement-${{ inputs.job_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Require explicit Monorepo Find Displacements processing opt-in
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fail closed before checkout, credentials or source-data access
+        env:
+          MONOREPO_DISPLACEMENT_ENABLED: ${{ vars.MONOREPO_DISPLACEMENT_ACTIONS_ENABLED }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$MONOREPO_DISPLACEMENT_ENABLED" != "true" ]]; then
+            echo "::error::Monorepo Find Displacements is disabled. Set MONOREPO_DISPLACEMENT_ACTIONS_ENABLED=true only after source/workflow validation, credential review and rollback approval."
+            exit 1
+          fi
+          echo "MONOREPO_DISPLACEMENT_PROCESSING_GATE=PASS"
+
+  run-dashboard:
+    name: Run Monorepo Find Displacements dashboard engine
+    needs: preflight
+    uses: ./.github/workflows/sarguardian-aoi-dashboard-engine.yml
+    with:
+      aoi_wkt: ${{ inputs.aoi_wkt }}
+      start_date: ${{ inputs.start_date }}
+      end_date: ${{ inputs.end_date }}
+      date_filter_mode: ${{ inputs.date_filter_mode }}
+      run_profile: ${{ inputs.run_profile }}
+      retention_profile: ${{ inputs.retention_profile }}
+      job_id: ${{ inputs.job_id }}
+      callback_url: ${{ inputs.callback_url }}
+      request_fingerprint: ${{ inputs.request_fingerprint }}
+      place_name: ${{ inputs.place_name }}
+      place_latitude: ${{ inputs.place_latitude }}
+      place_longitude: ${{ inputs.place_longitude }}
+      target_latitude: ${{ inputs.target_latitude }}
+      target_longitude: ${{ inputs.target_longitude }}
+    secrets:
+      DISPLACEMENT_CALLBACK_SECRET: ${{ secrets.DISPLACEMENT_CALLBACK_SECRET }}
+      EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+      GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+      GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
