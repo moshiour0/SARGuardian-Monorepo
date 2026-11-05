@@ -69,6 +69,12 @@ They are **inactive compatibility fixtures**. GitHub Actions only activates work
 
 The Known Place PR #85 test environment initially lacked SciPy; its isolated test dependency was corrected, after which all 318 tests passed. An earlier NISAR cleanup issue caused by disabling pip cache was also corrected. These were CI environment corrections only.
 
+## Static workflow contract audit
+
+The machine-readable audit in [workflow-contract-audit.md](workflow-contract-audit.md), run [41960994177](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41960994177), parsed all 82 workflow variants (Dynamic 7, backend main 35, Known Place PR #85 head 40) with zero YAML errors. It found 25 workflow instances with one or more jobs inheriting permissions implicitly, 432 tag-based action references, 58 secret-referencing workflow instances, 41 external-checkout instances across four repositories, 16 reusable-workflow call references, 189 artifact steps, 23 workflows with retry-related markers, and 5 workflows with `continue-on-error`. Counts include duplicated PR #85 workflow variants and are not unique production workflows.
+
+The static scan is a review queue, not approval to activate workflows. All root-promoted workflows must have explicit least-privilege permissions, immutable action pins, reviewed external checkout refs, and tested callback/artifact/retry behavior.
+
 ## Historical secret scan
 
 The full-history Gitleaks scan [41959790362](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41959790362) passed after review of 20 test-only `generic-api-key` false positives. Exact fingerprints are recorded in `.gitleaksignore`; there is no broad path or rule suppression. `tools/validate_gitleaks_allowlist.py` enforces the allowlist scope in metadata CI. The scan used the checksum-verified Gitleaks 8.30.1 binary and `--log-opts=--all`, covering reachable Git history rather than only the working tree. No raw report artifact or secret value was retained in logs.
@@ -77,7 +83,7 @@ The full-history Gitleaks scan [41959790362](https://github.com/moshiour0/SARGua
 
 The pin scanner reviewed 867 text files and found 48 distinct 40-character commit-like strings in pin-related context. These are candidates, not 48 confirmed science pins: they include source checkout refs, historical code commits, and validation-evidence references. Confirmed checkout pins and their ancestry/divergence status are separately classified in `docs/migration/source-pins.json` and `docs/migration/source-import-report.md`.
 
-The pin scan is separate from credential scanning. Historical Git credential scanning is complete; live Vercel/GitHub/Supabase variable-name, value, and permission mapping remains a pre-cutover gate.
+The pin scan is separate from credential scanning. Historical Git credential scanning is complete; live Vercel/GitHub/Supabase environment names and routing have been inventoried read-only. Exact Vercel Root Directories, target Preview configuration, and target credential permission mapping remain pre-cutover gates.
 
 ## What this validation establishes
 
@@ -86,6 +92,12 @@ The pin scan is separate from credential scanning. Historical Git credential sca
 - The source and promoted frontend/API/engine suites run successfully at both locations.
 - The current path layout does not overwrite the 19 divergent Dynamic/backend same-path files.
 - Engine-specific test fixtures are present without activating nested source workflows.
+
+## Live infrastructure cross-check
+
+Read-only Supabase inventory confirmed the active `SARGuardian_Dynamic` project, four public RLS-enabled tables, owner-read policies, zero security-advisor lints, and seven applied remote migration records. The RiverShift schema columns, analysis-mode/date checks, active-job index, and transition function match the source SQL intent. Two remote RiverShift migration versions/names do not match the current local filenames; record this as history-alignment work, not a reason to reapply schema changes. See [live Supabase inventory](../operations/live-supabase-inventory.md).
+
+Vercel currently has separate READY frontend and FastAPI production projects still linked to `SARGuardian_Dynamic`, both observed at production commit `42d977b5abd186866ac0d78454239563eebb18d2`. Their aliases and environment names were inventoried read-only; team-scoped settings access did not expose exact Root Directories. No project was linked or deployed from Monorepo. See [live Vercel inventory](../operations/live-vercel-inventory.md).
 
 ## What this validation does not establish
 
