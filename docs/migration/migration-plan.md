@@ -1,121 +1,112 @@
 # SARGuardian monorepo migration plan
 
 **Plan date:** 2026-11-05  
-**Execution state:** bootstrap branch; source code import has not started.
+**Execution state:** nine immutable source snapshots imported; app and engine paths promoted on an isolated migration branch; 14/14 source/promoted CI jobs pass. Workflow cutover and production deployment remain blocked pending the remaining integration/security gates.
 
 ## Executive decision
 
-Use a **preserve-first, staged monorepo migration**. Do not concatenate the three repositories into one root and do not merge their APIs in one step. Import immutable snapshots first, retain source provenance, then promote code into final app/engine locations after dependency and workflow mapping.
+Use a **preserve-first, staged monorepo migration**. Do not concatenate source roots or merge the APIs in one step. Source snapshots remain immutable; promoted paths are exact copies that will be refactored only after call graphs, build roots, and workflow contracts are verified.
 
 ## Phase 0 — protect and verify inputs
 
 - [x] Verify target repository exists and connected GitHub integration has push/admin access.
-- [x] Record current default-branch SHAs for all three source repositories.
-- [x] Record Known Place feature branch and open PR #85 separately from backend main.
-- [x] Import exact recursive tree snapshots for the three current main refs, Known Place PR #85 head, two non-ancestor NISAR science pins, and three additional historical workflow checkouts; preserve source commit history.
-- [ ] Complete the exhaustive branch/tag inventory beyond the immutable refs currently selected.
-- [x] Export the 42-file active workflow inventory and record run/trigger/checkout/secret-risk evidence.
+- [x] Record current default-branch SHAs for Dynamic, backend, and NISAR science sources.
+- [x] Record Known Place feature-branch base and open PR #85 separately from backend main.
+- [x] Import nine exact source trees and retain source commit history.
+- [x] Inventory all 42 Dynamic/backend-main workflow files with source blob SHAs, triggers, jobs, checkout repositories/pins, and credential-risk notes.
+- [x] Record the Known Place PR #85 workflow delta: 15 added workflows, 8 modified same-path workflows, and 10 backend-main-only workflows.
+- [ ] Complete exhaustive branch/tag inventory beyond the selected immutable refs.
 - [ ] Record Vercel project roots, production branch/alias, and Supabase linkage without changing them.
-- [ ] Confirm which old backend `app/` endpoints are still called by workflows or external deployments.
-
-**Exit condition:** immutable input refs and file-tree inventories are committed here.
+- [ ] Trace calls to the old backend `app/` service and determine if it is still used.
 
 ## Phase 1 — safe monorepo foundation
 
-- [x] Create README, engineering guardrails, architecture boundary document, and source-pin manifest.
-- [x] Add contribution rules and isolated source/app regression CI.
-- [ ] Add CODEOWNERS and verify branch protection.
-- [ ] Set branch protection and verify required checks.
-- [ ] Add secrets-free environment templates after name mapping.
+- [x] Add README, engineering/scientific guardrails, architecture boundaries, contribution rules, source-pin manifest, and staged migration plan.
+- [x] Add secrets-free metadata validation and isolated source/promoted regression CI.
+- [ ] Add CODEOWNERS and verify branch protection/required checks.
+- [ ] Complete configuration-name mapping before creating environment templates.
+- [ ] Run automated secret scanning and review findings before operational workflow activation.
 
-**Exit condition:** repository can run basic validation and PR checks without touching production.
+## Phase 2 — immutable imports and source integrity
 
-## Phase 2 — import source snapshots without refactoring
+- [x] Import nine source snapshots under `migration/source-snapshots/` (1,408 tracked paths).
+- [x] Preserve source commit histories through Git parent relationships.
+- [x] Compare every imported snapshot path, file mode, object type, and Git blob SHA.
+- [x] Preserve divergent historical worker checkouts (Dynamic API, backend reassembly, legacy Sagormodak science fork) separately rather than overlaying them.
+- [x] Record 24 Dynamic/backend same-path collisions, including 19 different-content files.
+- [x] Keep all original source repositories unchanged.
 
-- [x] Import nine immutable source trees (1,408 tracked source paths) under `migration/source-snapshots/`.
-- [x] Preserve source history through source commits retained as parents of the import commits.
-- [x] Promote Dynamic `Frontend/` and active `Backend/` into `apps/web/` and `apps/api/` as exact Git-blob copies.
-- [x] Promote Dynamic root `tools/` and workflow test fixtures into `apps/tools/` and inactive `apps/.github/workflows/` compatibility paths.
-- [x] Verify exact path/mode/type/blob identity for all nine snapshots and four promoted paths.
-- [x] Run frontend and API regression suites from promoted paths successfully.
-- [x] Verify recursive target tree is not truncated, snapshot path counts match source tree counts, and representative engine files exist.
-- [x] Run a full Dynamic/backend path collision report: 24 shared paths, 19 divergent blobs.
-- [ ] Complete automated secret scanning before runtime promotion beyond the Dynamic application layer.
+## Phase 3 — application and engine path promotion
 
-Imported snapshots:
-- Dynamic main: 185 paths.
-- Backend main: 244 paths.
-- Backend Known Place PR #85 head: 277 paths.
-- NISAR science main: 110 paths.
-- Historical NISAR pin 10639: 133 paths.
-- Historical NISAR pin 006d: 135 paths.
-- Divergent Dynamic callback API pin db6472: 130 paths.
-- Divergent backend reassembly pin d9e67: 86 paths.
-- Legacy Sagormodak science fork pin 77cc964: 108 paths.
+- [x] Promote Dynamic `Frontend/` to `apps/web/`; build, lint, and 155 tests pass at the promoted path.
+- [x] Promote Dynamic active `Backend/` to `apps/api/`; 215 API tests and the Google Maps adapter contract pass from the promoted path.
+- [x] Retain Dynamic root tools under `apps/tools/` and its workflow compatibility mirror under `apps/.github/workflows/`; these mirrors are inactive.
+- [x] Promote Find Displacements dashboard/tools to `engines/find-displacements/`; 104 dashboard/worker-tools tests pass.
+- [x] Promote the Known Place PR #85 source tree to `engines/known-place/`; 318 tests pass.
+- [x] Promote RiverShift GCOV code to `engines/river-shift/`; 259 tests pass.
+- [x] Promote current NISAR science source to `science/nisar-core/`; 180 tests pass.
+- [x] Verify exact blob identity for promoted directories and workflow/dependency compatibility fixtures.
+- [ ] Decide the long-term package boundary for duplicated utilities; do not deduplicate by filename.
+- [ ] Decide whether the older SQLAlchemy/session-oriented backend `app/` is retained under a `legacy/` namespace or retired after caller tracing.
 
-Recommended source mapping:
-- Dynamic: `Frontend/`, active `Backend/`, tests, tools, and relevant docs.
-- Backend: `tools/`, `dashboard/`, workflow definitions, tests, and supporting docs.
-- NISAR science: pinned source snapshots or a versioned `science/nisar-core` import.
+**Important:** engine-local `.github/workflows/` directories are inactive fixtures preserving existing tests' source-relative workflow paths. GitHub Actions only activates root `.github/workflows/`.
 
-Keep original relative paths inside a versioned snapshot during the first pass if necessary. Do not copy nested `.github/workflows` into the active root workflow directory until duplicate-run risk is controlled.
+## Phase 4 — central workflow migration
 
-**Integrity checks:** file count, path inventory, SHA-256 per file, symlinks, executable bits, line endings, large files, LFS objects, and secret scanning.
+The audited baseline has 42 workflow YAML files: 7 in Dynamic and 35 in backend main. The Known Place PR #85 feature branch contains 40 workflow YAMLs: 15 branch-specific additions, 8 changed same-path files, 17 unchanged files, and 10 backend-main-only files absent from that branch.
 
-**Exit condition:** every imported file traces to its source repository and tree SHA; no source repository changed.
-
-## Phase 3 — central workflow migration
-
-The audited baseline has 42 workflow YAML files: 7 in Dynamic and 35 in backend. For each one, record:
-- triggers and filters;
-- job graph, dependencies, concurrency, matrix, permissions, environments;
-- checkout repository/ref/path and cross-repository dispatches;
-- artifact names, retention, upload/download dependencies;
+Before moving any operational workflow into root `.github/workflows/`, record:
+- trigger types, branch/path filters, dispatch inputs, and reusable workflow callers;
+- job graph, dependencies, concurrency, matrix, environments, and permissions;
+- each external checkout repository/ref/path and immutable source pin;
+- artifact names, retention, upload/download relationships, and Drive/Supabase writes;
 - secrets/variables by name only;
-- callbacks, callback authentication, expected terminal states;
-- classification: production-active, CI-regression, replay/validation, historical/legacy, retirement candidate.
+- callbacks, callback signatures, expected sequence/terminal states;
+- retry behavior, cleanup, and failure propagation;
+- disposition: CI regression, operational dispatcher/worker, credentialed/live integration, retained replay/validation, legacy, or retirement candidate.
 
-Do not enable duplicate production dispatch in old and new repositories. Keep original workflows authoritative while target copies run only with mocks or isolated triggers.
+**Duplicate-run rule:** original repository workflows remain authoritative while the monorepo copies are inactive or mock-only. Do not permit one request to dispatch both old and new production workers.
 
-**RiverShift constraint:** preserve the current 20-job batch/retry/assemble graph, status barriers, artifact contracts, callback ordering, and retry-only-failed-products semantics. Re-run failed-only retry tests before any real GCOV pilot.
+**RiverShift constraint:** preserve the 20-job GCOV graph: prepare, four sequential batch/status barriers, up to three retry waves, and assemble. Keep batches of 15 where configured; retry only failed products; never re-download successful products; preserve callback/artifact/Drive receipt order; fail the outer workflow if a required inner stage fails.
 
-**Exit condition:** all 42 files have a reviewed disposition; active target workflows pass isolated tests; cutover and rollback are documented.
+**Known Place constraint:** use PR #85 for the engine implementation and two-polygon research behavior, but reconcile current backend-main/Dynamic dispatchers against the active API contract. The PR feature branch does not contain later backend-main RiverShift/dispatcher workflows.
 
-## Phase 4 — app, API, engine, infrastructure integration
+**Exit condition:** every workflow version has a reviewed disposition; selected root workflows pass isolated tests; duplicate-dispatch prevention and rollback are demonstrated.
 
-- [x] Promote React/Vite source into `apps/web`; [x] build, lint, and unit tests pass at the promoted path. Vercel root/domain configuration remains pending and unchanged.
-- Promote Dynamic active Firebase/Supabase API into `apps/api` after route, auth, CORS, callback, and persistence tests pass.
-- Keep old SQLAlchemy/session-oriented backend `app/` isolated until inbound usage is proven absent or its role is explicitly retained.
-- Promote Find Displacements, Known Place, RiverShift, and NISAR code into separate engine/source boundaries.
-- Keep original working directories until imports, workflow working directories, relative paths, and output manifests are verified.
-- Keep Supabase schema as-is; schema consolidation is a separate reviewed migration.
-- Configure Vercel root and environment only after preview build and route tests succeed.
+## Phase 5 — infrastructure, operational validation, and cutover
 
-**Exit condition:** functional and scientific tests pass in monorepo paths with no silent output-contract drift.
+- [ ] Verify Vercel project IDs, roots, build settings, output settings, function limits, environment scopes, production branch, and aliases.
+- [ ] Confirm Supabase project identity, schema ownership, RLS, retention, and migration state without applying schema changes.
+- [ ] Map GitHub/Vercel environment variable and secret names by consumer; transfer no secret values through Git.
+- [ ] Deploy a Preview only; test authentication, map search/AOI drawing, dashboard/archive, all engine pages, and result retrieval.
+- [ ] Exercise API dispatch/callback signatures, sequence ordering, retry behavior, terminal failure, Drive receipts, and retention with mocks.
+- [ ] Compare canonical source and promoted output fixtures/manifests; path-level code identity is already verified, but real-output parity remains pending.
+- [ ] Run an isolated real-data pilot only after mock, security, and scientific fixture gates pass.
+- [ ] Compare pilot output to source baselines and independent validation evidence.
+- [ ] Rehearse rollback to the existing production deployment and original dispatchers.
+- [ ] Obtain explicit approval before production Vercel aliases, callback destinations, or worker dispatch ownership changes.
 
-## Phase 5 — validation, pilot, cutover
+## Current CI acceptance baseline
 
-1. Run frontend lint/build/unit tests and API tests.
-2. Run backend worker tests and each engine's regression suite.
-3. Compare canonical fixtures and output manifests with source baselines.
-4. Run workflow dry-runs/mocks: callback auth, failure propagation, retry isolation, artifact retention, cleanup.
-5. Deploy preview only; verify map, login, AOI drawing/search, dashboard, archive, and engine pages.
-6. Run an isolated real-data pilot only after mock and scientific fixture checks pass.
-7. Compare pilot outputs with source baseline and independent validation evidence.
-8. Obtain explicit approval before moving production dispatch, Vercel aliases, or callback endpoints.
-9. Retain rollback to original deployments and repositories.
+Latest full parity run: [41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808), 14/14 jobs passed:
+- source snapshot tests: 1,463 passed, 1 skipped;
+- promoted-path tests: 1,231 passed;
+- total: 2,694 passing test executions, 1 skipped;
+- exact source blob/history checks: 1,408 snapshot paths plus promoted path/fixture mappings.
 
-## Mandatory cutover gates
+See `docs/migration/validation-baseline.md`.
+
+## Mandatory production cutover gates
 
 - Source integrity: PASS
-- Workflow inventory/disposition: PASS
-- Test parity: PASS
-- API contract and auth: PASS
-- Supabase persistence and retention: PASS
-- Vercel preview and routing: PASS
-- Callback and retry semantics: PASS
-- Scientific status/measurement semantics: PASS
-- Security and secret scan: PASS
-- Rollback rehearsal: PASS
+- Snapshot and promoted-path regression parity: PASS
+- Workflow inventory/disposition: IN PROGRESS
+- Workflow permissions/caller/callback/retry parity: PENDING
+- API live contract/auth/CORS: PENDING Preview
+- Supabase persistence/retention: PENDING live configuration check
+- Security/secret scan: PENDING
+- Vercel Preview/routing: PENDING
+- Scientific real-output parity and independent validation: PENDING
+- Rollback rehearsal: PENDING
 
 A repository merge is not a production cutover.
