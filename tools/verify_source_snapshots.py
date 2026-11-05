@@ -262,6 +262,17 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
             if destination_path in expected_paths:
                 raise RuntimeError(f"Duplicate RiverShift archive destination: {destination_path}.")
             expected_paths.add(destination_path)
+            if source_path.startswith(".github/workflows/"):
+                active_copy = (
+                    Path(__file__).resolve().parents[1]
+                    / ".github"
+                    / "workflows"
+                    / Path(source_path).name
+                )
+                if active_copy.exists():
+                    raise RuntimeError(
+                        f"Archived RiverShift workflow was copied into active root workflows: {active_copy}"
+                    )
             actual = target_entries.get(destination_path)
             expected = ("100644", "blob", source_blob)
             if actual != expected:
@@ -285,7 +296,10 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
         raise RuntimeError(
             f"RiverShift source-branch archive manifest mismatch: missing={missing[:10]}; extra={extra[:10]}"
         )
-    print(f"SOURCE_BRANCH_ARCHIVE_MANIFEST_PASS files={verified} sources={len(sources)}")
+    print(
+        f"SOURCE_BRANCH_ARCHIVE_MANIFEST_PASS files={verified} sources={len(sources)}; "
+        "root_workflow_activation=none"
+    )
     return verified
 
 def main() -> int:
