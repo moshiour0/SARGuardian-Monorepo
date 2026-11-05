@@ -214,6 +214,51 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift
         run: python -m pytest -q tools/river_shift/tests
+      - name: Run archived OPERA DSWx-S1 and RTC-S1 regression suite against promoted engine
+        shell: micromamba-shell {0}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift:${{ github.workspace }}/migration/source-branch-snapshots/backend-rivershift-opera-rtc-fallback-092f602/tools/river_shift
+        run: |
+          python -m compileall -q "$GITHUB_WORKSPACE/migration/source-branch-snapshots/backend-rivershift-opera-rtc-fallback-092f602/tools/river_shift"
+          python -m pytest -q "$GITHUB_WORKSPACE/migration/source-branch-snapshots/backend-rivershift-opera-rtc-fallback-092f602/tools/river_shift/tests/test_opera_dswx_s1_reference.py"
+          echo "RIVERSHIFT_ARCHIVED_OPERA_REGRESSION_PASS"
+      - name: Import-check archived Run #36 replay against promoted engine without raw-data access
+        shell: micromamba-shell {0}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift
+          RUN36_REPLAY_SCRIPT: ${{ github.workspace }}/migration/source-branch-snapshots/backend-rivershift-run36-replay-f161088/tools/river_shift/replay_retained_run36.py
+        run: |
+          python -m py_compile "$RUN36_REPLAY_SCRIPT"
+          python - <<'PY'
+          import importlib.util
+          import os
+          from pathlib import Path
+
+          source = Path(os.environ["RUN36_REPLAY_SCRIPT"])
+          spec = importlib.util.spec_from_file_location("archived_run36_replay", source)
+          if spec is None or spec.loader is None:
+              raise SystemExit("Could not create an import specification for the archived Run #36 replay.")
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+
+          from process_gcov_job import create_web_previews
+          from river_shift.flood import run_flood_analysis
+          from river_shift.morphology import run_morphology_analysis
+          from river_shift.overlap_audit import audit_candidate_mask_overlap
+          from river_shift.raster_io import sha256_file
+
+          required = (
+              module.replay,
+              create_web_previews,
+              run_flood_analysis,
+              run_morphology_analysis,
+              audit_candidate_mask_overlap,
+              sha256_file,
+          )
+          if not all(callable(item) for item in required):
+              raise SystemExit("The archived Run #36 replay is incompatible with the promoted RiverShift modules.")
+          print("RIVERSHIFT_RUN36_REPLAY_IMPORT_COMPATIBILITY_PASS")
+          PY
 
   promoted-nisar-science:
     name: Promoted NISAR science regression tests
