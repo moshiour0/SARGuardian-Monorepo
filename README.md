@@ -17,7 +17,7 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 ## Engine boundaries
 
 - **Find Displacements:** target-free AOI-wide candidate discovery. GOFF offsets and GUNW LOS diagnostics remain separate measurement families.
-- **Known Place Analysis:** a separate fixed-benchmark and two-polygon research workflow. Its feature-branch and open-PR lineage must be preserved; it is not assumed to exist in backend `main`.
+- **Known Place Analysis:** a separate fixed-benchmark and two-polygon research workflow. Its feature-branch and PR #85 lineage is preserved.
 - **River Shift:** an independent NISAR GCOV engine with ASF acquisition discovery, processing, overlap diagnostics, transects, and external validation.
 - **Glacier Movement:** currently a product/category route into the shared Find Displacements engine, not a separately proven processing engine.
 
@@ -28,50 +28,59 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 3. Keep the active Dynamic API distinct from the older backend `app/` service until a usage and contract review proves consolidation safe.
 4. Preserve all workflow triggers, permissions, artifacts, callbacks, retries, and retention behaviour.
 5. Never copy secret values into Git. Build an explicit secret-name mapping and configure target secrets separately.
-6. Validate in an isolated migration branch and preview environment before any production cutover.
+6. Validate in an isolated migration branch and Preview environment before any production cutover.
 7. No engine algorithm or scientific status semantics may change as a side effect of repository consolidation.
 
-## Planned layout
-
-The final layout will be adjusted to the verified import graph and workflow working directories. The initial target is:
+## Current target layout
 
 ```text
 apps/
-  web/                 # React/Vite frontend
-  api/                 # active Firebase/Supabase API
+  web/                 # React/Vite frontend, promoted and tested
+  api/                 # active Firebase/Supabase API, promoted and tested
+  tools/               # Dynamic API compatibility helpers
 engines/
-  find-displacements/
-  known-place/
-  river-shift/
+  find-displacements/  # AOI-wide candidate discovery and diagnostics
+  known-place/         # PR #85 research implementation
+  river-shift/         # independent GCOV engine
 science/
-  nisar-core/           # immutable/pinned NISAR source
-.github/workflows/      # curated central workflows
-infrastructure/
-  supabase/
-  vercel/
+  nisar-core/          # current NISAR science source
+migration/
+  source-snapshots/    # immutable source trees and historical pins
+.github/workflows/     # only reviewed central workflows become active here
 docs/
   architecture/
   migration/
   scientific-validation/
 ```
 
-The initial source snapshots remain under `migration/source-snapshots/`; promoted app paths are additional exact copies and the snapshots remain untouched. `apps/.github/workflows/` is an inactive test-compatibility mirror, not the active repository workflow directory.
+Source snapshots remain immutable, and promoted paths are exact copies. Original source paths remain available until deployment, workflow parity, and security/cutover checks complete. Nested `.github/workflows/` directories beneath `apps/`, `engines/`, and `migration/source-snapshots/` are inactive compatibility/archive paths; GitHub Actions only executes workflow files from the repository-root `.github/workflows/`.
 
-The source snapshots remain immutable; exact-copy promotions now exist under `apps/`, `engines/`, and `science/`. Original source paths remain available until Preview deployment, workflow parity, and security/cutover checks complete.
+## Verified CI baseline
 
-The latest full CI parity run is green: **14/14 jobs passed**. It recorded 1,463 passing test executions (1 skipped) against source snapshots and another 1,231 passing executions from promoted app/engine paths. Exact Git blob/mode/history verification passed for all 1,408 imported source paths and promoted path/fixture mappings. See the [validation baseline](docs/migration/validation-baseline.md), [engine promotion report](docs/migration/engine-promotion-report.md), [workflow register](docs/migration/workflow-register.md), and [path collision report](docs/migration/path-collision-report.md).
+Latest full source-and-promoted-path parity run: [GitHub Actions run 41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808).
+
+<badge color="success">14/14 jobs passed</badge>
+
+The run recorded:
+- **1,463** passing test executions and 1 skipped across immutable source snapshots.
+- **1,231** passing test executions across promoted application/engine paths.
+- **2,694** total passing test executions, 1 skipped. The same suites intentionally execute at both source and promoted paths; this is execution count, not unique test-case count.
+- Exact Git blob/mode/type checks for all **1,408** snapshot paths and the promoted path/fixture mappings.
+
+See the [validation report](docs/migration/validation-baseline.md), [engine promotion report](docs/migration/engine-promotion-report.md), [workflow register](docs/migration/workflow-register.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
 - [x] New private repository created and write access verified.
-- [x] Source repository baselines verified.
-- [x] Immutable source snapshots imported and verified (1,408 tracked source paths across nine snapshots).
-- [x] Dynamic frontend/API and Find Displacements, Known Place, RiverShift, and NISAR paths promoted with passing regression suites.
-- [x] File-level inventory of 42 Dynamic/backend-main workflows plus the Known Place PR #85 branch delta.
-- [ ] Complete workflow caller/permissions/callback/retention audit before activating central root workflows.
-- [ ] Vercel project-root verification and Preview deployment.
-- [ ] Secret scan and secret/Supabase configuration mapping (names only).
-- [ ] Isolated operational pilot and rollback rehearsal.
+- [x] Nine immutable source snapshots imported with exact source history.
+- [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
+- [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
+- [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
+- [ ] Complete workflow caller/permissions/callback/artifact/retention audit before activating central root workflows.
+- [ ] Automated secret scan and configuration-name mapping (names only).
+- [ ] Verify existing Vercel project roots, environment scopes, Preview deployment, and routes.
+- [ ] Verify Supabase project/schema linkage without applying migrations.
+- [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
 - [ ] Explicit production cutover approval.
 
-Source snapshots are archival/provenance-preserving inputs, not yet the final app/engine layout. Their nested GitHub workflow folders are not active root workflows. See the [target layout map](docs/migration/target-layout-map.md), [migration plan](docs/migration/migration-plan.md), [architecture boundaries](docs/architecture/system-boundaries.md), and [scientific invariants](docs/scientific-validation/invariants.md).
+The current work is isolated to migration branches. No source repository, production Vercel alias, Supabase schema, active dispatch destination, or production callback URL has been changed.
