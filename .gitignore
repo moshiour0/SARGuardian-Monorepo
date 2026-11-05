@@ -1,0 +1,54 @@
+# Editors / operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+firebase-admin*.json
+credentials*.json
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# JavaScript
+node_modules/
+.next/
+.vite/
+coverage/
+.nyc_output/
+
+# Local runtime and generated data
+*.log
+.tmp/
+.temp/
+.cache/
+artifacts/
+outputs/
+data/raw/
+data/temporary/
+*.h5
+*.hdf5
+*.tif
+*.tiff
+*.nc
+*.grd
+.vercel/
+.firebase/
