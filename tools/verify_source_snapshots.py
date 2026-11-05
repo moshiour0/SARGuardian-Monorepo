@@ -192,6 +192,102 @@ def load_promotion_overrides() -> dict[str, dict[str, str]]:
     return approved
 
 
+
+def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]]) -> int:
+    """Verify archived RiverShift validation refs against exact source blob pins.
+
+    These are evidence snapshots, not activated workflows or full source-tree
+    imports. Their Git blob identities must remain exact and every archived
+    file must be accounted for by the provenance manifest.
+    """
+    manifest_path = (
+        Path(__file__).resolve().parents[1]
+        / "migration"
+        / "source-branch-snapshots"
+        / "rivershift-validation-pins.json"
+    )
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Cannot read RiverShift source-branch pin manifest: {exc}") from exc
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != "1.0":
+        raise RuntimeError("RiverShift source-branch pin manifest has an unsupported schema.")
+    if manifest.get("policy") != "ARCHIVAL_ONLY_NOT_ACTIVE_WORKFLOWS":
+        raise RuntimeError("RiverShift source-branch snapshots must remain explicitly archival-only.")
+
+    sources = manifest.get("sources")
+    if not isinstance(sources, list) or not sources:
+        raise RuntimeError("RiverShift source-branch manifest must contain source entries.")
+
+    expected_paths: set[str] = set()
+    verified = 0
+    for source in sources:
+        if not isinstance(source, dict):
+            raise RuntimeError("RiverShift source-branch entry must be an object.")
+        if source.get("source_repository") != "moshiour0/SARGuardian-backend":
+            raise RuntimeError("Unexpected repository in RiverShift source-branch manifest.")
+        source_head = source.get("source_head_commit")
+        if not isinstance(source_head, str) or not re.fullmatch(r"[0-9a-f]{40}", source_head):
+            raise RuntimeError("RiverShift source-branch manifest has an invalid source commit pin.")
+        prefix = source.get("destination_prefix")
+        if (
+            not isinstance(prefix, str)
+            or not prefix.startswith("migration/source-branch-snapshots/")
+            or not prefix.endswith("/")
+            or ".." in Path(prefix).parts
+        ):
+            raise RuntimeError("RiverShift archive destination must remain under migration/source-branch-snapshots/.")
+        rows = source.get("files")
+        if not isinstance(rows, list) or not rows:
+            raise RuntimeError(f"RiverShift archive {source_head} has no pinned files.")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise RuntimeError("RiverShift source-branch file pin must be an object.")
+            source_path = row.get("source_path")
+            destination_path = row.get("destination_path")
+            source_blob = row.get("source_blob_sha")
+            destination_blob = row.get("destination_blob_sha")
+            if (
+                not isinstance(source_path, str)
+                or source_path.startswith("/")
+                or ".." in Path(source_path).parts
+                or not isinstance(destination_path, str)
+                or not destination_path.startswith(prefix)
+                or ".." in Path(destination_path).parts
+                or not isinstance(source_blob, str)
+                or not re.fullmatch(r"[0-9a-f]{40}", source_blob)
+                or destination_blob != source_blob
+            ):
+                raise RuntimeError(f"Invalid or non-identical RiverShift archive blob pin: {destination_path!r}.")
+            if destination_path in expected_paths:
+                raise RuntimeError(f"Duplicate RiverShift archive destination: {destination_path}.")
+            expected_paths.add(destination_path)
+            actual = target_entries.get(destination_path)
+            expected = ("100644", "blob", source_blob)
+            if actual != expected:
+                raise RuntimeError(
+                    f"RiverShift source-branch archive blob mismatch: {destination_path}; "
+                    f"expected={expected}; actual={actual}"
+                )
+            verified += 1
+            print(f"SOURCE_BRANCH_ARCHIVE_BLOB_PASS {destination_path}: {source_blob}")
+
+    archive_prefix = "migration/source-branch-snapshots/"
+    actual_paths = {
+        path for path in target_entries
+        if path.startswith(archive_prefix) and path != (
+            archive_prefix + "rivershift-validation-pins.json"
+        )
+    }
+    missing = sorted(expected_paths - actual_paths)
+    extra = sorted(actual_paths - expected_paths)
+    if missing or extra:
+        raise RuntimeError(
+            f"RiverShift source-branch archive manifest mismatch: missing={missing[:10]}; extra={extra[:10]}"
+        )
+    print(f"SOURCE_BRANCH_ARCHIVE_MANIFEST_PASS files={verified} sources={len(sources)}")
+    return verified
+
 def main() -> int:
     target = git("rev-parse", "HEAD").decode("ascii").strip()
     target_entries = tree_entries(target)
@@ -199,6 +295,7 @@ def main() -> int:
     print(f"TARGET_TRACKED_ENTRIES={len(target_entries)}")
 
     total = 0
+    archived_branch_files = verify_source_branch_archives(target_entries)
     for snapshot in SNAPSHOTS:
         # Divergent code pins can be preserved by their exact tree even when
         # their full commit history is not an ancestor of an imported branch.
@@ -459,7 +556,10 @@ def main() -> int:
     for label, ancestor, descendant in ANCESTOR_CHECKS:
         check_ancestor(label, ancestor, descendant)
 
-    print(f"ALL_SNAPSHOT_BLOB_INTEGRITY_PASS total_entries={total}")
+    print(
+        f"ALL_SNAPSHOT_BLOB_INTEGRITY_PASS total_entries={total} "
+        f"source_branch_archive_files={archived_branch_files}"
+    )
     return 0
 
 
