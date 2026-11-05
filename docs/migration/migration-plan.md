@@ -35,6 +35,7 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 
 - [x] Import nine commit-backed snapshots plus one divergent exact tree snapshot under `migration/source-snapshots/` (1,685 tracked paths).
 - [x] Preserve source commit histories through Git parent relationships.
+- [x] Promote Supabase CLI config and seven local migration files under `infrastructure/supabase/` as exact blob copies; no remote DDL was run.
 - [x] Compare every imported snapshot path, file mode, object type, and Git blob SHA.
 - [x] Preserve divergent historical worker checkouts (Dynamic API, backend reassembly, legacy Sagormodak science fork) separately rather than overlaying them.
 - [x] Record 24 Dynamic/backend same-path collisions, including 19 different-content files.
@@ -49,7 +50,7 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 - [x] Promote the Known Place PR #85 source tree to `engines/known-place/`; 318 tests pass.
 - [x] Promote RiverShift GCOV code to `engines/river-shift/`; 259 tests pass.
 - [x] Promote current NISAR science source to `science/nisar-core/`; 180 tests pass.
-- [x] Verify exact blob identity for promoted directories and workflow/dependency compatibility fixtures.
+- [x] Verify exact blob identity for promoted directories, workflow/dependency compatibility fixtures, and the Supabase migration subtree.
 - [ ] Decide the long-term package boundary for duplicated utilities; do not deduplicate by filename.
 - [ ] Decide whether the older SQLAlchemy/session-oriented backend `app/` is retained under a `legacy/` namespace or retired after caller tracing.
 
@@ -87,7 +88,8 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 - [ ] Verify Vercel project IDs, roots, build settings, output settings, function limits, environment scopes, production branch, and aliases.
 - [x] Confirm active Supabase project identity, four public tables, RLS enablement, owner policies, security advisor, and seven remote migrations by read-only query.
-- [ ] Verify Supabase retention/cleanup policy and reconcile remote migration version/name drift with local filenames without applying migrations.
+- [x] Promote the local Supabase config and SQL migration files into `infrastructure/supabase/` with exact source blob identity.
+- [ ] Verify Supabase retention/cleanup policy and reconcile remote migration version/name drift with local filenames without applying migrations. See `docs/migration/supabase-migration-lineage.md`.
 - [x] Record current Vercel environment variable names and worker dispatch destinations without decrypting or copying secret values; final target Preview variable mapping remains pending.
 - [ ] Deploy a Preview only; test authentication, map search/AOI drawing, dashboard/archive, all engine pages, and result retrieval.
 - [ ] Exercise API dispatch/callback signatures, sequence ordering, retry behavior, terminal failure, Drive receipts, and retention with mocks.
@@ -99,11 +101,12 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 ## Current CI acceptance baseline
 
-Latest full parity run: [41964029591](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029591), 15/15 jobs passed:
+Latest complete source/promoted-path CI: [41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548), 16/16 jobs passed:
 - source snapshot tests: 1,463 passed, 1 skipped;
 - promoted-path tests: 1,231 passed;
 - total: 2,694 passing test executions, 1 skipped;
-- exact source blob/history checks: 1,685 snapshot entries plus promoted path/fixture mappings;
+- exact source blob/history checks: 1,685 snapshot entries plus promoted paths, fixtures, and Supabase migration mappings;
+- workflow dependency graph: 82 variants, 135 jobs, 20 reusable edges, 141 external checkouts;
 - RiverShift workflow candidate contract validator: PASS (20-job graph, path rewrite, immutable Node 24 action pins, artifact/retry/callback/retention checks);
 - full-history Gitleaks scan: [41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586), PASS with zero unreviewed findings.
 
