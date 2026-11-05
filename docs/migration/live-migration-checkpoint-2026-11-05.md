@@ -2,8 +2,8 @@
 
 **Audit date:** 2026-11-05  
 **Target branch:** `migration/source-snapshot-import`  
-**Audited Monorepo head:** `1bcc0648e01794496ec08375e3f245aaadaaf2cf`  
-**Commit:** [feat(find-displacements): add fail-closed API dispatcher](https://github.com/moshiour0/SARGuardian-Monorepo/commit/1bcc0648e01794496ec08375e3f245aaadaaf2cf)
+**Current documentation branch head:** `151f59854705351d34f234c4c78595ffe7d31a60` (checkpoint/readiness/README documentation commits only)  
+**Last code-bearing integration commit:** `1bcc0648e01794496ec08375e3f245aaadaaf2cf` — [fail-closed Find Displacements dispatcher](https://github.com/moshiour0/SARGuardian-Monorepo/commit/1bcc0648e01794496ec08375e3f245aaadaaf2cf)
 
 This checkpoint supersedes earlier “latest head” references in the readiness report. It is a source, branch and integration audit; it does not authorize production cutover.
 
@@ -86,15 +86,15 @@ Secret *names* are part of the contract; values must be set separately in the ta
 
 ### GitHub Actions
 
-The latest workflow runs associated with Monorepo head `1bcc0648e01794496ec08375e3f245aaadaaf2cf` were:
+The latest workflow runs triggered by current PR head `151f59854705351d34f234c4c78595ffe7d31a60` (documentation-only commits after code-bearing commit `1bcc0648e01794496ec08375e3f245aaadaaf2cf`) were:
 
 | Run | Workflow | Observed outcome |
 |---|---|---|
-| [41990721765](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41990721765) | Snapshot Regression Tests | All 17 regression jobs completed as failure with `steps=null` |
-| [41990721786](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41990721786) | Migration Metadata Validation | The provenance job failed with `steps=null` |
-| [41990721757](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41990721757) | Historical Secret Scan | The Gitleaks job failed with `steps=null` |
+| [41996716079](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716079) | Snapshot Regression Tests | All 17 regression jobs completed as failure with `steps=null` |
+| [41996716004](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716004) | Migration Metadata Validation | The provenance job failed with `steps=null` |
+| [41996715986](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996715986) | Historical Secret Scan | The Gitleaks job failed with `steps=null` |
 
-All failed jobs were re-run through GitHub's failed-job rerun operation. The rerun created new job IDs but reproduced the same pre-step failure state (`steps=null`); no runner logs or artifacts were available. Therefore:
+Earlier code-head runs 41990721765/786/757 were also retried through GitHub's failed-job rerun operation and reproduced the same pre-step state. The current documentation-head runs 41996716079/004/986 then failed in the same way without a runner step. No runner logs or artifacts were available. Therefore:
 
 - This is **not evidence of Python/TypeScript/test assertion failures**, because none of those steps started.
 - It is also **not a passing validation**. Current-head regression, metadata and full-history secret-scan gates remain unresolved.
