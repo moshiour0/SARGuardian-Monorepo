@@ -89,7 +89,45 @@ Read-only PostgreSQL catalog inspection confirmed:
 
 The API uses privileged server-side access, so the database owner-read policy is not a substitute for API authorization. Every user-facing read must continue to derive the owner UID from the verified Firebase identity and filter by it. Keep these checks in API regression tests.
 
-### Safe future CLI operation after Supabase CLI v3
+#
+
+## Live retention and access recheck — read-only 2026-11-06
+
+The active `SARGuardian_Dynamic` project remains `ACTIVE_HEALTHY` in `ap-northeast-2`, PostgreSQL 17.11.0. The seven remote migration rows are unchanged from the mapping above. No migration history repair, DDL, row deletion, or extension installation was performed.
+
+### Access contract
+
+Read-only catalog and privilege queries reconfirmed all four job tables have RLS enabled and `FORCE ROW LEVEL SECURITY` disabled. Each has one `authenticated` SELECT owner policy using the verified JWT `sub` claim in a scalar subquery. The `anon` and `authenticated` database roles currently have no direct SELECT table privilege on these four tables; `service_role` does. This is consistent with the current API-mediated access model, not a grant for browser-direct reads. The API must continue verifying Firebase identity and filtering every user-visible read by that UID.
+
+The Supabase Security Advisor returned no security lints.
+
+### Retention gap — action required before production acceptance
+
+A read-only row-age check found:
+
+| Table | Rows | Oldest created | Retention observation |
+|---|---:|---|---|
+| `catalog_preflights` | 3 | 2026-11-01 19:02 UTC | All 3 rows already have `expires_at < now()` |
+| `processing_jobs` | 2 | 2026-11-01 19:05 UTC | No table-level expiry column |
+| `displacement_jobs` | 51 | 2026-10-26 03:30 UTC | No table-level expiry column |
+| `river_shift_jobs` | 24 | 2026-11-03 05:31 UTC | No table-level expiry column |
+
+No installed `pg_cron` or `pg_net` extension was reported; no `cron`/`net` schema job objects or public function named for retention, cleanup, expiry, purge, or old-row deletion were found in the read-only checks. This does not rule out an external scheduler, but no such external cleanup owner has yet been evidenced.
+
+A more important conflict exists for `catalog_preflights`: its `catalog_preflights_immutable_guard` trigger fires on both UPDATE and DELETE and calls `public.enforce_catalog_preflight_immutable()`, whose current implementation always raises `catalog preflight snapshots are immutable`. Therefore the three expired rows cannot be purged through an ordinary DELETE while this trigger remains unchanged. The `expires_at` field currently acts as expiry metadata, not proof that rows are automatically removed.
+
+Before production acceptance, define the intended retention windows for each job table and retained artifact, identify the scheduler/cleanup owner, and design a narrow, auditable purge path that preserves immutable request/result evidence until expiry and respects foreign-key references. Any trigger/function or index change must be delivered as a reviewed forward migration with a test plan and backup/rollback path. Do not disable the immutability guard, install a scheduler, or delete rows ad hoc.
+
+### Performance advisor observations
+
+The read-only Performance Advisor returned:
+- one INFO finding: `processing_jobs.preflight_id` has no covering index;
+- four WARN findings for owner-read RLS policies being re-evaluated per row, although the inspected policy expressions already wrap `auth.jwt()` in a scalar subquery; verify the advisor finding against an EXPLAIN/test before changing the policies;
+- two INFO unused-index findings on `catalog_preflights_owner_created_idx` and `processing_jobs_state_idx`. Do not remove indexes solely from a low-volume observation.
+
+These are performance observations, not Security Advisor findings. No index or policy was changed in this recheck.
+
+## Safe future CLI operation after Supabase CLI v3
 
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
 
