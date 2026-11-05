@@ -2,7 +2,7 @@
 
 A controlled consolidation of SARGuardian's web application, active API, independent processing engines, NISAR science source, and GitHub Actions workflows.
 
-> **Migration status: bootstrap in progress.** The original repositories remain authoritative and unchanged. No production deployment, live processing, secret transfer, or workflow cutover is performed by this repository yet.
+> **Migration status: source import and first code promotion are complete on an isolated migration branch.** The original repositories remain authoritative and unchanged. No production deployment, secret transfer, live processing, or workflow cutover has been performed.
 
 ## Source systems
 
@@ -57,19 +57,21 @@ docs/
 
 The initial source snapshots remain under `migration/source-snapshots/`; promoted app paths are additional exact copies and the snapshots remain untouched. `apps/.github/workflows/` is an inactive test-compatibility mirror, not the active repository workflow directory.
 
-The first import phase retains source-layout snapshots to avoid changing runtime paths before dependency and deployment checks are complete.
+The source snapshots remain immutable; exact-copy promotions now exist under `apps/`, `engines/`, and `science/`. Original source paths remain available until Preview deployment, workflow parity, and security/cutover checks complete.
 
-The isolated snapshot regression baseline is green: **1,463 tests passed, 1 skipped**; exact Git blob/mode/history verification passed for all 1,408 imported source paths. The Dynamic app/API are also promoted into `apps/web` and `apps/api`, with compatibility mirrors in `apps/tools` and `apps/.github/workflows`; all four promoted paths are byte-identical to their source snapshots and the promoted frontend/API tests pass. See the [validation baseline](docs/migration/validation-baseline.md) and [path collision report](docs/migration/path-collision-report.md).
+The latest full CI parity run is green: **14/14 jobs passed**. It recorded 1,463 passing test executions (1 skipped) against source snapshots and another 1,231 passing executions from promoted app/engine paths. Exact Git blob/mode/history verification passed for all 1,408 imported source paths and promoted path/fixture mappings. See the [validation baseline](docs/migration/validation-baseline.md), [engine promotion report](docs/migration/engine-promotion-report.md), [workflow register](docs/migration/workflow-register.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
 - [x] New private repository created and write access verified.
 - [x] Source repository baselines verified.
-- [x] Immutable source snapshots imported and tree/path counts verified (1,408 tracked source paths across nine snapshots).
-- [ ] Workflow-by-workflow centralization and permissions audit (source YAML is currently nested/inactive).
-- [ ] API/deployment path and Vercel project-root verification.
-- [ ] Secret and Supabase configuration mapping (names only).
-- [ ] Regression tests, preview deploy, and isolated pilot.
+- [x] Immutable source snapshots imported and verified (1,408 tracked source paths across nine snapshots).
+- [x] Dynamic frontend/API and Find Displacements, Known Place, RiverShift, and NISAR paths promoted with passing regression suites.
+- [x] File-level inventory of 42 Dynamic/backend-main workflows plus the Known Place PR #85 branch delta.
+- [ ] Complete workflow caller/permissions/callback/retention audit before activating central root workflows.
+- [ ] Vercel project-root verification and Preview deployment.
+- [ ] Secret scan and secret/Supabase configuration mapping (names only).
+- [ ] Isolated operational pilot and rollback rehearsal.
 - [ ] Explicit production cutover approval.
 
 Source snapshots are archival/provenance-preserving inputs, not yet the final app/engine layout. Their nested GitHub workflow folders are not active root workflows. See the [target layout map](docs/migration/target-layout-map.md), [migration plan](docs/migration/migration-plan.md), [architecture boundaries](docs/architecture/system-boundaries.md), and [scientific invariants](docs/scientific-validation/invariants.md).
