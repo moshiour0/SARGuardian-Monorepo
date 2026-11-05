@@ -30,6 +30,10 @@ Source workflow folders currently exist only inside their imported snapshots:
 
 The active root `.github/workflows/` should receive only workflows that pass the 42-file workflow register. For each workflow, preserve trigger filters, job graph, permissions, cross-repository checkout, artifacts, callback, retry, retention, and rollback semantics. Never promote all files in a bulk copy.
 
+## Verified collision result
+
+Dynamic and backend main share 24 exact source paths: 5 paths have identical Git blobs and 19 have different blobs. The full source SHA comparison and resolution constraints are documented in [path-collision-report.md](path-collision-report.md). Do not promote the two source trees into common root paths by overlay.
+
 ## Shared-code collision and dependency checks
 
 Some utilities occur in more than one repository, including HDF5 archive helpers and AOI worker scripts. Do not deduplicate based on filename or apparent similarity. First compare blob SHA, imports, call sites, tests, environment assumptions, and workflow working directories.
