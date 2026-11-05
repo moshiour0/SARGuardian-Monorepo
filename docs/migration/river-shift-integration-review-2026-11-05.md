@@ -220,3 +220,17 @@ A complete job-to-secret scan found the following scope:
 This matches the worker call graph: prepare calls `_ensure_credentials()` before discovery to validate Earthdata configuration and private Drive parent-folder access; product runners only need Earthdata for exact granule download; status jobs only send signed callbacks; assembly validates storage again and publishes private results. This is an environment-variable scope audit, not a proof that hosted runner secrets have been configured.
 
 The Actions event/workflow-level permissions remain read-only `contents: read`; no `GITHUB_TOKEN` write permission is requested by the root processing workflow. The external repository dispatch uses the API's separately configured server-side GitHub token, which remains pointed at the Backend main worker by default. The Monorepo root gate and worker credentials remain inactive until explicit cutover.
+
+
+## Upstream action release-tag verification — 2026-11-05
+
+The four action SHAs were queried directly against their upstream repositories and their annotated release references. All four commits exist, report GitHub commit verification reason `valid`, and each configured tag resolves to the exact commit used by the workflow:
+
+| Upstream action | Configured tag | Configured SHA | Upstream tag match |
+|---|---|---|---|
+| actions/checkout | v7.0.1 | 3d3c42e5aac5ba805825da76410c181273ba90b1 | Exact |
+| mamba-org/setup-micromamba | v3 | f457c30a868e4760d3a6fcea5f25dc655b8edf39 | Exact |
+| actions/upload-artifact | v7.0.2 | cf430e030ddbb5b0abf93d22962f4752f3646cd9 | Exact |
+| actions/download-artifact | v8.0.2 | 9000827ccba6bdab643e8b6fd33ac0654aef8333 | Exact |
+
+The tag refs resolve to commit objects, not a different annotated-tag object SHA. This confirms the YAML comments/version labels match the actual pinned upstream commits. No action pin change was required.
