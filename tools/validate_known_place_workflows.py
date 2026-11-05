@@ -77,9 +77,18 @@ def gate_is_closed(job: dict, raw_workflow: str, label: str) -> None:
     env = step.get("env", {})
     if not isinstance(env, dict) or env.get("MONOREPO_KNOWN_PLACE_ENABLED") != "$" + "{{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}":
         raise SystemExit(f"ERROR={label}_PREFLIGHT_VARIABLE_MISSING")
+    if env.get("EXECUTE_DOWNLOADS") != "$" + "{{ inputs.execute_downloads }}":
+        raise SystemExit(f"ERROR={label}_PREFLIGHT_DOWNLOAD_MODE_MISSING")
     run = step.get("run", "")
-    if "!= \"true\"" not in run or "exit 1" not in run:
-        raise SystemExit(f"ERROR={label}_PREFLIGHT_FAILS_OPEN")
+    required_markers = (
+        'if [[ "$EXECUTE_DOWNLOADS" == "true" ]]',
+        '!= "true"',
+        "exit 1",
+        "RAW_SOURCE_DOWNLOADS=DISABLED",
+        "DRIVE_UPLOAD=DISABLED",
+    )
+    if any(marker not in run for marker in required_markers):
+        raise SystemExit(f"ERROR={label}_PREFLIGHT_DOES_NOT_SEPARATE_DRY_RUN_FROM_RAW_DOWNLOADS")
     if "secrets." in str(job):
         raise SystemExit(f"ERROR={label}_PREFLIGHT_MUST_NOT_RECEIVE_SECRETS")
     if "MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED" not in raw_workflow:
