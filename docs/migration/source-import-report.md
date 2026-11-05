@@ -16,9 +16,22 @@ Six immutable source trees were imported under `migration/source-snapshots/`. Th
 | NISAR science main | `SARGuardian@9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec` | 110 |
 | Historical NISAR pin | `SARGuardian@10639a916c9829850775410b3ed7de62e527770d` | 133 |
 | Historical NISAR pin | `SARGuardian@006d4cd1485cf80e509eaf8717c12e9c6390ac09` | 135 |
-| **Total** | | **1,084** |
+| Dynamic historical callback API | `SARGuardian_Dynamic@db6472e1c304e21242f1ab1dfd671ccb21ba5697` | 130 |
+| Backend historical reassembly tools | `SARGuardian-backend@d9e67df7d800032c37d23f74df44c98e3ab655f7` | 86 |
+| Legacy NISAR science fork (manual diagnostic refs) | `Sagormodak/SARGuardian@77cc9646cfa46d3aff3669d351912f984cf67aa3` | 108 |
+| **Total** | | **1,408** |
 
 The total counts tracked paths across snapshots; files shared by multiple source refs intentionally appear in more than one snapshot when their provenance differs.
+
+## Additional non-ancestor workflow revisions
+
+A second embedded-reference scan found three more exact checkout pins that are not covered by current main snapshots:
+
+- Dynamic `db6472…`: checked out by the backend AOI dashboard for the signed callback/API contract. This commit diverges from Dynamic main and has 130 tracked paths; it is imported independently.
+- Backend `d9e67…`: checked out by the reassembly workflow for the aggregation tools. This commit diverges from backend main and has 86 tracked paths; it is imported independently.
+- `Sagormodak/SARGuardian@77cc964…`: pinned by legacy manual GOFF/GUNW Earthaccess diagnostics in the Known Place PR lineage. It is a distinct fork, not the current `moshiour0/SARGuardian` source. Its 108 tracked paths are preserved as a legacy external source, not promoted as the canonical NISAR science engine.
+
+The backend `ecd125…` dependency and Dynamic science pin `f038…` are ancestors of their respective imported source-main histories and remain reachable without duplicate trees.
 
 ## Why multiple science snapshots were required
 
@@ -38,7 +51,7 @@ This avoids the incomplete result that would come from copying backend `main` al
 - Git trees were inserted without file-content rewriting; Git object identity is retained.
 - Import commit `c7afa9c…` has the Dynamic, backend-main, Known Place PR #85, and NISAR-main commits as parents.
 - Import commit `c100570…` has the historical NISAR pins `10639…` and `006d…` as additional parents.
-- A recursive target tree query was not truncated and returned the expected six path counts above.
+- A recursive target tree query was not truncated and returned the expected nine path counts above.
 - Representative paths were found: Dynamic `Frontend/src/App.tsx`, backend RiverShift `tools/river_shift/process_gcov_job.py`, Known Place `tools/know_place/aoi_runner.py`, and NISAR `src/timeseries.py`.
 - The source repositories were not modified.
 
@@ -48,7 +61,7 @@ All source files are nested below `migration/source-snapshots/`. Their embedded 
 
 ## Runtime regression result
 
-The isolated snapshot regression workflow [41956286197](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41956286197) completed with all seven jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,084 imported entries. Details are in [validation-baseline.md](validation-baseline.md).
+The isolated snapshot regression workflow [41956286197](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41956286197) completed with all seven jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,408 imported entries. Details are in [validation-baseline.md](validation-baseline.md).
 
 The Dynamic/backend same-path collision audit found 24 overlaps, including 19 different-content paths; see [path-collision-report.md](path-collision-report.md).
 
