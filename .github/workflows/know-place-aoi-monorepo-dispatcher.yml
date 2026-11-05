@@ -1,0 +1,107 @@
+name: Known Place AOI dispatcher — Monorepo
+
+run-name: Known Place Analysis ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: API-generated UUID used to bind status polling to this exact run
+        required: true
+        type: string
+      aoi_wkt:
+        description: Measurement polygon WKT in EPSG:4326
+        required: true
+        type: string
+      scope_aoi_wkt:
+        description: Optional outer AOI boundary WKT
+        required: false
+        default: ""
+        type: string
+      start_date:
+        description: Inclusive acquisition start date (YYYY-MM-DD)
+        required: true
+        type: string
+      end_date:
+        description: Inclusive acquisition end date (YYYY-MM-DD)
+        required: true
+        type: string
+      hazard_mode:
+        required: false
+        default: mixed
+        type: string
+      analysis_mode:
+        required: false
+        default: exploratory
+        type: string
+      geometry_height_m:
+        required: false
+        default: ""
+        type: string
+      coherence_neighbours:
+        required: false
+        default: "1"
+        type: string
+      polarization:
+        required: false
+        default: HH
+        type: string
+      track:
+        required: false
+        default: ANY
+        type: string
+      direction:
+        required: false
+        default: ANY
+        type: string
+      allowed_release_ids:
+        description: Optional comma-separated exact release IDs, e.g. P05023
+        required: false
+        default: ""
+        type: string
+      reference_wkt:
+        description: Optional independent background/reference polygon WKT
+        required: false
+        default: ""
+        type: string
+      candidate_context_json:
+        description: Optional metadata-only GOFF candidate provenance object
+        required: false
+        default: ""
+        type: string
+      consent_marker:
+        description: Server-generated exact marker; required only for raw-download opt-in
+        required: false
+        default: ""
+        type: string
+      execute_downloads:
+        description: False performs catalog/series-plan dry run only; true requests raw source downloads
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Call Monorepo-local Known Place engine
+    uses: ./.github/workflows/know-place-aoi-analysis.yml
+    with:
+      aoi_wkt: ${{ inputs.aoi_wkt }}
+      scope_aoi_wkt: ${{ inputs.scope_aoi_wkt }}
+      start_date: ${{ inputs.start_date }}
+      end_date: ${{ inputs.end_date }}
+      hazard_mode: ${{ inputs.hazard_mode }}
+      analysis_mode: ${{ inputs.analysis_mode }}
+      geometry_height_m: ${{ inputs.geometry_height_m }}
+      coherence_neighbours: ${{ inputs.coherence_neighbours }}
+      polarization: ${{ inputs.polarization }}
+      track: ${{ inputs.track }}
+      direction: ${{ inputs.direction }}
+      allowed_release_ids: ${{ inputs.allowed_release_ids }}
+      reference_wkt: ${{ inputs.reference_wkt }}
+      candidate_context_json: ${{ inputs.candidate_context_json }}
+      consent_marker: ${{ inputs.consent_marker }}
+      execute_downloads: ${{ inputs.execute_downloads }}
+    secrets: inherit
