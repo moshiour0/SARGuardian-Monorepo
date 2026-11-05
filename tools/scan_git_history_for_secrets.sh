@@ -57,8 +57,12 @@ for finding in data:
     file_path = str(finding.get("File", "unknown"))[:300]
     line = finding.get("StartLine", "unknown")
     commit = str(finding.get("Commit", "unknown"))[:40]
+    fingerprint = str(finding.get("Fingerprint", "unknown"))[:80]
     # Never print Description, Match, Secret, Author, Email, or raw report JSON.
-    print(f"FINDING rule={rule} file={file_path} line={line} commit={commit}")
+    print(
+        f"FINDING rule={rule} file={file_path} line={line} "
+        f"commit={commit} fingerprint={fingerprint}"
+    )
 PY
 else
   echo "SECRET_SCAN_REPORT_NOT_CREATED"
