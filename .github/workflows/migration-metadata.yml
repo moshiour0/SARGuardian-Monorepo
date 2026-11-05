@@ -1,0 +1,34 @@
+name: Migration Metadata Validation
+
+on:
+  pull_request:
+    paths:
+      - "docs/migration/source-pins.json"
+      - "tools/validate_migration_manifest.py"
+      - ".github/workflows/migration-metadata.yml"
+  push:
+    branches:
+      - main
+      - "migration/**"
+    paths:
+      - "docs/migration/source-pins.json"
+      - "tools/validate_migration_manifest.py"
+      - ".github/workflows/migration-metadata.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-source-manifest:
+    name: Validate source provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate manifest
+        run: python tools/validate_migration_manifest.py
