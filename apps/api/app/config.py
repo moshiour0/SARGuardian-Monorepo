@@ -44,6 +44,12 @@ class RuntimeSettings:
     github_actions_workflow: str
     github_actions_ref: str
     displacement_callback_secret: str
+    known_place_github_actions_repository: str
+    known_place_github_actions_workflow: str
+    known_place_github_actions_ref: str
+    known_place_paper_github_actions_repository: str
+    known_place_paper_github_actions_workflow: str
+    known_place_paper_github_actions_ref: str
     public_api_url: str
     github_api_url: str
     displacement_dispatch_timeout_seconds: int
@@ -98,6 +104,22 @@ def get_settings(environ: Mapping[str, str] | None = None) -> RuntimeSettings:
         github_actions_workflow=values.get("GITHUB_ACTIONS_WORKFLOW", "sarguardian-displacement.yml").strip(),
         github_actions_ref=values.get("GITHUB_ACTIONS_REF", "main").strip(),
         displacement_callback_secret=values.get("DISPLACEMENT_CALLBACK_SECRET", "").strip(),
+        # Keep the working backend dispatch target as the compatibility default.
+        # Production cutover to Monorepo root workflows is an explicit env change.
+        known_place_github_actions_repository=values.get(
+            "KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY", "moshiour0/SARGuardian-backend"
+        ).strip(),
+        known_place_github_actions_workflow=values.get(
+            "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW", "know-place-aoi-dispatcher.yml"
+        ).strip(),
+        known_place_github_actions_ref=values.get("KNOWN_PLACE_GITHUB_ACTIONS_REF", "main").strip(),
+        known_place_paper_github_actions_repository=values.get(
+            "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY", "moshiour0/SARGuardian-backend"
+        ).strip(),
+        known_place_paper_github_actions_workflow=values.get(
+            "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW", "know-place-paper-reproduction-dispatcher.yml"
+        ).strip(),
+        known_place_paper_github_actions_ref=values.get("KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF", "main").strip(),
         public_api_url=values.get("PUBLIC_API_URL", "").rstrip("/"),
         github_api_url=values.get("GITHUB_API_URL", DEFAULT_GITHUB_API_URL).rstrip("/"),
         displacement_dispatch_timeout_seconds=_bounded_int(values, "DISPLACEMENT_DISPATCH_TIMEOUT_SECONDS", DEFAULT_DISPLACEMENT_DISPATCH_TIMEOUT_SECONDS, 300, 86_400),
@@ -133,9 +155,31 @@ def validate_production_settings(settings: RuntimeSettings | None = None) -> Run
             "GITHUB_ACTIONS_REF": current.github_actions_ref,
             "DISPLACEMENT_CALLBACK_SECRET": current.displacement_callback_secret,
             "PUBLIC_API_URL": current.public_api_url,
+            "KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY": current.known_place_github_actions_repository,
+            "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW": current.known_place_github_actions_workflow,
+            "KNOWN_PLACE_GITHUB_ACTIONS_REF": current.known_place_github_actions_ref,
+            "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY": current.known_place_paper_github_actions_repository,
+            "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW": current.known_place_paper_github_actions_workflow,
+            "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF": current.known_place_paper_github_actions_ref,
         }.items() if not value]
         if missing:
-            raise SettingsError(f"Displacement Actions is enabled but missing: {', '.join(missing)}.")
+            raise SettingsError(f"Displacement/ Known Place Actions are enabled but missing: {', '.join(missing)}.")
+        repository_pattern = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\\.ya?ml$")
+        ref_pattern = re.compile(r"^[A-Za-z0-9._/-]+$")
+        targets = (
+            ("KNOWN_PLACE_GITHUB_ACTIONS", current.known_place_github_actions_repository,
+             current.known_place_github_actions_workflow, current.known_place_github_actions_ref),
+            ("KNOWN_PLACE_PAPER_GITHUB_ACTIONS", current.known_place_paper_github_actions_repository,
+             current.known_place_paper_github_actions_workflow, current.known_place_paper_github_actions_ref),
+        )
+        for label, repository, workflow, ref in targets:
+            if not repository_pattern.fullmatch(repository):
+                raise SettingsError(f"{label}_REPOSITORY must be owner/repository.")
+            if not workflow_pattern.fullmatch(workflow):
+                raise SettingsError(f"{label}_WORKFLOW must be a workflow .yml or .yaml filename.")
+            if not ref_pattern.fullmatch(ref) or ".." in ref or ref.startswith("/") or ref.endswith("/") or "//" in ref:
+                raise SettingsError(f"{label}_REF is invalid.")
         callback_url = urlsplit(current.public_api_url)
         if callback_url.scheme != "https" or not callback_url.netloc:
             raise SettingsError("PUBLIC_API_URL must be an HTTPS URL when Displacement Actions is enabled.")
