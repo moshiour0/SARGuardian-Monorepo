@@ -171,7 +171,7 @@ The promoted API source was inspected alongside the environment-name inventory:
 This validates the fail-closed configuration path by source inspection, not by live HTTP response. Do not label Preview's authenticated routes as working until the owner supplies approved staging credentials and an SSO-authorized request verifies health, auth, persistence and callbacks end to end.
 
 
-## Latest API Preview redeploy attempt — 2026-11-05
+## Historical API Preview redeploy attempt — 2026-11-05 (superseded by current 2026-11-06 Preview)
 
 After the RiverShift API dispatch-target validation code was added under apps/api, a direct Git-backed Preview deployment was requested for current migration branch head 280af486a49eb42b18e0de41aaa7817a287b2591, scoped to the existing Monorepo API project only. The request was rejected by Vercel before deployment creation:
 
@@ -181,3 +181,19 @@ After the RiverShift API dispatch-target validation code was added under apps/ap
 - No deployment ID was returned and no deployment was created.
 
 The latest inspectable API Preview deployment remains dpl_4jzEgnNBE4Yv7KMTqgdUbz2Y3uKe at commit 4f9ed1ad09cce1261afd5e68938bc4a12a8685cc. It predates the RiverShift API config-hardening commits, so the new config code has **not** been Vercel-built or deployed. Do not treat prior READY API Preview builds as evidence for the latest code. No Production project/alias/environment was changed. Avoid further create-deployment calls until the Vercel quota window has reset or the project owner resolves the plan/usage limit.
+
+
+## Current Monorepo Preview deployments — 2026-11-06
+
+The latest migration branch head `96bcdee42b5b6871f5638dd3e41161cccc966130` has fresh Git-linked Preview deployments in both isolated Monorepo projects:
+
+| Project | Project ID | Deployment ID | Preview URL | Branch alias | State | Target |
+|---|---|---|---|---|---|---|
+| Web | `prj_rxEcpqdYRJigOAnx6ekrFj8dX2ny` | `dpl_4hDnUyXMPDYBhwNa7aT71xYigknb` | [Web Preview](https://sar-guardian-monorepo-3rqjt3ztu.vercel.app) | `sar-guardi-git-90a645-moshiour-rahman-sarkers-projects-2cebe363.vercel.app` | READY | Preview (`target=null`) |
+| API | `prj_1XQrqFFo4dFhWzBA15zGQQWNIo2p` | `dpl_Hchn3asHzxWxauRqNBjBmKpWWwN8` | [API Preview](https://sar-guardian-monorepo-1zt05usqy.vercel.app) | `sar-guardi-git-ed4bd9-moshiour-rahman-sarkers-projects-2cebe363.vercel.app` | READY | Preview (`target=null`) |
+
+Both builds cloned the same migration branch commit. The Web build completed `npm ci`, `tsc -b && vite build`, and Vite 5.4.21; its 560.17 kB minified JavaScript chunk exceeds the 500 kB warning threshold. `npm ci` audited 299 packages and reported 19 advisories (10 moderate, 7 high, 2 critical). Review exact advisories and code-split the large bundle before public release; do not use `npm audit fix --force` without compatibility review. The API build installed `apps/api/requirements.txt`, compiled and optimized Python 3.12 bytecode, and completed deployment.
+
+Both Preview projects still have SSO protection. Current project metadata marks the Monorepo projects as non-live; their Production-target deployment records are cancelled, not serving the Production domain. The original `sar-guardian-dynamic` Web and `sarguardian-backend-api` Production projects remain `READY` on their existing main-branch deployments. No alias, Production domain, API dispatch target, callback URL or Production environment was reassigned.
+
+The current Preview builds prove build/deployment success only. Firebase Web config, Maps access, staging Supabase credentials, authenticated user routes, signed callback round-trips, GitHub worker dispatch, Earthdata downloads and Drive receipts are not verified by these builds. Configure separate staging values from the environment templates; do not copy Production service-role keys or worker secrets into Preview.
