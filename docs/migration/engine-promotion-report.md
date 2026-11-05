@@ -12,18 +12,18 @@
 | `science/nisar-core/` | NISAR science main, full repository snapshot | 110 | Current pinned NISAR science source and regression suite |
 | `engines/find-displacements/dashboard/` | Backend main `dashboard/` | 22 | AOI candidate screening, gated GUNW pixel diagnostics, common reference and dashboard assets/tests |
 | `engines/find-displacements/tools/` | Backend main `tools/`, excluding `tools/river_shift/` | 34 | Find Displacements and shared AOI worker/retention tools plus their tool tests |
-| `engines/find-displacements/.github/workflows/` | Three selected backend workflow files | 3 | Inactive local workflow fixtures for workflow-contract tests; not active Actions workflows |
+| `engines/find-displacements/.github/workflows/` | Seven selected backend workflow files | 7 | Inactive local workflow fixtures required by original root-relative workflow-contract tests; not active Actions workflows |
 | `engines/find-displacements/` root | Backend `requirements-dev.txt` and `requirements.txt` | 2 | Preserve worker environment declarations |
 | `engines/river-shift/tools/river_shift/` | Backend main `tools/river_shift/` | 74 | Isolated GCOV runtime, CLI stages, and test suite |
-| `engines/river-shift/.github/workflows/` | Backend `river-shift-gcov-process.yml` | 1 | Inactive workflow-contract fixture for RiverShift retry graph tests |
+| `engines/river-shift/.github/workflows/` | Backend GCOV and independent-reference validation workflows | 2 | Inactive workflow-contract fixtures for retry graph and reference-validation tests |
 
-**Total promoted tracked entries:** 523 (277 + 110 + 61 + 75). The source snapshot locations remain intact.
+**Total promoted tracked entries:** 528 (277 + 110 + 65 + 76). The source snapshot locations remain intact.
 
 ## Why the layouts preserve source-relative paths
 
 - Known Place retains the original repository-root-relative `tools/know_place`, `tools/tests`, docs, and workflow fixtures. This keeps its current test and author-evidence paths stable.
-- RiverShift retains the `tools/river_shift/` prefix under its engine root. Its test suite computes the package root from that original depth and reads the workflow fixture from the engine root. This avoids changing test logic or GCOV imports during the initial move.
-- Find Displacements retains `dashboard/`, `tools/`, and the tested workflow fixture paths within its own engine root. RiverShift tools are excluded from this engine package.
+- RiverShift retains the `tools/river_shift/` prefix under its engine root. Its test suite computes the package root from that original depth and reads the two nested workflow fixtures from the engine root. This avoids changing test logic or GCOV imports during the initial move.
+- Find Displacements retains `dashboard/`, `tools/`, and the tested workflow fixture paths within its own engine root. Four additional exact-source workflow fixtures were added after the first engine test run exposed original tests reading root-relative workflow files. Two of these fixtures are Known Place dispatchers because the original backend workspace hosted those dispatch contracts at repository root; their nested copies do not make Known Place part of the Find Displacements engine. RiverShift tools are excluded from this engine package.
 - NISAR science is copied as a whole source tree; historical source versions remain separate snapshots and are not overlaid into `science/nisar-core`.
 
 The selected engine-local `.github/workflows/` paths are nested beneath `engines/`; GitHub Actions only executes workflows from the repository-root `.github/workflows/`. They are fixtures and are intentionally inactive.
