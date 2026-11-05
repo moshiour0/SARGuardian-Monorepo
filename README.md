@@ -55,15 +55,17 @@ docs/
   scientific-validation/
 ```
 
+The initial source snapshots remain under `migration/source-snapshots/`; promoted app paths are additional exact copies and the snapshots remain untouched. `apps/.github/workflows/` is an inactive test-compatibility mirror, not the active repository workflow directory.
+
 The first import phase retains source-layout snapshots to avoid changing runtime paths before dependency and deployment checks are complete.
 
-The isolated snapshot regression baseline is green: **1,463 tests passed, 1 skipped**, and exact Git blob/mode/history verification passed for all 1,084 imported source paths. See the [validation baseline](docs/migration/validation-baseline.md) and [path collision report](docs/migration/path-collision-report.md).
+The isolated snapshot regression baseline is green: **1,463 tests passed, 1 skipped**; exact Git blob/mode/history verification passed for all 1,408 imported source paths. The Dynamic app/API are also promoted into `apps/web` and `apps/api`, with compatibility mirrors in `apps/tools` and `apps/.github/workflows`; all four promoted paths are byte-identical to their source snapshots and the promoted frontend/API tests pass. See the [validation baseline](docs/migration/validation-baseline.md) and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
 - [x] New private repository created and write access verified.
 - [x] Source repository baselines verified.
-- [x] Immutable source snapshots imported and tree/path counts verified (1,084 tracked source paths across six snapshots).
+- [x] Immutable source snapshots imported and tree/path counts verified (1,408 tracked source paths across nine snapshots).
 - [ ] Workflow-by-workflow centralization and permissions audit (source YAML is currently nested/inactive).
 - [ ] API/deployment path and Vercel project-root verification.
 - [ ] Secret and Supabase configuration mapping (names only).
