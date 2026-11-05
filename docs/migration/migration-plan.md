@@ -12,7 +12,8 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate the thre
 - [x] Verify target repository exists and connected GitHub integration has push/admin access.
 - [x] Record current default-branch SHAs for all three source repositories.
 - [x] Record Known Place feature branch and open PR #85 separately from backend main.
-- [ ] Capture source tags/branches and recursive tree manifests for all source refs.
+- [x] Import exact recursive tree snapshots for the three current main refs, Known Place PR #85 head, and two non-ancestor NISAR science pins; preserve source commit history.
+- [ ] Complete the exhaustive branch/tag inventory beyond the immutable refs currently selected.
 - [ ] Export active workflow inventory and run evidence.
 - [ ] Record Vercel project roots, production branch/alias, and Supabase linkage without changing them.
 - [ ] Confirm which old backend `app/` endpoints are still called by workflows or external deployments.
@@ -29,6 +30,19 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate the thre
 **Exit condition:** repository can run basic validation and PR checks without touching production.
 
 ## Phase 2 — import source snapshots without refactoring
+
+- [x] Import six immutable source trees (1,084 tracked source paths) under `migration/source-snapshots/`.
+- [x] Preserve source history through source commits retained as parents of the import commits.
+- [x] Verify recursive target tree is not truncated, snapshot path counts match source tree counts, and representative engine files exist.
+- [ ] Run a full path/blob comparison report and secret scan before promotion.
+
+Imported snapshots:
+- Dynamic main: 185 paths.
+- Backend main: 244 paths.
+- Backend Known Place PR #85 head: 277 paths.
+- NISAR science main: 110 paths.
+- Historical NISAR pin 10639: 133 paths.
+- Historical NISAR pin 006d: 135 paths.
 
 Recommended source mapping:
 - Dynamic: `Frontend/`, active `Backend/`, tests, tools, and relevant docs.
