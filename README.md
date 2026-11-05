@@ -57,9 +57,11 @@ Source snapshots remain immutable, and promoted paths are exact copies. Original
 
 ## Verified CI baseline
 
-Latest complete source-and-promoted-path parity run: [GitHub Actions run 41967622599](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622599), with 16/16 jobs green.
+Latest complete code/regression baseline: [GitHub Actions run 41980756059](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41980756059), with 17/17 jobs green after Known Place routing, artifact selection and promotion-integrity checks.
 
-<badge color="success">16/16 jobs passed</badge>
+<badge color="success">17/17 jobs passed</badge>
+
+This is the last complete green run before the later OPERA/Run #36 validation-branch archive, submission evidence matrix and CI path-filter updates. Those newer commits require a fresh regression and full-history secret-scan confirmation; do not treat the older run as validation of those additions.
 
 The run recorded:
 - **1,463** passing test executions and 1 skipped across immutable source snapshots.
@@ -69,14 +71,14 @@ The run recorded:
 - Workflow dependency parser: 82 variants, 135 jobs, 20 reusable call edges (12 local, 8 external), and 141 external checkout steps.
 - RiverShift candidate workflow validation: 20-job graph, 15-product batches, failed-only retries, artifact/retention/callback contract, and immutable Node 24 action pins unchanged.
 
-The latest full-history Gitleaks scan [41967622669](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622669) also passed with zero unreviewed findings.
+The last confirmed full-history Gitleaks scan [41967622669](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622669) passed with zero unreviewed findings. Because validation-source snapshots were added afterward, repeat the history scan before any public visibility change.
 
-See the [readiness and remaining-work report](docs/migration/readiness-and-remaining-work.md), the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
+See the [readiness and remaining-work report](docs/migration/readiness-and-remaining-work.md), [active branch audit](docs/migration/active-branch-audit-2026-11-05.md), [score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md), [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
 - [x] New private repository created and write access verified.
-- [x] Nine commit-backed source snapshots and the divergent Known Place author-exact `b825df` tree pin preserved (1,685 tracked snapshot paths).
+- [x] Nine commit-backed core source snapshots plus the divergent Known Place author-exact `b825df` tree pin preserved (1,685 tracked snapshot paths); additional RiverShift validation-source branch files are archived separately with exact blob pins.
 - [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
@@ -84,12 +86,14 @@ See the [readiness and remaining-work report](docs/migration/readiness-and-remai
 - [x] RiverShift Monorepo workflow candidate parsed and validated; it remains inactive and awaits 20-job mock/runtime dry-run and cutover review.
 - [ ] Complete remaining runtime workflow caller/permissions/callback/artifact/retention review and dry-runs before activating central root workflows.
 - [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
-- [ ] Complete runtime configuration-name mapping (names only).
-- [x] Verify current Production deployments and API Preview commit refs read-only; Production remains one Dynamic-main commit behind and Root Directories/Preview scopes still need dashboard verification.
-- [ ] Configure Monorepo Preview project roots, environment scopes, and routes.
+- [x] Runtime configuration-name map created; generic and author-exact Known Place workflow destinations are independently configurable while defaulting to the existing Backend dispatchers.
+- [x] Existing Production projects inspected read-only and left unchanged.
+- [x] Two separate Monorepo Vercel Preview projects created with roots apps/web and apps/api; initial deployments from commit 8de4f0f reached READY with target=null.
+- [ ] Redeploy the latest branch head and complete Preview smoke tests; Vercel currently rejects new builds with build-rate-limit. Preview processing dispatch remains disabled and no Production credentials were copied.
 - [x] Verify active Supabase project identity, schema, RLS, and migration history read-only; promote the exact `config.toml` and seven local SQL migrations under `infrastructure/supabase/`.
 - [ ] Reconcile remote migration version/name drift and retention cleanup policy; no remote SQL was applied.
 - [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
+- [ ] Confirm repository-wide licensing/third-party rights. NISAR science main contains an MIT license; Dynamic, Backend and the current Monorepo have no LICENSE file. Do not label the entire product open-source or make the repo public until the project owner confirms the intended license and all contributions/assets permit redistribution.
 - [ ] Explicit production cutover approval.
 
 The current work is isolated to migration branches. No source repository, production Vercel alias, Supabase schema, active dispatch destination, or production callback URL has been changed.
