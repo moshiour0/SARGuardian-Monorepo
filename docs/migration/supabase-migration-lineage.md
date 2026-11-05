@@ -132,12 +132,11 @@ These are performance observations, not Security Advisor findings. The forward m
 
 ## Forward retention migration — 2026-11-06
 
-Two identical copies of the new forward migration are maintained at the active API's configured migration path and the infrastructure source-of-truth path:
+The canonical forward migration is maintained at the infrastructure source-of-truth path:
 
-- `apps/api/supabase/migrations/20261105205909_catalog_preflight_retention.sql`
 - `infrastructure/supabase/migrations/20261105205909_catalog_preflight_retention.sql`
 
-The migration was applied successfully to live project `ufwjmhivvnoewjsbteey` (API response `success: true`) and verified. It implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
+Its Git blob is `d37e18839e4b143dd3cc8dbbab17f8d2289f17a1`. The imported `apps/api/supabase/` tree remains byte-identical to the Dynamic source snapshot and was intentionally not modified. The migration was applied successfully to live project `ufwjmhivvnoewjsbteey` (API response `success: true`) and verified. It implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
 
 - Preserve expired catalogue preflight snapshots for a further **7-day support grace period**.
 - Once the grace period has elapsed, delete only preflights that are **not referenced** by `processing_jobs`.
@@ -148,7 +147,7 @@ The migration was applied successfully to live project `ufwjmhivvnoewjsbteey` (A
 
 The current live inventory contains three expired preflights: one unreferenced and two referenced by the two existing `processing_jobs` rows. None has been expired for more than seven days yet. Therefore the first scheduled execution is expected to delete **zero** existing rows; the referenced records remain protected regardless of age. The migration does not purge `processing_jobs`, `displacement_jobs`, or `river_shift_jobs`, nor does it delete Google Drive files, GitHub artifacts, raw NISAR source data, or scientific result bundles. Those retention windows require separate explicit policies.
 
-The seven pre-existing remote migration records remain version/name-mismatched with their corresponding source SQL filenames. The new eighth migration is aligned at remote version `20261105205909`. No historical migration repair or DDL replay was performed.
+The seven pre-existing remote migration records remain version/name-mismatched with their corresponding source SQL filenames. The new eighth migration is aligned at remote version `20261105205909`. No historical migration repair or old DDL replay was performed; only the new bounded forward migration was applied.
 
 ## Safe future CLI operation after Supabase CLI v3
 
