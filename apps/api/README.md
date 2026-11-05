@@ -63,8 +63,8 @@ obtaining staging values. The current code expects these names:
 - `DISPLACEMENT_ACTIONS_ENABLED`, `GITHUB_ACTIONS_TOKEN`, `GITHUB_ACTIONS_REPOSITORY`, `GITHUB_ACTIONS_WORKFLOW`, `GITHUB_ACTIONS_REF`, `DISPLACEMENT_CALLBACK_SECRET`, and `PUBLIC_API_URL` for durable scientific-processing dispatch
 - `KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_GITHUB_ACTIONS_REF` for the generic two-polygon workflow
 - `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF` for the separate author-exact P05023 workflow
-- Worker-side GitHub Actions secrets: `EARTHDATA_USERNAME`, `EARTHDATA_PASSWORD` or `EARTHDATA_TOKEN`, `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
-- API runtime secrets (required on the Render `SARGuardian_Dynamic` service, and on any Vercel FastAPI deployment serving the dashboard): `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
+- Known Place worker-side GitHub Actions secrets: `EARTHDATA_USERNAME`, `EARTHDATA_PASSWORD` or `EARTHDATA_TOKEN`, `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_PARENT_FOLDER_ID`
+- API-side server secrets: `GITHUB_ACTIONS_TOKEN` must have Actions read/write access to each configured Known Place repository so the API can dispatch the workflow, poll its exact run, list its artifact, and download the artifact. The API does **not** need the worker's Google Drive OAuth credentials to retrieve the current GitHub Actions result artifact.
 - `PORT` (optional; defaults to 8000)
 
 Manual setup:
@@ -97,17 +97,25 @@ after the matching workflow is promoted, its inputs/status/artifacts are contrac
 coordinated production cutover is approved. Do not point author-exact reproduction at the generic
 workflow or substitute the author-pinned product/code revision.
 
-## Private dashboard API storage requirements
+## Known Place result storage and retrieval
 
-The GitHub Actions worker uploads the completed `aoi-derived-results.zip` bundle to private Google Drive and sends a checksum-verified Drive receipt to the API. The API then downloads that same private file only after confirming the signed-in user owns the succeeded job. **The API runtime must have its own Drive OAuth configuration as well as the worker.** GitHub Actions secrets do not automatically become Render service environment variables.
+For a raw-download run, the GitHub Actions worker builds a derived-only ZIP and uploads it to the configured
+private Google Drive parent folder using `GOOGLE_DRIVE_PARENT_FOLDER_ID`. It then writes a receipt containing
+the Drive folder/file IDs, local SHA-256 and a SHA-256 recomputed from bytes downloaded back from Drive.
+Raw HDF5 source files and credentials are excluded from that retained bundle.
 
-On the Render service `SARGuardian_Dynamic` (or the FastAPI hosting environment), add these three server-only environment variables using the same values as the workflow's GitHub Actions secrets:
+The API's current result adapter is a separate path: it locates the exact completed GitHub Actions run by
+the opaque request UUID in the run title, downloads the run's GitHub Actions artifact with the server-side
+`GITHUB_ACTIONS_TOKEN`, and validates `result.json`, the generated dashboard/map HTML, and the optional
+Drive receipt. The API's authenticated bundle endpoint returns that same bounded Actions artifact to the
+signed-in browser. It does not currently call the Google Drive API directly; do not add Drive OAuth
+credentials to the Vercel API unless a separately reviewed Drive-backed retrieval implementation is added.
 
-- `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`: the OAuth client JSON object, including its `web` credentials.
-- `GOOGLE_DRIVE_REFRESH_TOKEN`: the OAuth refresh token for the Drive identity that can access the private result folder.
-- `GOOGLE_DRIVE_FOLDER_ID`: the parent folder ID used by the worker.
+Keep the GitHub Actions worker secrets in the repository that runs the Known Place worker. The Vercel API
+needs its own server-side GitHub token with Actions read/write permissions on the configured dispatcher
+repository, plus the existing Firebase Admin and Supabase server-only settings. No Google Drive token,
+OAuth client JSON or parent-folder ID belongs in a browser-visible `VITE_*` variable.
 
-Keep the values private: do not commit them, put them in any `VITE_*` variable, or paste them into issues or logs. After saving the variables, redeploy/restart the API service and retry opening the existing job's dashboard; the existing ZIP is already retained, so a new NISAR processing run is not needed just to retry the dashboard. If the 503 remains, check the API's safe server log message for the sanitized Google Drive failure reason (missing configuration, OAuth authentication, or file retrieval failure).
 
 ## Vercel deployment preparation
 
@@ -120,7 +128,9 @@ The isolated Monorepo Preview projects have been created and the initial Web and
 completed successfully from `migration/source-snapshot-import`. Preview has no production
 Supabase/Firebase/Google Drive/GitHub credentials, and processing dispatch is disabled there.
 The Preview is therefore a build and routing checkpoint, not yet an authenticated end-to-end
-processing environment.
+processing environment. Those deployments are pinned to earlier migration commits; a fresh
+Preview build of the current branch head remains blocked by the Vercel account's deployment
+rate limit and must be refreshed before UI/API integration is accepted.
 
 Before production cutover, configure the Preview/Production environment variables from
 `.env.example` and `../docs/operations/deployment-and-secret-map.md` using the appropriate
