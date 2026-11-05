@@ -99,3 +99,35 @@ A second read-only Supabase catalog audit after the original inventory confirmed
 No table, index, trigger, policy, privilege, row or migration-history entry was changed.
 
 **CLI caution:** Supabase CLI v3 became the default on 2 November 2026. The 4 November breaking-change notice changes hosted-command targeting: explicitly use `--remote` for remote operations; hosted changes require confirmation and unattended runs need explicit `--yes`. Pin the intended CLI version and review the [v2→v3 guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) before adding any Supabase command to CI. Do not run `db push` while migration versions/names remain unreconciled.
+
+
+## Default-privilege audit — additional read-only check 2026-11-05
+
+The effective table privileges and PostgreSQL default ACLs were inspected separately.
+
+### Current four job tables
+
+For each of catalog_preflights, processing_jobs, displacement_jobs and river_shift_jobs:
+- anon: SELECT/INSERT/UPDATE/DELETE/TRUNCATE all false;
+- authenticated: SELECT/INSERT/UPDATE/DELETE/TRUNCATE all false;
+- service_role: those privileges are effective;
+- table owner: postgres;
+- RLS enabled, FORCE RLS false.
+
+This is consistent with the explicit per-table REVOKE from anon/authenticated in the seven local SQL migrations. The authenticated owner-read policies exist, but without table SELECT grant they do not make browser-direct table queries possible. The API is the data access path.
+
+### Future-object default ACLs
+
+The current public-schema default ACLs for objects created by roles postgres and supabase_admin include:
+- ALL table privileges for anon, authenticated and service_role;
+- sequence privileges (SELECT/USAGE/UPDATE) for anon, authenticated and service_role.
+
+Those defaults do not retroactively grant privileges on the four existing tables because the local migrations explicitly revoke anon/authenticated on each current table. They do, however, mean a future public table or sequence created by either role will inherit broad access unless the migration explicitly revokes it.
+
+**Release requirement:** every new public table migration must explicitly revoke anon/authenticated privileges and enable RLS before any API rollout. Add a separately reviewed default-privilege hardening plan for postgres and supabase_admin (tables and sequences) after all public-schema consumers are inventoried. Do not change the live defaults during Monorepo source migration: the defaults are schema-wide and their impact on unrelated project objects has not been reviewed.
+
+### Privileged service role
+
+The existing service_role has effective full DML/DDL-adjacent table privileges on these job tables and BYPASSRLS. This is a highly privileged server credential, not an end-user role. Keep it only in server-side API environments, never in VITE_* variables; every end-user read/write path must apply verified owner_uid and request-state constraints at the API/database transition boundary. No service-role credential was decrypted or copied during this audit.
+
+No grants, default ACLs, roles, policies, tables, triggers or rows were changed by this inspection.
