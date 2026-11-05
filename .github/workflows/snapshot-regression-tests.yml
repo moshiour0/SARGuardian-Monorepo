@@ -7,12 +7,17 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "apps/**"
+      - "engines/**"
+      - "science/**"
       - "tools/verify_source_snapshots.py"
       - "tools/audit_source_reference_pins.py"
       - ".github/workflows/snapshot-regression-tests.yml"
   pull_request:
     paths:
       - "migration/source-snapshots/**"
+      - "apps/**"
+      - "engines/**"
+      - "science/**"
       - "tools/verify_source_snapshots.py"
       - ".github/workflows/snapshot-regression-tests.yml"
 
@@ -94,6 +99,106 @@ jobs:
         run: node tests/google_maps_dashboard_adapter.test.mjs
       - name: Run active API regression suite
         run: python -m pytest -q
+
+  promoted-find-displacements:
+    name: Promoted Find Displacements engine regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: engines/find-displacements
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            engines/find-displacements/requirements-dev.txt
+            engines/find-displacements/tools/requirements-retention.txt
+      - name: Install Find Displacements engine test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -r tools/requirements-retention.txt
+          python -m pip install --disable-pip-version-check "scipy>=1.13,<2" matplotlib pyproj shapely pillow pyyaml
+      - name: Compile Find Displacements modules
+        run: python -m compileall -q tools dashboard
+      - name: Run dashboard and worker-tools regression tests
+        run: python -m pytest -q dashboard/tests tools/tests
+
+  promoted-known-place:
+    name: Promoted Known Place engine regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: engines/known-place
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            engines/known-place/requirements-dev.txt
+            engines/known-place/tools/requirements-retention.txt
+      - name: Install Known Place regression dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -r tools/requirements-retention.txt
+          python -m pip install --disable-pip-version-check "scipy>=1.13,<2" matplotlib pyproj shapely pillow pyyaml
+      - name: Compile Known Place implementation
+        run: python -m compileall -q tools/know_place
+      - name: Run Known Place analysis and two-polygon regression tests
+        env:
+          PYTHONPATH: tools
+        run: python -m pytest -q tools/tests/test_know_place_*.py
+
+  promoted-river-shift:
+    name: Promoted RiverShift GCOV engine regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: engines/river-shift
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned RiverShift geospatial environment
+        uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: engines/river-shift/tools/river_shift/environment.yml
+          cache-environment: true
+          generate-run-shell: true
+      - name: Compile RiverShift worker modules
+        shell: micromamba-shell {0}
+        run: |
+          python --version
+          python -m compileall -q tools/river_shift
+          echo "PROMOTED_RIVERSHIFT_COMPILE_PASS"
+      - name: Run RiverShift unit and workflow-contract tests
+        shell: micromamba-shell {0}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift
+        run: python -m pytest -q tools/river_shift/tests
+
+  promoted-nisar-science:
+    name: Promoted NISAR science regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: science/nisar-core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: science/nisar-core/requirements.txt
+      - name: Install pinned NISAR science dependencies
+        run: python -m pip install --disable-pip-version-check --retries 5 --timeout 45 -r requirements.txt
+      - name: Run NISAR science regression suite
+        run: python -m pytest tests/ -q
 
   dynamic-frontend:
     name: Dynamic frontend build, lint and tests
