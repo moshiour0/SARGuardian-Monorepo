@@ -137,3 +137,33 @@ A direct read of GitHub's Actions REST run and job payload for Snapshot Regressi
 - the workflow run itself started and completed in roughly 13 seconds.
 
 This is stronger evidence that the failure occurs **before hosted-runner allocation**, not inside Python, Node, package installation, workflow shell steps or scientific tests. It still does not identify the reason. The GitHub connector did not expose repository Actions-permission/billing settings or the job's internal startup message, so do not assume the cause is plan quota, disabled Actions, billing or GitHub service incident. The owner needs to inspect the repository's Actions settings and account billing/usage (and confirm GitHub-hosted runner availability) in GitHub UI/support. Keep the migration validation gate blocked until a fresh run receives a nonzero runner ID and executes its steps.
+
+
+### Minimal hosted-runner diagnostic — 2026-11-05 09:10 UTC
+
+To separate workflow contents from runner allocation, a temporary-safe diagnostic workflow was added at `.github/workflows/runner-allocation-diagnostic.yml`. It has a single `ubuntu-latest` job, `contents: read` permission, no checkout, no external actions, no secrets, no deployment, and only prints runner ID/name/OS plus `uname` and UTC date.
+
+The branch push successfully triggered:
+- [Runner Allocation Diagnostic run 42000147699](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42000147699)
+- [Snapshot Regression Tests run 42000148149](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42000148149)
+- [Historical Secret Scan run 42000147708](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42000147708)
+
+The minimal diagnostic job itself failed in approximately one second with `runner_id=0`, blank `runner_name`, `runner_group_id=0`, blank `runner_group_name` and an empty `steps` array. Its logs endpoint returned no payload. GitHub's failed-job rerun succeeded in submitting attempt 2, but that attempt also failed in roughly two seconds with `runner_id=0`, blank runner name and no steps (job `127153275793`). The snapshot regression run on the same commit again had 17/17 jobs fail before runner assignment; the full-history secret scan did the same.
+
+This is a direct isolation test: the symptom reproduces without checkout, action pinning, Python, Node, dependencies, custom runner labels or secrets. Workflow YAML parsing and event triggering worked well enough to create a job. It does not identify whether the underlying cause is an account/usage restriction or a GitHub hosted-runner provisioning issue.
+
+### External corroboration and account checks
+
+GitHub Community reports show the same public metadata signature in unrelated private repositories:
+- [Discussion #210692 — ubuntu-latest job fails before runner starts, 20 Oct 2026](https://github.com/orgs/community/discussions/210692): a minimal ubuntu-latest job failed with runner_id 0, blank runner name and no steps; the report also reproduced across two repositories.
+- [Discussion #211408 — runner_id 0 and BlobNotFound, 27 Oct 2026](https://github.com/orgs/community/discussions/211408): fresh private-repository runs failed before steps; reruns reproduced the same result.
+- [Discussion #205948 — fresh runner_id 0 failures, 27 Aug 2026](https://github.com/orgs/community/discussions/205948): similar reports after a previously resolved Actions incident.
+
+These are community reports, not proof that the same underlying incident affects this account. GitHub Status history shows no Nov 5 Actions incident; Nov 4 incidents were marked resolved. Therefore a broad active Actions outage is not confirmed.
+
+The repository metadata API confirms the owner has repository admin permission, but the connected GitHub tool cannot read account/repository Actions enablement, hosted-runner usage budgets, billing restrictions or GitHub-controlled account suspension state. Before treating the runner failure as a code blocker, the repository owner should inspect:
+1. Repository `Settings → Actions → General`: confirm Actions are enabled, the allowed-actions policy permits required pinned actions, and there is no repository-level restriction.
+2. Personal account `Settings → Billing and licensing → Usage` (menu labels may vary): review Actions included usage, additional spending/budget caps, payment status and any account-level suspension notice.
+3. If Actions says it is disabled for the account/repository by GitHub, follow GitHub's notice and contact GitHub Support; GitHub documents that some platform-controlled disabled states cannot be restored by changing repository settings. See [Managing GitHub Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository) and [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+
+Keep the diagnostic workflow: it is credential-free and can be manually dispatched after runner access is restored. Do not rerun the 17-job regression matrix repeatedly until a minimal diagnostic run allocates a nonzero runner and reaches its first step.
