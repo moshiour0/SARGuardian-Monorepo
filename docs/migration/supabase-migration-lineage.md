@@ -58,3 +58,39 @@ The Dynamic API remains the active service and currently talks to the existing S
 - migration history is reconciled without reapplying existing DDL.
 
 The server-only service-role key must never be placed in frontend `VITE_*` variables or committed to source.
+
+## Live schema verification — read-only recheck 2026-11-05
+
+The connected Supabase MCP project inventory confirms that the seven remote migration-history rows above are the current set; a separate read-only catalog query confirms all four expected public tables exist.
+
+### RiverShift local-to-remote contract parity
+
+The two local RiverShift source files were compared with live PostgreSQL catalog metadata, not merely with migration names:
+
+- `river_shift_jobs.analysis_mode` exists as `text NOT NULL DEFAULT 'event_based'`.
+- `event_date` is nullable.
+- `analysis_mode` accepts only `general_scan` and `event_based`.
+- `general_scan` requires `event_date IS NULL`; `event_based` requires a non-null date within the requested start/end range.
+- Existing 366-day window, maturity, frequency, covariance term, threshold method/value, request fingerprint, callback sequence and owner/idempotency constraints are present.
+- `river_shift_jobs_one_active_per_owner_idx`, owner-created index and state index are present.
+- `river_shift_jobs_transition_guard` calls `public.enforce_river_shift_job_transition()`. Its live definition preserves accepted-request immutability (including `analysis_mode`), callback sequence monotonicity, allowed state transitions and terminal-row immutability.
+- Owner-read policy uses the scalar-subquery `auth.jwt() ->> 'sub'` check.
+
+These are schema and function-body parity checks for the **post-migration state**. They do not prove that the original remote migration SQL bytes equal the local SQL file bytes; the remote migration-history record exposes version and name, not an immutable source-file blob. The two RiverShift migration identities therefore remain an explicit history-reconciliation task even though the live database has the expected final contract.
+
+### Live RLS and privilege check
+
+Read-only PostgreSQL catalog inspection confirmed:
+
+- RLS is enabled on `catalog_preflights`, `processing_jobs`, `displacement_jobs` and `river_shift_jobs`; `FORCE ROW LEVEL SECURITY` is false on all four.
+- Each table has the expected `authenticated` SELECT policy that restricts `owner_uid` to the JWT `sub` value.
+- No `anon` or `authenticated` table grant appeared in the live privilege inventory; the trusted `service_role` has table access for the server-side API.
+- Security Advisor returned no lints in this recheck.
+
+The API uses privileged server-side access, so the database owner-read policy is not a substitute for API authorization. Every user-facing read must continue to derive the owner UID from the verified Firebase identity and filter by it. Keep these checks in API regression tests.
+
+### Safe future CLI operation after Supabase CLI v3
+
+Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
+
+Before any future CLI call, inspect and pin the CLI version. A migration-history read should explicitly target the intended remote project with the v3 `--remote` form; do not copy a legacy `--linked` or `--project-ref` command into a new v3 workflow without checking the migration guide. Never add `--yes` to a hosted DDL command until the project ref, change set and approval are verified. No CLI migration command or remote DDL was run during this recheck.
