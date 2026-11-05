@@ -215,3 +215,20 @@ def test_production_rejects_unsafe_river_shift_dispatch_targets() -> None:
             assert expected_error in str(error)
         else:
             raise AssertionError(f"production validation unexpectedly accepted unsafe {expected_error}")
+
+
+def test_enabled_river_shift_actions_accepts_branch_refs() -> None:
+    settings = config.get_settings({
+        "APP_ENV": "production",
+        "CORS_ORIGINS": "https://app.example.test",
+        "SUPABASE_URL": "https://project.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "sb_secret_test_only",
+        "RIVERSHIFT_ACTIONS_ENABLED": "true",
+        "RIVERSHIFT_GITHUB_ACTIONS_TOKEN": "server-token",
+        "RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY": "moshiour0/SARGuardian-Monorepo",
+        "RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW": "river-shift-gcov-process.yml",
+        "RIVERSHIFT_GITHUB_ACTIONS_REF": "migration/river-shift-preview",
+        "RIVERSHIFT_CALLBACK_SECRET": "callback-secret",
+        "RIVERSHIFT_PUBLIC_API_URL": "https://api.example.test",
+    })
+    assert config.validate_production_settings(settings) is settings
