@@ -77,7 +77,7 @@ def main() -> int:
         "continue-on-error: true",
         "retry_status:",
         "assemble:",
-        "GOOGLE_DRIVE_PARENT_FOLDER_ID: \${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}",
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID: " + chr(36) + "{{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}",
     )
     for marker in required_contracts:
         if marker not in candidate_text:
