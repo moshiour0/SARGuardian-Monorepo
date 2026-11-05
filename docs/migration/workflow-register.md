@@ -135,6 +135,10 @@ The Known Place feature tree does not contain these later main-branch workflows.
 
 **Migration rule:** use PR #85 head for the Known Place engine implementation and its branch-specific research assets. Use the backend-main snapshot for later platform workflow responsibilities. The selected active Known Place dispatcher/benchmark workflows must be reconciled against the current Dynamic API route contract before they are ever moved to root `.github/workflows/`.
 
+## Structured audit result
+
+The machine-readable structural audit is documented in [workflow-contract-audit.md](workflow-contract-audit.md). It parsed all 82 workflow versions (7 Dynamic, 35 backend main, 40 Known Place PR #85) with zero YAML errors and records permissions, job graph, external checkouts, action pinning, secret/variable names, callbacks, artifacts, retries, and trigger classes.
+
 ## Inventory findings
 
 - 42/42 source workflow files have been enumerated and source blob SHAs recorded.
