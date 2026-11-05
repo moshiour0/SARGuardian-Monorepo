@@ -205,9 +205,20 @@ def validate_tool_paths(text: str, label: str) -> None:
         text,
     )
     for relative in refs:
-        candidate = ROOT / relative
-        if not candidate.exists():
-            fail(f"{label}: promoted tool path does not exist: {relative}")
+        # Some workflow steps check out the same Monorepo into a runner-local
+        # subdirectory. Validate the referenced repository path from the
+        # Monorepo root, not a runner workspace prefix.
+        repo_relative = relative
+        for checkout_prefix in ("workflow-support/", "dashboard-source/"):
+            if repo_relative.startswith(checkout_prefix):
+                repo_relative = repo_relative[len(checkout_prefix):]
+                break
+        candidate = ROOT / repo_relative
+        if not candidate.is_file():
+            fail(
+                f"{label}: promoted tool path does not exist in the Monorepo: "
+                f"{relative} (repository path: {repo_relative})"
+            )
     if label == "dashboard" and "dashboard-source/engines/find-displacements/tools/aggregate_aoi_run.py" not in text:
         fail(f"{label}: dashboard aggregator is not mapped to promoted engine")
 
