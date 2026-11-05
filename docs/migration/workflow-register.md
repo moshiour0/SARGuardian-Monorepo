@@ -69,6 +69,72 @@ All paths below are from `SARGuardian-backend@97d8494`.
 | `sarguardian-science-worker.yml` | `a096ecc12f27f46c43258e5684f2e01926009097` | workflow_dispatch | sarguardian-science | Checks out `Sagormodak/SARGuardian`; credentials | Legacy source-owner review; pin replacement must be evidence-based |
 | `sarguardian-streaming-batch.yml` | `0215889d14473fee64d5343972612b8993dc2a8b` | workflow_dispatch | manifest, process-one, retry-plan, retry-products, preassembly-verify, aggregate | Streaming products, external science source, Drive and callback secrets | Operational batch workflow; preserve failure propagation and artifact contracts |
 
+## Known Place PR #85 workflow delta
+
+The Known Place promotion source is PR #85 head `bfde7dde8ada92a03054cd8dbad8daa7a5c119f8`, based on `feat/know-place-analysis`. Its workflow tree must not be mistaken for backend main.
+
+| Comparison | Count | Result |
+|---|---:|---|
+| Backend main workflow YAML files | 35 | Reference baseline |
+| PR #85 head workflow YAML files | 40 | Feature-branch tree |
+| Same path and same blob | 17 | Exact inherited workflow content |
+| Same path but different blob | 8 | Must compare before choosing a canonical active workflow |
+| Added in PR #85 feature tree | 15 | Known Place analysis/validation/replay helpers |
+| Backend-main-only workflows absent from PR #85 | 10 | Includes the RiverShift GCOV process and several later dispatch/replay tools |
+
+### Fifteen workflows added in the Known Place feature tree
+
+All source blob SHAs below are from PR #85 head.
+
+| Workflow | Blob SHA | Trigger(s) | Job(s) | Risk and disposition |
+|---|---|---|---|---|
+| `know-place-analysis-reanalysis.yml` | `9d0f1fb81be95d2e34ced88e9c7e1b8c20197d03` | push, workflow_dispatch | reanalyse | Credentialed reanalysis; manual-only after promotion, remove push trigger |
+| `know-place-analysis-run.yml` | `2cc394e91126b6487abf50d974614d95aa9ee427` | push | trigger_gate, analyze-five-pairs | Credentialed fixed benchmark; pins NISAR `10639…`; requires exact author consent; do not promote push trigger |
+| `know-place-analysis-validation.yml` | `c2b2888bc1c87c2a78936345c76242a69bc817ff` | push, pull_request, workflow_dispatch | pure-kernel-tests, live-asf-catalog-contract | Split deterministic pure-kernel CI from live ASF contract before promotion |
+| `know-place-aoi-analysis.yml` | `deb45457be51fa7921a7a4967ba6d97b5be15a68` | workflow_dispatch, workflow_call | analyze-aoi | Credentialed Known Place AOI dispatcher; preserve request and callback contract |
+| `know-place-author-dashboard.yml` | `fe3dbec37caf45887a3162ef5e5e17fdff84ae46` | workflow_dispatch, workflow_call | render | Credentialed retained-artifact dashboard renderer; keep separate from raw acquisition/analysis |
+| `know-place-author-exact-consent-bridge.yml` | `c6e0cc8c72d658eaaacde3b80df8fb34606311b9` | push | acquire-analyze-retain-author-exact | Consent bridge; retain only as an inactive fixture until push/consent semantics are independently reviewed |
+| `know-place-author-exact-replay.yml` | `0b425fd118ca39aefbf9f61c7eb8efcb9d313f75` | push, workflow_dispatch, workflow_call | trigger-gate, acquire-analyze-retain | Credentialed author-exact acquisition, checks out backend and NISAR, pins `10639…`; manual explicit consent required |
+| `know-place-author-map-render.yml` | `c40c001b791a32101bf5b4acbc2a9692d8705d14` | push | render-and-retain-map | Credentialed renderer; retain but do not enable automatic push execution |
+| `know-place-dem-source-acquisition.yml` | `c2cb89429b901ec4ba6bf1ccf033c1a8c5d1bc57` | push, workflow_dispatch | acquire-and-hash-dem | External DEM source acquisition and hashing; isolate from PR CI and make manual after promotion |
+| `know-place-displacement-null-audit.yml` | `e7b4fc1cd097b7852426a0876a34725c8659cd1b` | push, workflow_dispatch | reproduce-published-table | Research audit; preserve separately and keep manual unless fixtures are deterministic/offline |
+| `know-place-generic-aoi-consent-bridge.yml` | `5b149a4e4267c15eefb7000b952030c473e8eb45` | push | run-generic-aoi | Consent bridge; no production activation during migration |
+| `know-place-generic-aoi-drive-retry.yml` | `7d9f281d1d9ceaff43fced193be0213cdac53765` | push | retry-derived-only-drive-upload | Credentialed Drive upload retry; requires explicit consent and strict receipt checks; do not retain push trigger |
+| `know-place-generic-map-browser-smoke.yml` | `e84367af84c8a07cc5e94fb2cfca1aa68bba46a4` | push, workflow_dispatch | generic-aoi-synthetic-browser | Synthetic browser smoke candidate; verify it has no real-data/Drive side effects before making it CI |
+| `know-place-retained-crown-audit.yml` | `c1ad0e3bb883872f7caf8bb8502dace371f1f24b` | push, workflow_dispatch | audit-retained-run | Retained-output audit; keep manual until artifact identity and retention are isolated |
+| `know-place-terrain-datum-sensitivity.yml` | `256797411c41829e1aba57f5c1d484f4f5dd5307` | push, workflow_dispatch | transform-terrain-height-reference | Credentialed terrain/vertical-datum sensitivity; manual, independently validated run only |
+
+### Eight same-path workflows modified by PR #85
+
+These are different Git blobs from backend main and must not be treated as interchangeable:
+
+| Workflow | Backend main blob SHA | PR #85 blob SHA | Disposition |
+|---|---|---|---|
+| `dashboard-assets-test.yml` | `75926ca204fd4f8e8fb327ddd8f5ce719e9e0720` | `591e8568e6f09a4338360dc3b4e028320bab317e` | Compare fixtures, paths, and test coverage; choose one central CI workflow after merge review |
+| `sarguardian-aoi-code-validation.yml` | `1bbff061aae409d27a5089cd13e380aac6079b86` | `bc05df58d6533928856789e3c8e3767d0e0ee92a` | Compare science source pins and parser/test coverage |
+| `sarguardian-aoi-product-worker.yml` | `15dc032db32a568dfb6acc5777b54332364d084b` | `eb2baa483366f5bc906f22bed91f841bfe2b1832` | Compare inputs, outputs, checkout refs, and cleanup contract before canonical selection |
+| `sarguardian-aoi-wkt-dashboard.yml` | `eabdc43e0e0b05fccd532647bbddde2216694e64` | `595dff2527b05aed42e7b73b2bbe558580d7ae1e` | Compare dispatch, callback, artifact, and retry graph; Dynamic has a third variant |
+| `sarguardian-aoi-wkt-dispatcher.yml` | `54298d915902884c5d65fdd41027c54864fba8ae` | `4b2549dbccf504aacd8aadd473955f845776226f` | Compare dispatch destination, inputs, and terminal status handling |
+| `sarguardian-product-worker.yml` | `8220ed86db68795af257263792fcef3ef224dec7` | `5dbc8259f29227a66b994dd82c959960545b859d` | Compare reusable worker contract; do not merge with AOI product worker by filename |
+| `sarguardian-retention-ci.yml` | `6e7e46fcbaa1fbd40f66c5868e4aad31e101f2c9` | `e02ca99b48a640a0636326aed3308ee6219120d8` | Compare pinned science checkout and retention fixtures |
+| `sarguardian-streaming-batch.yml` | `0215889d14473fee64d5343972612b8993dc2a8b` | `9dfc42d715f506b20a8b8f2a174e8e421c0e3743` | Compare manifest, retry, preassembly, and aggregate contracts |
+
+### Ten backend-main-only workflows absent from PR #85 head
+
+The Known Place feature tree does not contain these later main-branch workflows. Keep backend main snapshot authoritative for these responsibilities; do not infer deletion or retirement from absence in PR #85:
+- `dashboard-real-artifact-smoke.yml`
+- `know-place-aoi-dispatcher.yml`
+- `know-place-paper-reproduction-dispatcher.yml`
+- `river-shift-gcov-process.yml`
+- `river-shift-independent-reference-validation.yml`
+- `river-shift-opera-dswx-s1-retained-replay.yml`
+- `river-shift-run36-retrospective-replay.yml`
+- `river-shift-sentinel2-retained-replay.yml`
+- `river-shift-tests.yml`
+- `sarguardian-extended-science.yml`
+
+**Migration rule:** use PR #85 head for the Known Place engine implementation and its branch-specific research assets. Use the backend-main snapshot for later platform workflow responsibilities. The selected active Known Place dispatcher/benchmark workflows must be reconciled against the current Dynamic API route contract before they are ever moved to root `.github/workflows/`.
+
 ## Inventory findings
 
 - 42/42 source workflow files have been enumerated and source blob SHAs recorded.
