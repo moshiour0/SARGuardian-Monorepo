@@ -173,3 +173,21 @@ For API/config code head 70c780d2bee11dc2a821040b4d10209ac519affa, latest associ
 - Historical Secret Scan 42002234981: completed failure with runner_id=0 and no steps.
 
 No test command executed. A queued job is not a passing job, and the diagnostic still does not show a runner allocation.
+
+
+## Complete RiverShift package tree parity — 2026-11-05
+
+A recursive Git tree comparison was performed between:
+- Backend main commit 97d849454918b1425ac41bb70e7a32d11cfd3833, tree 867279c8de20e43dd3d36746480052dd9625d900;
+- current Monorepo migration branch head dfb14062976f6266ad1f2eeeeacc2cea12968a7c, tree ad8a698804be94147924c40b51f58ff131954fda.
+
+The entire source directory tools/river_shift/ and promoted directory engines/river-shift/tools/river_shift/ were enumerated recursively. Result:
+- source blobs: 74
+- promoted blobs: 74
+- exact SHA + file-mode matches: 74
+- missing files: 0
+- extra files: 0
+- changed blobs or modes: 0
+- both tree responses complete (not truncated)
+
+This upgrades the earlier selected-file spot checks to complete byte/object-and-mode parity for the entire 74-file RiverShift runtime/test/environment package. The root processing workflow remains a separate intentional adaptation: one fail-closed Monorepo preflight gate, pinned action references and path adaptation; the source's 20 processing jobs remain present. This does not execute or validate the tests.
