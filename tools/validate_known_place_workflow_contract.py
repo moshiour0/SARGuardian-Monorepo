@@ -194,10 +194,10 @@ def main() -> int:
         fail("Reusable workflow preflight must have explicit steps.")
     preflight_text = "\n".join(str(step.get("run", "")) for step in preflight_steps if isinstance(step, dict))
     preflight_env = "\n".join(
-        str(value)
+        f"{name}={value}"
         for step in preflight_steps
         if isinstance(step, dict)
-        for value in mapping(step.get("env", {}), "preflight step env").values()
+        for name, value in mapping(step.get("env", {}), "preflight step env").items()
     )
     if (
         "MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED" not in preflight_env
