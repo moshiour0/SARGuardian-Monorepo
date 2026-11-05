@@ -117,3 +117,10 @@ The core source import and promoted paths have a verified 17/17 historical regre
 - Read-only Supabase verification confirms all four job tables exist, RLS/owner-read policies are enabled, anon/authenticated table grants are absent, and RiverShift's live analysis-mode/transition contract matches the expected local post-migration schema. Seven remote migration records remain mapped to seven local files with version/name drift. No DDL or migration-history repair was run.
 - Supabase CLI v3 is now default and changes remote targeting: use --remote for any future remote list/push operation; never run db push until migration versions/names are reconciled. See Supabase migration lineage (supabase-migration-lineage.md) and the official v2→v3 migration guide (https://supabase.com/docs/guides/local-development/cli/migrating-to-v3).
 - Web build warnings remain: one 560.16 kB JS chunk and npm audit summary of 19 advisories (10 moderate, 7 high, 2 critical); exact advisories must be reviewed before public release. Do not blindly run npm audit fix --force.
+
+
+## Latest RiverShift validation update — 2026-11-05
+
+The API now validates RiverShift workflow repository, filename and ref formats at production startup. New tests were added for invalid targets, valid branch refs and GitHub run-status fallback (missing callback, failed run, start timeout, terminal success preservation). They have not executed because the latest minimal GitHub runner diagnostic run 42002234943 again failed with runner_id=0/blank runner/zero steps after about 43 seconds. Snapshot run 42002235091 had 17 jobs; some failed before runner allocation while the remainder were still queued. Metadata run 42002235044 and Gitleaks run 42002234981 also failed before any steps. See the [RiverShift integration review](river-shift-integration-review-2026-11-05.md).
+
+The latest API Preview deploy request was rejected by Vercel with HTTP 402 (api-deployments-free-per-day, daily free deployment limit exceeded). Therefore the new API code is not Vercel-built; the latest inspectable API Preview remains older than the code change.
