@@ -412,7 +412,9 @@ def main() -> int:
             "Supabase configuration and migration promotion",
             "migration/source-snapshots/dynamic/Backend/supabase/",
             "infrastructure/supabase/",
-            (),
+            # This single post-import forward migration is tracked separately
+            # from the immutable Dynamic source snapshot.
+            ("migrations/20261105205909_catalog_preflight_retention.sql",),
         ),
     )
     for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:
@@ -429,6 +431,10 @@ def main() -> int:
             path[len(destination_prefix) :]: entry
             for path, entry in target_entries.items()
             if path.startswith(destination_prefix)
+            and not any(
+                path[len(destination_prefix) :].startswith(excluded)
+                for excluded in excluded_prefixes
+            )
         }
         missing = sorted(set(source_view) - set(destination_view))
         extra = sorted(set(destination_view) - set(source_view))
