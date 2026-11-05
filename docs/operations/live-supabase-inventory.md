@@ -131,3 +131,22 @@ Those defaults do not retroactively grant privileges on the four existing tables
 The existing service_role has effective full DML/DDL-adjacent table privileges on these job tables and BYPASSRLS. This is a highly privileged server credential, not an end-user role. Keep it only in server-side API environments, never in VITE_* variables; every end-user read/write path must apply verified owner_uid and request-state constraints at the API/database transition boundary. No service-role credential was decrypted or copied during this audit.
 
 No grants, default ACLs, roles, policies, tables, triggers or rows were changed by this inspection.
+
+
+### Full public-schema object inventory — 2026-11-05
+
+A full read-only catalog query returned exactly four public relations (all ordinary tables): catalog_preflights, displacement_jobs, processing_jobs, river_shift_jobs. No public views, materialized views, sequences or foreign tables were present at audit time.
+
+The public schema contained six routines, all owned by postgres:
+- enforce_catalog_preflight_immutable
+- enforce_displacement_job_transition
+- enforce_displacement_place_immutable
+- enforce_processing_job_integrity
+- enforce_processing_job_transition
+- enforce_river_shift_job_transition
+
+Each routine is a trigger function with no arguments, SECURITY INVOKER (not SECURITY DEFINER), and a fixed search_path=public. Their explicit ACL includes PUBLIC/anon/authenticated/service_role EXECUTE. PostgreSQL trigger functions cannot be called as ordinary functions; direct execution outside a trigger context is rejected. Their current grants therefore are not evidence that an unauthenticated caller can mutate job rows. However, the broad default function EXECUTE ACL means future ordinary functions created in public by postgres or supabase_admin will also be executable by PUBLIC unless explicitly revoked. Treat this with the future-object table/sequence default-ACL risk above.
+
+The query of pg_settings for pgrst.db_schemas returned no rows because PostgREST configuration is not exposed there in this project. This does not establish which schemas the Data API exposes; verify it through Supabase API settings/appropriate config before first Preview persistence smoke testing.
+
+No objects, grants, functions, default ACLs or rows were changed by this inventory.
