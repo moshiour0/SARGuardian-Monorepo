@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
@@ -163,9 +164,9 @@ def validate_production_settings(settings: RuntimeSettings | None = None) -> Run
             "KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF": current.known_place_paper_github_actions_ref,
         }.items() if not value]
         if missing:
-            raise SettingsError(f"Displacement/ Known Place Actions are enabled but missing: {', '.join(missing)}.")
+            raise SettingsError(f"Displacement and Known Place Actions are enabled but missing: {', '.join(missing)}.")
         repository_pattern = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\\.ya?ml$")
+        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\.ya?ml$")
         ref_pattern = re.compile(r"^[A-Za-z0-9._/-]+$")
         targets = (
             ("KNOWN_PLACE_GITHUB_ACTIONS", current.known_place_github_actions_repository,
