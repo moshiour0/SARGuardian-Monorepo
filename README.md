@@ -67,7 +67,7 @@ The run recorded:
 - **2,694** total passing test executions, 1 skipped. The same suites intentionally execute at both source and promoted paths; this is execution count, not unique test-case count.
 - Exact Git blob/mode/type checks for all **1,408** snapshot paths and the promoted path/fixture mappings.
 
-See the [validation report](docs/migration/validation-baseline.md), [engine promotion report](docs/migration/engine-promotion-report.md), [workflow register](docs/migration/workflow-register.md), and [path collision report](docs/migration/path-collision-report.md).
+See the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [engine promotion report](docs/migration/engine-promotion-report.md), [workflow register](docs/migration/workflow-register.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
@@ -77,7 +77,8 @@ See the [validation report](docs/migration/validation-baseline.md), [engine prom
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
 - [ ] Complete workflow caller/permissions/callback/artifact/retention audit before activating central root workflows.
-- [ ] Automated secret scan and configuration-name mapping (names only).
+- [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
+- [ ] Complete runtime configuration-name mapping (names only).
 - [ ] Verify existing Vercel project roots, environment scopes, Preview deployment, and routes.
 - [ ] Verify Supabase project/schema linkage without applying migrations.
 - [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
