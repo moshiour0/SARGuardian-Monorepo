@@ -41,7 +41,18 @@ def main() -> int:
 
     source_doc = yaml.safe_load(source_text)
     candidate_doc = yaml.safe_load(candidate_text)
-    root_workflow_doc = yaml.safe_load(root_workflow_text)
+    root_comparison_text = root_workflow_text
+    wording_deltas = (
+        ("description: Public HTTPS base URL of the SARGuardian API", "description: Public HTTPS base URL of the Dynamic API"),
+        ("name: Check out Monorepo RiverShift worker source", "name: Check out backend worker source"),
+    )
+    for root_wording, candidate_wording in wording_deltas:
+        if root_comparison_text.count(root_wording) != 1:
+            raise SystemExit(f"ERROR=RIVERSHIFT_ROOT_WORDING_DELTA_MISSING value={root_wording}")
+        root_comparison_text = root_comparison_text.replace(root_wording, candidate_wording)
+    if "Public HTTPS base URL of the Dynamic API" in root_workflow_text or "Check out backend worker source" in root_workflow_text:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_LEGACY_SERVICE_LABEL_REMAINS")
+    root_workflow_doc = yaml.safe_load(root_comparison_text)
     if not isinstance(source_doc, dict) or not isinstance(candidate_doc, dict) or not isinstance(root_workflow_doc, dict):
         raise SystemExit("ERROR=RIVERSHIFT_WORKFLOW_YAML_INVALID")
     source_jobs, candidate_jobs = source_doc.get("jobs"), candidate_doc.get("jobs")
