@@ -722,13 +722,17 @@ def test_known_place_artifact_download_uses_configured_repository(monkeypatch: p
     )
     observed: dict = {}
 
-    def fake_urlopen(request, timeout=0):
-        observed["url"] = request.full_url
-        observed["timeout"] = timeout
-        from io import BytesIO
-        return BytesIO(b"artifact-zip-bytes")
+    class FakeOpener:
+        def open(self, request, timeout=0):
+            observed["url"] = request.full_url
+            observed["timeout"] = timeout
+            from io import BytesIO
+            return BytesIO(b"artifact-zip-bytes")
 
-    monkeypatch.setattr(known_place, "urlopen", fake_urlopen)
+    def fake_build_opener(*_handlers):
+        return FakeOpener()
+
+    monkeypatch.setattr(known_place, "build_opener", fake_build_opener)
     result = known_place._download_known_place_artifact(settings_with_monorepo_target, 12345)
     assert result == b"artifact-zip-bytes"
     assert observed["url"] == (
