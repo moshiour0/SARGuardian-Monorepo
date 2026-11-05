@@ -195,6 +195,16 @@ def validate_production_settings(settings: RuntimeSettings | None = None) -> Run
         }.items() if not value]
         if missing:
             raise SettingsError(f"RiverShift Actions is enabled but missing: {', '.join(missing)}.")
+        repository_pattern = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\\.ya?ml$")
+        ref_pattern = re.compile(r"^[A-Za-z0-9._/-]+$")
+        if not repository_pattern.fullmatch(current.river_shift_github_actions_repository):
+            raise SettingsError("RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY must be owner/repository.")
+        if not workflow_pattern.fullmatch(current.river_shift_github_actions_workflow):
+            raise SettingsError("RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW must be a workflow .yml or .yaml filename.")
+        ref = current.river_shift_github_actions_ref
+        if not ref_pattern.fullmatch(ref) or ".." in ref or ref.startswith("/") or ref.endswith("/") or "//" in ref:
+            raise SettingsError("RIVERSHIFT_GITHUB_ACTIONS_REF is invalid.")
         callback_url = urlsplit(current.river_shift_public_api_url)
         if callback_url.scheme != "https" or not callback_url.netloc or callback_url.username or callback_url.password:
             raise SettingsError("RIVERSHIFT_PUBLIC_API_URL must be a public HTTPS URL when RiverShift Actions is enabled.")
