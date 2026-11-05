@@ -1,0 +1,366 @@
+name: Know Place AOI analysis — Monorepo engine
+
+on:
+  workflow_call:
+    inputs:
+      aoi_wkt:
+        required: true
+        type: string
+      scope_aoi_wkt:
+        description: "Optional outer AOI boundary WKT; not used as the measurement polygon"
+        required: false
+        default: ""
+        type: string
+      start_date:
+        required: true
+        type: string
+      end_date:
+        required: true
+        type: string
+      hazard_mode:
+        required: false
+        default: mixed
+        type: string
+      analysis_mode:
+        required: false
+        default: exploratory
+        type: string
+      geometry_height_m:
+        required: false
+        default: ""
+        type: string
+      coherence_neighbours:
+        required: false
+        default: "1"
+        type: string
+      polarization:
+        required: false
+        default: HH
+        type: string
+      track:
+        required: false
+        default: ANY
+        type: string
+      direction:
+        required: false
+        default: ANY
+        type: string
+      allowed_release_ids:
+        description: "Optional comma-separated exact release IDs (e.g. P05023). Blank keeps all; ambiguous variants fail safe rather than auto-substitute."
+        required: false
+        default: ""
+        type: string
+      reference_wkt:
+        required: false
+        default: ""
+        type: string
+      candidate_context_json:
+        description: "Optional metadata-only provenance for an imported GOFF candidate"
+        required: false
+        default: ""
+        type: string
+      consent_marker:
+        required: false
+        default: ""
+        type: string
+      execute_downloads:
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      EARTHDATA_TOKEN:
+        required: false
+      EARTHDATA_USERNAME:
+        required: false
+      EARTHDATA_PASSWORD:
+        required: false
+      GOOGLE_DRIVE_OAUTH_CLIENT_JSON:
+        required: false
+      GOOGLE_DRIVE_REFRESH_TOKEN:
+        required: false
+      GOOGLE_DRIVE_PARENT_FOLDER_ID:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: know-place-aoi-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Require explicit Monorepo Known Place processing opt-in
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fail closed before checkout, credentials, or data access
+        env:
+          MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
+            echo "::error::Monorepo Known Place processing is disabled. Set repository variable MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval and secret/configuration review."
+            exit 1
+          fi
+          echo "MONOREPO_KNOWN_PLACE_PROCESSING_GATE=PASS"
+
+  analyze-aoi:
+    needs: preflight
+    name: Validate AOI and build reproducible GOFF measurements
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+      GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+      GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
+      OUTPUT_ROOT: ${{ github.workspace }}/engines/known-place/know-place-aoi-output
+      MONOREPO_ENGINE_REF: ${{ github.sha }}
+
+    steps:
+      - name: Checkout Monorepo at the exact caller commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Verify Monorepo and promoted Known Place engine identity
+        shell: bash
+        env:
+          MONOREPO_ENGINE_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$MONOREPO_ENGINE_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "ERROR=MONOREPO_ENGINE_REF_MUST_BE_IMMUTABLE_40_CHAR_SHA"
+            exit 1
+          fi
+          actual="$(git rev-parse HEAD)"
+          if [[ "$actual" != "$MONOREPO_ENGINE_REF" ]]; then
+            echo "ERROR=MONOREPO_CHECKOUT_SHA_MISMATCH expected=$MONOREPO_ENGINE_REF actual=$actual"
+            exit 1
+          fi
+          runner_blob="$(git rev-parse HEAD:engines/known-place/tools/know_place/aoi_runner.py)"
+          if [[ "$runner_blob" != "059395e4c028697b20bbd20c62bca4d1b7d8ae31" ]]; then
+            echo "ERROR=KNOWN_PLACE_RUNNER_SOURCE_BLOB_MISMATCH actual=$runner_blob"
+            exit 1
+          fi
+          requirements_blob="$(git rev-parse HEAD:engines/known-place/tools/know_place/requirements.txt)"
+          if [[ "$requirements_blob" != "81b3d7724fb9f8c6721104b1327aed746f520848" ]]; then
+            echo "ERROR=KNOWN_PLACE_REQUIREMENTS_SOURCE_BLOB_MISMATCH actual=$requirements_blob"
+            exit 1
+          fi
+          mkdir -p engines/known-place
+          printf '%s\n' "$actual" > engines/known-place/monorepo-engine-source.txt
+          echo "MONOREPO_ENGINE_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "MONOREPO_ENGINE_COMMIT=$actual"
+          echo "KNOWN_PLACE_RUNNER_BLOB=$runner_blob"
+          echo "KNOWN_PLACE_REQUIREMENTS_BLOB=$requirements_blob"
+
+      - name: Set up pinned Python 3.13 runtime
+        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3
+        with:
+          environment-name: know-place
+          create-args: python=3.13 pip
+          cache-environment: true
+          generate-run-shell: true
+
+      - name: Install versioned Known Place runtime from the Monorepo engine
+        shell: micromamba-shell {0}
+        working-directory: engines/known-place
+        run: python -m pip install --disable-pip-version-check -r tools/know_place/requirements.txt
+
+      - name: Write normalized request input without shell interpolation
+        shell: micromamba-shell {0}
+        env:
+          AOI_WKT: ${{ inputs.aoi_wkt }}
+          SCOPE_AOI_WKT: ${{ inputs.scope_aoi_wkt }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          HAZARD_MODE: ${{ inputs.hazard_mode }}
+          ANALYSIS_MODE: ${{ inputs.analysis_mode }}
+          GEOMETRY_HEIGHT_M: ${{ inputs.geometry_height_m }}
+          COHERENCE_NEIGHBOURS: ${{ inputs.coherence_neighbours }}
+          POLARIZATION: ${{ inputs.polarization }}
+          TRACK: ${{ inputs.track }}
+          DIRECTION: ${{ inputs.direction }}
+          ALLOWED_RELEASE_IDS: ${{ inputs.allowed_release_ids }}
+          REFERENCE_WKT: ${{ inputs.reference_wkt }}
+          CANDIDATE_CONTEXT_JSON: ${{ inputs.candidate_context_json }}
+          CONSENT_MARKER: ${{ inputs.consent_marker || '' }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          selection = {
+              "allowed_maturities": ["PROVISIONAL"],
+              "preferred_granules": [],
+              "allowed_release_ids": [item.strip().upper() for item in os.environ.get("ALLOWED_RELEASE_IDS", "").split(",") if item.strip()],
+          }
+          if os.environ["TRACK"].strip().upper() != "ANY":
+              selection["track"] = os.environ["TRACK"].strip()
+          if os.environ["DIRECTION"].strip().upper() != "ANY":
+              selection["direction"] = os.environ["DIRECTION"].strip().upper()
+
+          request = {
+              "schema_version": "know-place-aoi-request/1.0",
+              "aoi": {
+                  "type": "Polygon",
+                  "crs": "EPSG:4326",
+                  "role": "measurement",
+                  "wkt": os.environ["AOI_WKT"].strip(),
+              },
+              "date_range": {
+                  "start": os.environ["START_DATE"].strip(),
+                  "end": os.environ["END_DATE"].strip(),
+                  "inclusive": True,
+              },
+              "hazard_mode": os.environ["HAZARD_MODE"].strip(),
+              "analysis_mode": os.environ["ANALYSIS_MODE"].strip(),
+              "source_adapters": ["NISAR_GOFF"],
+              "polarization": os.environ["POLARIZATION"].strip(),
+              "product_selection": selection,
+              "quality_policy": {
+                  "minimum_snr": 5.0,
+                  "maximum_horizontal_magnitude_m": 10.0,
+                  "magnitude_policy": "flag_above_threshold_keep",
+              },
+              "coherence_policy": {
+                  "window_size": 5,
+                  "minimum_valid_neighbours": int(os.environ["COHERENCE_NEIGHBOURS"]),
+              },
+          }
+          scope_aoi = os.environ.get("SCOPE_AOI_WKT", "").strip()
+          if scope_aoi:
+              request["scope_aoi"] = {
+                  "type": "Polygon",
+                  "crs": "EPSG:4326",
+                  "role": "outer_selection_boundary",
+                  "wkt": scope_aoi,
+              }
+          raw_candidate_context = os.environ.get("CANDIDATE_CONTEXT_JSON", "").strip()
+          if raw_candidate_context:
+              candidate_context = json.loads(raw_candidate_context)
+              if not isinstance(candidate_context, dict):
+                  raise SystemExit("CANDIDATE_CONTEXT_JSON_MUST_BE_OBJECT")
+              request["candidate_context"] = candidate_context
+          raw_height = os.environ.get("GEOMETRY_HEIGHT_M", "").strip()
+          if raw_height:
+              try:
+                  request["geometry_policy"] = {"constant_hae_m": float(raw_height)}
+              except ValueError as exc:
+                  raise SystemExit("ERROR=GEOMETRY_HEIGHT_MUST_BE_NUMERIC") from exc
+          else:
+              request["geometry_policy"] = {}
+          reference = os.environ.get("REFERENCE_WKT", "").strip()
+          if reference:
+              request["reference"] = {
+                  "policy": "external_reference_polygon_component_median",
+                  "polygon_wkt": reference,
+                  "fallback_buffer_m": 2000.0,
+              }
+          Path("know-place-request.json").write_text(
+              json.dumps(request, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+          print("REQUEST_JSON_WRITTEN=know-place-request.json")
+          PY
+
+      - name: Preflight all required credentials before any raw source download
+        if: ${{ inputs.execute_downloads }}
+        shell: bash
+        env:
+          CONSENT_MARKER: ${{ inputs.consent_marker || '' }}
+        run: |
+          set -euo pipefail
+          if [[ "$CONSENT_MARKER" != "[run-know-place]" ]]; then
+            echo "ERROR=EXPLICIT_RAW_DOWNLOAD_CONSENT_MARKER_REQUIRED"
+            exit 1
+          fi
+          if [[ -z "$EARTHDATA_TOKEN" && ( -z "$EARTHDATA_USERNAME" || -z "$EARTHDATA_PASSWORD" ) ]]; then
+            echo "ERROR=EARTHDATA_CREDENTIALS_REQUIRED_BEFORE_DOWNLOAD"
+            exit 1
+          fi
+          if [[ -z "$GOOGLE_DRIVE_OAUTH_CLIENT_JSON" || -z "$GOOGLE_DRIVE_REFRESH_TOKEN" || -z "$GOOGLE_DRIVE_PARENT_FOLDER_ID" ]]; then
+            echo "ERROR=DRIVE_SECRETS_REQUIRED_BEFORE_DOWNLOAD"
+            exit 1
+          fi
+          echo "EARTHDATA_CREDENTIAL_PREFLIGHT=PASS"
+          echo "DRIVE_CREDENTIAL_PREFLIGHT=PASS"
+          echo "DOWNLOAD_OPT_IN=PASS"
+
+      - name: Catalog-only dry run (no product downloads)
+        if: ${{ !inputs.execute_downloads }}
+        shell: micromamba-shell {0}
+        working-directory: engines/known-place
+        run: |
+          set -euo pipefail
+          python -m tools.know_place.aoi_runner \
+            --request know-place-request.json \
+            --out "$OUTPUT_ROOT" \
+            --dry-run
+
+      - name: Download exact selected GOFF granules and compute measurements
+        if: ${{ inputs.execute_downloads }}
+        shell: micromamba-shell {0}
+        working-directory: engines/known-place
+        run: |
+          set -euo pipefail
+          python -m tools.know_place.aoi_runner \
+            --request know-place-request.json \
+            --out "$OUTPUT_ROOT" \
+            --cache-dir "$RUNNER_TEMP/know-place-source-cache" \
+            --ephemeral-source-cache
+
+      - name: Upload and byte-verify the derived result bundle in central Drive
+        if: ${{ inputs.execute_downloads && success() }}
+        shell: micromamba-shell {0}
+        env:
+          BUNDLE_FOLDER_NAME: know-place-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          python -m tools.know_place.upload_bundle_to_drive \
+            --run-root "$OUTPUT_ROOT" \
+            --folder-name "$BUNDLE_FOLDER_NAME"
+
+      - name: Emit scientific claim/status summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Know Place AOI analysis"
+            echo
+            echo "- Caller workflow repository/ref: $GITHUB_REPOSITORY@$GITHUB_REF_NAME"
+            echo "- Caller workflow commit: $GITHUB_SHA"
+            echo "- Monorepo Known Place engine source commit: $MONOREPO_ENGINE_REF"
+            echo "- Engine entrypoint and requirements are verified against the imported PR #85 source blobs."
+            echo "- AOI input: know-place-request.json"
+            if [[ "${{ inputs.execute_downloads }}" == "true" ]]; then
+              echo "- Source downloads: opted in; exact product hashes and receipts are recorded per run"
+            else
+              echo "- Source downloads: not run (catalog/series-plan only)"
+            fi
+            echo "- Result artifact: $OUTPUT_ROOT/"
+            echo "- A successful measurement run is not a validated hazard alarm."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ -d "$OUTPUT_ROOT" ]]; then
+            find "$OUTPUT_ROOT" -maxdepth 3 -type f | sort | sed 's#^#- #g' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Preserve report, dashboard, maps and Drive receipt as workflow artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: know-place-aoi-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            engines/known-place/monorepo-engine-source.txt
+            engines/known-place/know-place-request.json
+            engines/known-place/know-place-aoi-output/**
+          if-no-files-found: warn
+          retention-days: 30
