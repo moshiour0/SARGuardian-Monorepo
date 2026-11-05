@@ -149,6 +149,43 @@ def main() -> int:
             f"{len(source_entries)} entries at {snapshot.source_sha}"
         )
 
+    promoted_paths = (
+        (
+            "Dynamic frontend promotion",
+            "migration/source-snapshots/dynamic/Frontend/",
+            "apps/web/",
+        ),
+        (
+            "Dynamic active API promotion",
+            "migration/source-snapshots/dynamic/Backend/",
+            "apps/api/",
+        ),
+    )
+    for label, source_prefix, destination_prefix in promoted_paths:
+        source_view = {
+            path[len(source_prefix) :]: entry
+            for path, entry in target_entries.items()
+            if path.startswith(source_prefix)
+        }
+        destination_view = {
+            path[len(destination_prefix) :]: entry
+            for path, entry in target_entries.items()
+            if path.startswith(destination_prefix)
+        }
+        if source_view != destination_view:
+            missing = sorted(set(source_view) - set(destination_view))
+            extra = sorted(set(destination_view) - set(source_view))
+            changed = sorted(
+                path
+                for path in set(source_view) & set(destination_view)
+                if source_view[path] != destination_view[path]
+            )
+            raise RuntimeError(
+                f"{label}: source={len(source_view)} destination={len(destination_view)}; "
+                f"missing={missing[:10]}; extra={extra[:10]}; changed={changed[:10]}"
+            )
+        print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")
+
     for label, ancestor, descendant in ANCESTOR_CHECKS:
         check_ancestor(label, ancestor, descendant)
 
