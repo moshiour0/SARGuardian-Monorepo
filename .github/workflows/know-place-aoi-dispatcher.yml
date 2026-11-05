@@ -1,0 +1,166 @@
+name: SARGuardian · Known Place Analysis dispatcher
+
+run-name: Known Place Analysis ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: "API-generated UUID used to match this run to the user's request"
+        required: true
+        type: string
+      aoi_wkt:
+        description: "Measurement polygon: closed WGS84 POLYGON WKT (longitude latitude; one exterior ring)"
+        required: true
+        type: string
+      scope_aoi_wkt:
+        description: "Optional outer AOI boundary WKT; measurement and reference polygons must lie strictly inside it"
+        required: false
+        default: ""
+        type: string
+      start_date:
+        description: "Inclusive UTC start date, YYYY-MM-DD"
+        required: true
+        type: string
+      end_date:
+        description: "Inclusive UTC end date, YYYY-MM-DD"
+        required: true
+        type: string
+      hazard_mode:
+        description: "Event class for validation metadata; this does not auto-classify an event"
+        required: true
+        type: choice
+        options:
+          - landslide
+          - glacier_collapse
+          - ice_rock_avalanche
+          - mixed
+        default: mixed
+      analysis_mode:
+        description: "Exploratory measurement or retrospective validation"
+        required: true
+        type: choice
+        options:
+          - exploratory
+          - retrospective_validation
+        default: exploratory
+      geometry_height_m:
+        description: "Optional ellipsoidal height sensitivity value; blank keeps the documented approximation"
+        required: false
+        default: ""
+        type: string
+      coherence_neighbours:
+        description: "Minimum valid neighbours in local coherence window"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "5"
+          - "10"
+          - "15"
+          - "20"
+          - "25"
+        default: "1"
+      polarization:
+        description: "NISAR frequency-A polarization"
+        required: true
+        type: choice
+        options:
+          - HH
+          - HV
+          - VV
+          - VH
+        default: HH
+      track:
+        description: "Three-digit track or ANY to retain separate orbit chains"
+        required: true
+        default: ANY
+        type: string
+      direction:
+        description: "Flight direction"
+        required: true
+        type: choice
+        options:
+          - ANY
+          - A
+          - D
+        default: ANY
+      allowed_release_ids:
+        description: "Optional comma-separated exact release IDs. Blank retains valid candidates; ambiguity fails safe."
+        required: false
+        default: ""
+        type: string
+      reference_wkt:
+        description: "Optional independent reference/background polygon WKT"
+        required: false
+        default: ""
+        type: string
+      candidate_context_json:
+        description: "Optional provenance JSON for a GOFF candidate imported from Find Displacements"
+        required: false
+        default: ""
+        type: string
+      consent_marker:
+        description: "Exact [run-know-place] marker is required when execute_downloads is true"
+        required: false
+        default: ""
+        type: string
+      execute_downloads:
+        description: "Download raw GOFF products and retain only derived results with verified Drive receipt"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: known-place-analysis-${{ inputs.request_id }}
+  cancel-in-progress: false
+
+jobs:
+  known-place-preflight:
+    name: Require explicit Monorepo Known Place cutover opt-in
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fail closed before any checkout, credentials, or data access
+        env:
+          MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
+            echo "::error::Monorepo Known Place processing is disabled. Set repository variable MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval and secret/configuration review."
+            exit 1
+          fi
+          echo "MONOREPO_KNOWN_PLACE_DISPATCH_GATE=PASS"
+
+  known-place-aoi-analysis:
+    name: Run Monorepo-local Known Place two-polygon science workflow
+    needs: known-place-preflight
+    uses: ./.github/workflows/know-place-aoi-analysis.yml
+    with:
+      aoi_wkt: ${{ inputs.aoi_wkt }}
+      scope_aoi_wkt: ${{ inputs.scope_aoi_wkt }}
+      start_date: ${{ inputs.start_date }}
+      end_date: ${{ inputs.end_date }}
+      hazard_mode: ${{ inputs.hazard_mode }}
+      analysis_mode: ${{ inputs.analysis_mode }}
+      geometry_height_m: ${{ inputs.geometry_height_m }}
+      coherence_neighbours: ${{ inputs.coherence_neighbours }}
+      polarization: ${{ inputs.polarization }}
+      track: ${{ inputs.track }}
+      direction: ${{ inputs.direction }}
+      allowed_release_ids: ${{ inputs.allowed_release_ids }}
+      reference_wkt: ${{ inputs.reference_wkt }}
+      candidate_context_json: ${{ inputs.candidate_context_json }}
+      consent_marker: ${{ inputs.consent_marker }}
+      execute_downloads: ${{ inputs.execute_downloads }}
+    secrets:
+      EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+      GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+      GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
