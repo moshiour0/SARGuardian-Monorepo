@@ -234,3 +234,17 @@ The four action SHAs were queried directly against their upstream repositories a
 | actions/download-artifact | v8.0.2 | 9000827ccba6bdab643e8b6fd33ac0654aef8333 | Exact |
 
 The tag refs resolve to commit objects, not a different annotated-tag object SHA. This confirms the YAML comments/version labels match the actual pinned upstream commits. No action pin change was required.
+
+
+## Final fresh runner recheck — 2026-11-05 09:39 UTC
+
+The minimal credential-free diagnostic was retriggered by a one-line diagnostic-output refresh at current branch commit cf2a233b7ff1f6ed20376c8e009b9ca7a7916f86:
+- Run 42004193289: completed failure in about one second; runner_id=0, runner_name blank, runner_group_id=0, zero steps.
+- Run 42004181461: same minimal diagnostic on the same code/workflow head; same pre-run failure.
+- Snapshot Regression run 42004193275: all 17 jobs eventually failed before runner assignment; every inspected job had runner_id=0, blank runner_name and zero steps.
+- Migration Metadata run 42004193466: failed before steps with runner_id=0.
+- Historical Secret Scan run 42004193489: failed before steps with runner_id=0.
+
+This is the latest direct evidence: the platform blocker remains. The RiverShift worker, API and new tests have not executed. No additional runner retries should be spent until the repository owner confirms GitHub Actions is enabled and the account has no usage/billing restriction, or GitHub Support confirms hosted-runner provisioning is healthy. Local clone fallback was also attempted but the container could not resolve github.com, so local test execution was unavailable in this session.
+
+The latest branch head changes only the diagnostic workflow output and audit documentation relative to the RiverShift code/test commit 70c780d2bee11dc2a821040b4d10209ac519affa; no processing code or live configuration was changed by this final recheck.
