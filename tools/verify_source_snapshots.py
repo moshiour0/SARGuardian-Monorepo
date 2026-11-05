@@ -233,6 +233,12 @@ def main() -> int:
             "engines/river-shift/tools/river_shift/",
             (),
         ),
+        (
+            "Supabase configuration and migration promotion",
+            "migration/source-snapshots/dynamic/Backend/supabase/",
+            "infrastructure/supabase/",
+            (),
+        ),
     )
     for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:
         source_view = {
@@ -343,6 +349,11 @@ def main() -> int:
             "Find Displacements runtime requirements",
             "migration/source-snapshots/backend-main/requirements.txt",
             "engines/find-displacements/requirements.txt",
+        ),
+        (
+            "Supabase CLI configuration",
+            "migration/source-snapshots/dynamic/Backend/supabase/config.toml",
+            "infrastructure/supabase/config.toml",
         ),
     )
     for label, source_path, destination_path in promoted_files:
