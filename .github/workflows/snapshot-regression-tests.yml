@@ -6,6 +6,9 @@ on:
       - "migration/source-snapshot-import"
     paths:
       - "migration/source-snapshots/**"
+      - "migration/source-branch-snapshots/**"
+      - "migration/promotion-overrides.json"
+      - "docs/migration/**"
       - "migration/workflow-candidates/**"
       - "apps/**"
       - "engines/**"
@@ -20,6 +23,9 @@ on:
   pull_request:
     paths:
       - "migration/source-snapshots/**"
+      - "migration/source-branch-snapshots/**"
+      - "migration/promotion-overrides.json"
+      - "docs/migration/**"
       - "apps/**"
       - "engines/**"
       - "science/**"
