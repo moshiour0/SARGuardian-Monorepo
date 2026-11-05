@@ -77,6 +77,11 @@ add_source \
   "https://github.com/moshiour0/SARGuardian.git" \
   "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
 
+if [[ "${#SOURCE_COMMITS[@]}" -eq 0 ]]; then
+  echo "All pinned source snapshots already exist; no new commit is required."
+  exit 0
+fi
+
 SNAPSHOT_TREE="$(git write-tree)"
 PARENT_ARGS=()
 for source_commit in "${SOURCE_COMMITS[@]}"; do
