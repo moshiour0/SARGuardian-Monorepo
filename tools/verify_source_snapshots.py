@@ -46,6 +46,21 @@ SNAPSHOTS = (
         "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
         "migration/source-snapshots/nisar-pins/006d4cd",
     ),
+    Snapshot(
+        "Dynamic historical callback API pin db6472",
+        "db6472e1c304e21242f1ab1dfd671ccb21ba5697",
+        "migration/source-snapshots/dynamic-pins/db6472",
+    ),
+    Snapshot(
+        "Backend historical reassembly pin d9e67",
+        "d9e67df7d800032c37d23f74df44c98e3ab655f7",
+        "migration/source-snapshots/backend-pins/d9e67",
+    ),
+    Snapshot(
+        "Legacy Sagormodak science pin 77cc964",
+        "77cc9646cfa46d3aff3669d351912f984cf67aa3",
+        "migration/source-snapshots/legacy-fork/77cc964",
+    ),
 )
 
 ANCESTOR_CHECKS = (
