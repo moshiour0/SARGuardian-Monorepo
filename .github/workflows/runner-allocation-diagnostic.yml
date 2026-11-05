@@ -1,6 +1,11 @@
 name: Runner Allocation Diagnostic
 
 on:
+  push:
+    branches:
+      - "migration/source-snapshot-import"
+    paths:
+      - ".github/workflows/runner-allocation-diagnostic.yml"
   pull_request:
     paths:
       - ".github/workflows/runner-allocation-diagnostic.yml"
