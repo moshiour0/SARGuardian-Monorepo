@@ -1,4 +1,4 @@
-name: Import Immutable Source Snapshots and Historical Science Pins
+name: Import Immutable Source Snapshots and Historical Workflow Pins
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Import exact source commits
+      - name: Import exact source commits, including non-ancestor workflow pins
         env:
           DESTINATION_BRANCH: migration/source-snapshot-import
         run: bash tools/import_source_snapshots.sh
