@@ -11,6 +11,7 @@ on:
       - "science/**"
       - "tools/verify_source_snapshots.py"
       - "tools/audit_source_reference_pins.py"
+      - "tools/audit_workflow_contracts.py"
       - ".github/workflows/snapshot-regression-tests.yml"
   pull_request:
     paths:
@@ -29,6 +30,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  workflow-contract-audit:
+    name: Inventory all source workflow security and data contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      - name: Install YAML parser
+        run: python -m pip install --disable-pip-version-check "PyYAML==6.0.3"
+      - name: Audit source workflow definitions
+        run: |
+          python tools/audit_workflow_contracts.py "$RUNNER_TEMP/workflow-contract-audit.json"
+          test -s "$RUNNER_TEMP/workflow-contract-audit.json"
+
   snapshot-integrity:
     name: Exact Git blob and source-history integrity
     runs-on: ubuntu-24.04
