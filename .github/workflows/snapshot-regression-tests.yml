@@ -226,6 +226,20 @@ jobs:
       - name: Run NISAR science regression suite
         run: python -m pytest tests/ -q
 
+  workflow-dependency-audit:
+    name: Parse all source workflows and verify dependency graph
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install YAML parser
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+      - name: Parse Dynamic, backend-main, and Known Place PR #85 workflows
+        run: python tools/audit_workflow_dependencies.py
+
   dynamic-frontend:
     name: Dynamic frontend build, lint and tests
     runs-on: ubuntu-24.04
