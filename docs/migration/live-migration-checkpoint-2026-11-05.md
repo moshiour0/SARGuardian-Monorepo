@@ -125,3 +125,15 @@ The Monorepo is **source-consolidated and code-promoted, but not production-read
 7. Rehearse rollback to the original Dynamic/Backend routes. Cut over one engine at a time only after the user explicitly approves the production change.
 
 **Never promote a structural/provenance PASS to scientific validation.** An anomaly remains a candidate; pairwise LOS is not cumulative or 3-D motion; actual-date playback is not interpolation or forecasting; `NOT MEASURED` is not zero.
+
+
+### GitHub runner-allocation evidence — deeper REST metadata check
+
+A direct read of GitHub's Actions REST run and job payload for Snapshot Regression Tests run 41997989469 confirms:
+- all 17 jobs were created with label `ubuntu-24.04`;
+- every failed job has `runner_id=0`, blank `runner_name`, `runner_group_id=0`, blank `runner_group_name`;
+- `steps=[]` in GitHub REST (the connector renders this as `steps=null`);
+- jobs completed 2–12 seconds after creation, with no runner assignment;
+- the workflow run itself started and completed in roughly 13 seconds.
+
+This is stronger evidence that the failure occurs **before hosted-runner allocation**, not inside Python, Node, package installation, workflow shell steps or scientific tests. It still does not identify the reason. The GitHub connector did not expose repository Actions-permission/billing settings or the job's internal startup message, so do not assume the cause is plan quota, disabled Actions, billing or GitHub service incident. The owner needs to inspect the repository's Actions settings and account billing/usage (and confirm GitHub-hosted runner availability) in GitHub UI/support. Keep the migration validation gate blocked until a fresh run receives a nonzero runner ID and executes its steps.
