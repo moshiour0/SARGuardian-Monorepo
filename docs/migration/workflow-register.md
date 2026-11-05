@@ -157,6 +157,8 @@ The main GCOV process has 20 jobs: prepare, four sequential batch/status barrier
 ### Known Place
 The actual PR #85 head is based on `feat/know-place-analysis`, not backend main. Keep the P05023 author-exact benchmark and independent two-polygon additions from that lineage. Do not import only the backend-main dispatcher and assume the engine is present.
 
+The backend-main generic dispatcher calls `know-place-aoi-analysis.yml@0e0611c12913044787ee84a39fa60a81d30ae516`; GitHub compare confirms this reusable workflow pin is an ancestor of PR #85 head. The author-exact paper dispatcher calls `know-place-author-exact-replay.yml@d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9` and passes `backend_code_ref=b825df798ea4cb9874aa10dd01174d2a8ef73cba`. The `d847…` workflow pin is also an ancestor of PR #85 head. The `b825…` code ref is a sibling line, not included in PR #85; its exact 277-path tree is preserved at `migration/source-snapshots/backend-pins/b825df/`. Do not substitute the PR #85 generic two-polygon engine code for this author-exact code pin.
+
 ### Find Displacements
 Keep the target-free AOI workflow separate from Known Place and RiverShift. Preserve the different reusable-worker/dashboard roles in Dynamic and backend until API dispatch call graph is fully traced. GOFF and GUNW diagnostics remain separate.
 
