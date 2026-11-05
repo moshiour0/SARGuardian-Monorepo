@@ -86,3 +86,38 @@ The latest production deployment records were checked independently from project
 GitHub compare confirms `42d977b5…` is an ancestor of current Dynamic `main`; main is one commit ahead. Therefore both latest Production deployments are behind current main by one commit. The newer API Preview `c5ff0c1273ddf75d9e7ea270a039e2ca5f9723e9` is from the feature branch `feat/rivershift-map-place-search-20261105`; compare shows this branch and main have diverged, so it must not be mistaken for a production deployment or a direct main cutover.
 
 No deployment was triggered, promoted, cancelled, or reassigned during this check. This is existing-system deployment freshness, independent of the new Monorepo's inactive migration candidate.
+
+
+## Monorepo isolated Preview — live build and environment audit 2026-11-05
+
+Two separate Vercel projects are now linked to `moshiour0/SARGuardian-Monorepo`. Both most recently inspected deployments completed with `READY`, `target=null` (Preview only), and no Production alias was assigned:
+
+| Project | Project ID | Preview deployment | Build commit | Result |
+|---|---|---|---|---|
+| `sar-guardian-monorepo-web` | `prj_rxEcpqdYRJigOAnx6ekrFj8dX2ny` | `sar-guardian-monorepo-javhnc0ak.vercel.app` | `e82a42d1677e478276ee4f47830cd165eed8a83f` | `READY` |
+| `sar-guardian-monorepo-api` | `prj_1XQrqFFo4dFhWzBA15zGQQWNIo2p` | `sar-guardian-monorepo-d3813s55g.vercel.app` | `078de6bd23cd7bc156f985b2d067df53a5098281` | `READY` |
+
+The Web build log confirms `npm ci`, `tsc -b && vite build`, Vite 5.4.21 and 87 modules transformed. The generated JavaScript is 560.16 kB (minified), above Vite's 500 kB warning threshold; consider route/engine code-splitting before release. `npm ci` reported **19 vulnerabilities** (10 moderate, 7 high, 2 critical). Do not run `npm audit fix --force` blindly; inspect the exact advisories and compatible upgrades, then rerun build/tests.
+
+The API build log confirms dependencies installed from `apps/api/requirements.txt`, Python 3.12 runtime, Python bytecode compilation/optimization, and successful Vercel output deployment. This is build evidence, not an authenticated route or database round-trip.
+
+### Preview environment values (names and non-secret routing only)
+
+Web Preview (branch `migration/source-snapshot-import`):
+- `VITE_SARGUARDIAN_API_URL` points to the Monorepo API Preview branch alias.
+- No other Web Preview env vars were returned. In particular, no Firebase browser config or `VITE_GOOGLE_MAPS_API_KEY` is configured, so Google login and Google Maps are not ready in this Preview.
+
+API Preview (same branch):
+- `APP_ENV=preview`
+- `CORS_ORIGINS` points to the Monorepo Web Preview branch alias.
+- `DISPLACEMENT_ACTIONS_ENABLED=false`
+- `RIVERSHIFT_ACTIONS_ENABLED=false`
+- No `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, Firebase service-account JSON, GitHub Actions token, Earthdata token, Drive OAuth credentials or callback secrets appeared in the Preview environment list. The returned hidden Production environment count was zero.
+
+This is intentionally fail-closed, but it means Preview cannot yet validate Firebase sign-in, map tiles/search, Supabase-backed job persistence, signed callbacks or live processing. Do not copy Production credentials into Preview by default. Configure a separately approved staging environment only after the secret-name/owner/access mapping and non-production callback route are reviewed.
+
+Both Preview projects have SSO protection enabled. The last 30-minute Vercel runtime-log query returned no records for either deployment; this is not proof that the endpoints work or fail. A login-authorized browser/API smoke test remains outstanding.
+
+### Existing Production routing
+
+The Dynamic frontend and API Production deployments remain on the existing repository/project. No production deployment was triggered, promoted, rolled back, or reassigned. The Monorepo Preview projects are separate and are not production replacements.
