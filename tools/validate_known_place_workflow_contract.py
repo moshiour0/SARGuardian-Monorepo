@@ -161,8 +161,15 @@ def main() -> int:
         if isinstance(step, dict)
         for value in mapping(step.get("env", {}), "preflight step env").values()
     )
-    if "MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED" not in preflight_env or '!= "true"' not in preflight_text:
-        fail("Reusable workflow must fail closed unless MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true.")
+    if (
+        "MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED" not in preflight_env
+        or "EXECUTE_DOWNLOADS" not in preflight_env
+        or 'if [[ "$EXECUTE_DOWNLOADS" == "true" ]]' not in preflight_text
+        or '!= "true"' not in preflight_text
+        or "RAW_SOURCE_DOWNLOADS=DISABLED" not in preflight_text
+        or "DRIVE_UPLOAD=DISABLED" not in preflight_text
+    ):
+        fail("Reusable workflow must allow catalog-only dry runs while gating every raw download on explicit repository opt-in.")
 
     analysis_job = mapping(reusable_jobs.get("analyze-aoi"), "analyze-aoi job")
     analysis_env = mapping(analysis_job.get("env"), "analyze-aoi env")
@@ -195,6 +202,20 @@ def main() -> int:
         fail("The workflow must preserve a retrievable API result artifact.")
     if upload.get("uses") != f"actions/upload-artifact@{UPLOAD_ARTIFACT_SHA}":
         fail("Result artifact upload must remain pinned to the reviewed immutable action SHA.")
+    download_step = next(
+        (step for step in steps if isinstance(step, dict) and step.get("name") == "Download exact selected GOFF granules and compute measurements"),
+        None,
+    )
+    if download_step is None or download_step.get("if") != expression("inputs.execute_downloads"):
+        fail("Raw GOFF download must be impossible on catalog-only dry runs.")
+    drive_step = next(
+        (step for step in steps if isinstance(step, dict) and step.get("name") == "Upload and byte-verify the derived result bundle in central Drive"),
+        None,
+    )
+    if drive_step is None or drive_step.get("if") != expression("inputs.execute_downloads && success()"):
+        fail("Drive upload must happen only after an explicit raw-download opt-in and successful processing.")
+    if steps.index(download_preflight) >= steps.index(download_step):
+        fail("Earthdata/Drive credential preflight must precede the first source-data download.")
     artifact_name = mapping(upload.get("with"), "artifact upload with").get("name")
     expected_artifact_name = (
         "know-place-aoi-" + expression("github.run_id") + "-" + expression("github.run_attempt")
