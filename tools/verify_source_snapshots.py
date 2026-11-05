@@ -169,28 +169,66 @@ def main() -> int:
             "Dynamic frontend promotion",
             "migration/source-snapshots/dynamic/Frontend/",
             "apps/web/",
+            (),
         ),
         (
             "Dynamic active API promotion",
             "migration/source-snapshots/dynamic/Backend/",
             "apps/api/",
+            (),
         ),
         (
             "Dynamic shared tools promotion",
             "migration/source-snapshots/dynamic/tools/",
             "apps/tools/",
+            (),
         ),
         (
             "Dynamic workflow compatibility promotion",
             "migration/source-snapshots/dynamic/.github/workflows/",
             "apps/.github/workflows/",
+            (),
+        ),
+        (
+            "Known Place PR #85 promotion",
+            "migration/source-snapshots/backend-known-place-pr85/",
+            "engines/known-place/",
+            (),
+        ),
+        (
+            "NISAR science promotion",
+            "migration/source-snapshots/nisar-science/",
+            "science/nisar-core/",
+            (),
+        ),
+        (
+            "Find Displacements dashboard promotion",
+            "migration/source-snapshots/backend-main/dashboard/",
+            "engines/find-displacements/dashboard/",
+            (),
+        ),
+        (
+            "Find Displacements tools promotion",
+            "migration/source-snapshots/backend-main/tools/",
+            "engines/find-displacements/tools/",
+            ("river_shift/",),
+        ),
+        (
+            "RiverShift GCOV engine promotion",
+            "migration/source-snapshots/backend-main/tools/river_shift/",
+            "engines/river-shift/tools/river_shift/",
+            (),
         ),
     )
-    for label, source_prefix, destination_prefix in promoted_paths:
+    for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:
         source_view = {
             path[len(source_prefix) :]: entry
             for path, entry in target_entries.items()
             if path.startswith(source_prefix)
+            and not any(
+                path[len(source_prefix) :].startswith(excluded)
+                for excluded in excluded_prefixes
+            )
         }
         destination_view = {
             path[len(destination_prefix) :]: entry
@@ -210,6 +248,45 @@ def main() -> int:
                 f"missing={missing[:10]}; extra={extra[:10]}; changed={changed[:10]}"
             )
         print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")
+
+    promoted_files = (
+        (
+            "Find Displacements dashboard workflow",
+            "migration/source-snapshots/backend-main/.github/workflows/sarguardian-aoi-wkt-dashboard.yml",
+            "engines/find-displacements/.github/workflows/sarguardian-aoi-wkt-dashboard.yml",
+        ),
+        (
+            "Find Displacements reusable worker workflow",
+            "migration/source-snapshots/backend-main/.github/workflows/sarguardian-aoi-product-worker.yml",
+            "engines/find-displacements/.github/workflows/sarguardian-aoi-product-worker.yml",
+        ),
+        (
+            "Find Displacements code-validation workflow",
+            "migration/source-snapshots/backend-main/.github/workflows/sarguardian-aoi-code-validation.yml",
+            "engines/find-displacements/.github/workflows/sarguardian-aoi-code-validation.yml",
+        ),
+        (
+            "RiverShift GCOV workflow fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/river-shift-gcov-process.yml",
+            "engines/river-shift/.github/workflows/river-shift-gcov-process.yml",
+        ),
+        (
+            "Find Displacements development requirements",
+            "migration/source-snapshots/backend-main/requirements-dev.txt",
+            "engines/find-displacements/requirements-dev.txt",
+        ),
+        (
+            "Find Displacements runtime requirements",
+            "migration/source-snapshots/backend-main/requirements.txt",
+            "engines/find-displacements/requirements.txt",
+        ),
+    )
+    for label, source_path, destination_path in promoted_files:
+        if source_path not in target_entries or destination_path not in target_entries:
+            raise RuntimeError(f"{label}: source or destination file is missing")
+        if target_entries[source_path] != target_entries[destination_path]:
+            raise RuntimeError(f"{label}: source and destination Git objects differ")
+        print(f"PROMOTED_FILE_BLOB_INTEGRITY_PASS {label}")
 
     for label, ancestor, descendant in ANCESTOR_CHECKS:
         check_ancestor(label, ancestor, descendant)
