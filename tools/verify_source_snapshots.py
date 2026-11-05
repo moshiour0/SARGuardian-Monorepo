@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -131,6 +134,64 @@ def check_ancestor(label: str, ancestor: str, descendant: str) -> None:
     print(f"ANCESTRY_PASS {label}: {ancestor} -> {descendant}")
 
 
+
+def load_promotion_overrides() -> dict[str, dict[str, str]]:
+    """Load hash-pinned, path-preserving edits to promoted files only."""
+    manifest_path = Path(__file__).resolve().parents[1] / "migration" / "promotion-overrides.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Cannot read promotion override manifest: {exc}") from exc
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != "1.0":
+        raise RuntimeError("Promotion override manifest has an unsupported schema.")
+    rows = manifest.get("approved_overrides")
+    if not isinstance(rows, list):
+        raise RuntimeError("Promotion override manifest must contain an approved_overrides array.")
+
+    source_root = "migration/source-snapshots/dynamic/Backend/"
+    destination_root = "apps/api/"
+    approved: dict[str, dict[str, str]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise RuntimeError("Promotion override row must be an object.")
+        source_path = row.get("source_path")
+        destination_path = row.get("destination_path")
+        if (
+            not isinstance(source_path, str)
+            or not source_path.startswith(source_root)
+            or not isinstance(destination_path, str)
+            or not destination_path.startswith(destination_root)
+        ):
+            raise RuntimeError("Promotion overrides are restricted to the Dynamic active API promotion.")
+        relative_source = source_path[len(source_root):]
+        relative_destination = destination_path[len(destination_root):]
+        if not relative_source or relative_source != relative_destination or ".." in Path(relative_source).parts:
+            raise RuntimeError(f"Promotion override source/destination paths do not correspond: {source_path}.")
+        source_sha = row.get("source_blob_sha")
+        destination_sha = row.get("destination_blob_sha")
+        if (
+            not isinstance(source_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", source_sha)
+            or not isinstance(destination_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", destination_sha)
+            or row.get("mode") != "100644" or row.get("object_type") != "blob"
+        ):
+            raise RuntimeError(f"Promotion override has an invalid Git object pin: {destination_path}.")
+        reason = row.get("reason")
+        commits = row.get("implementation_commits")
+        tests = row.get("verification_paths")
+        if (
+            not isinstance(reason, str) or len(reason.strip()) < 20
+            or not isinstance(commits, list) or not commits
+            or any(not isinstance(item, str) or not re.fullmatch(r"[0-9a-f]{40}", item) for item in commits)
+            or not isinstance(tests, list) or not tests
+            or any(not isinstance(item, str) or not item.startswith("apps/api/tests/") for item in tests)
+        ):
+            raise RuntimeError(f"Promotion override lacks reviewable reason, commit or test evidence: {destination_path}.")
+        if relative_source in approved:
+            raise RuntimeError(f"Duplicate promotion override for {destination_path}.")
+        approved[relative_source] = row
+    return approved
+
+
 def main() -> int:
     target = git("rev-parse", "HEAD").decode("ascii").strip()
     target_entries = tree_entries(target)
@@ -177,6 +238,9 @@ def main() -> int:
             f"SNAPSHOT_BLOB_INTEGRITY_PASS {snapshot.label}: "
             f"{len(source_entries)} entries {source_identity}"
         )
+
+    promotion_overrides = load_promotion_overrides()
+    used_promotion_overrides: set[str] = set()
 
     promoted_paths = (
         (
@@ -255,19 +319,48 @@ def main() -> int:
             for path, entry in target_entries.items()
             if path.startswith(destination_prefix)
         }
-        if source_view != destination_view:
-            missing = sorted(set(source_view) - set(destination_view))
-            extra = sorted(set(destination_view) - set(source_view))
-            changed = sorted(
-                path
-                for path in set(source_view) & set(destination_view)
-                if source_view[path] != destination_view[path]
+        missing = sorted(set(source_view) - set(destination_view))
+        extra = sorted(set(destination_view) - set(source_view))
+        changed = sorted(
+            path
+            for path in set(source_view) & set(destination_view)
+            if source_view[path] != destination_view[path]
+        )
+        unapproved_changed: list[str] = []
+        for relative_path in changed:
+            override = promotion_overrides.get(relative_path) if label == "Dynamic active API promotion" else None
+            if override is None:
+                unapproved_changed.append(relative_path)
+                continue
+            source_entry = source_view[relative_path]
+            destination_entry = destination_view[relative_path]
+            expected_source = (
+                override["mode"], override["object_type"], override["source_blob_sha"]
             )
+            expected_destination = (
+                override["mode"], override["object_type"], override["destination_blob_sha"]
+            )
+            if source_entry != expected_source or destination_entry != expected_destination:
+                unapproved_changed.append(relative_path)
+                continue
+            used_promotion_overrides.add(relative_path)
+            print(
+                f"PROMOTED_PATH_OVERRIDE_PASS {override['destination_path']}: "
+                f"{override['source_blob_sha']} -> {override['destination_blob_sha']}"
+            )
+        if missing or extra or unapproved_changed:
             raise RuntimeError(
                 f"{label}: source={len(source_view)} destination={len(destination_view)}; "
-                f"missing={missing[:10]}; extra={extra[:10]}; changed={changed[:10]}"
+                f"missing={missing[:10]}; extra={extra[:10]}; "
+                f"unapproved_changed={unapproved_changed[:10]}"
             )
+        if changed and label != "Dynamic active API promotion":
+            raise RuntimeError(f"{label}: promotion overrides are not permitted for this source.")
         print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")
+
+    unused_overrides = sorted(set(promotion_overrides) - used_promotion_overrides)
+    if unused_overrides:
+        raise RuntimeError(f"Promotion override manifest contains stale or unapplied entries: {unused_overrides[:10]}")
 
     promoted_files = (
         (
