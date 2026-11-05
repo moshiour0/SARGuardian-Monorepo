@@ -2,7 +2,7 @@
 
 **Branch:** `migration/source-snapshot-import`  
 **Promotion commits:** `2e99b950665d2fa091f476b368ffd3b69aa93a63` plus workflow-fixture completion `46dbd27a74fc0a4d861ad8dbfeba0d24ad79ff50`  
-**Status:** exact-copy promotion complete; isolated path regression jobs added and under validation.
+**Status:** exact-copy promotion complete; promoted-path regression validation passed in run [41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), 14/14 jobs green.
 
 ## Promoted source boundaries
 
@@ -17,7 +17,7 @@
 | `engines/river-shift/tools/river_shift/` | Backend main `tools/river_shift/` | 74 | Isolated GCOV runtime, CLI stages, and test suite |
 | `engines/river-shift/.github/workflows/` | Backend GCOV and independent-reference validation workflows | 2 | Inactive workflow-contract fixtures for retry graph and reference-validation tests |
 
-**Total promoted tracked entries:** 528 (277 + 110 + 65 + 76). The source snapshot locations remain intact.
+**Engine/science promoted entries:** 528 (277 + 110 + 65 + 76). Including 173 Dynamic app/API compatibility entries, the total promoted footprint is **701 tracked entries**. The source snapshot locations remain intact.
 
 ## Why the layouts preserve source-relative paths
 
@@ -42,7 +42,7 @@ Any missing, extra, or changed blob in a promoted directory causes the integrity
 
 ## Regression jobs
 
-The snapshot regression workflow now runs promoted-path suites separately:
+The snapshot regression workflow now runs promoted-path suites separately; the latest complete run confirms all six promoted suites passed:
 - `apps/web`: npm install, build, lint, 20 frontend test files;
 - `apps/api`: active API test suite;
 - `engines/find-displacements`: compile dashboard/tools and run dashboard/tool tests;
