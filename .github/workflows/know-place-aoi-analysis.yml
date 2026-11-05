@@ -112,12 +112,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
-      EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
-      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
-      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
-      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
-      GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
-      GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
       OUTPUT_ROOT: ${{ github.workspace }}/engines/known-place/know-place-aoi-output
       MONOREPO_ENGINE_REF: ${{ github.sha }}
 
@@ -277,6 +271,12 @@ jobs:
         shell: bash
         env:
           CONSENT_MARKER: ${{ inputs.consent_marker || '' }}
+          EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+          EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+          EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+          GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+          GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
         run: |
           set -euo pipefail
           if [[ "$CONSENT_MARKER" != "[run-know-place]" ]]; then
@@ -310,6 +310,10 @@ jobs:
         if: ${{ inputs.execute_downloads }}
         shell: micromamba-shell {0}
         working-directory: engines/known-place
+        env:
+          EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+          EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+          EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
         run: |
           set -euo pipefail
           python -m tools.know_place.aoi_runner \
@@ -324,6 +328,9 @@ jobs:
         working-directory: engines/known-place
         env:
           BUNDLE_FOLDER_NAME: know-place-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+          GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+          GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
         run: |
           set -euo pipefail
           python -m tools.know_place.upload_bundle_to_drive \
