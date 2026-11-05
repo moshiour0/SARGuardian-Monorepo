@@ -101,7 +101,7 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 ## Current CI acceptance baseline
 
-Latest complete source/promoted-path CI: [41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548), 16/16 jobs passed:
+Latest complete source/promoted-path CI: [41967622599](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622599), 16/16 jobs passed:
 - source snapshot tests: 1,463 passed, 1 skipped;
 - promoted-path tests: 1,231 passed;
 - total: 2,694 passing test executions, 1 skipped;
@@ -110,7 +110,7 @@ Latest complete source/promoted-path CI: [41966952548](https://github.com/moshio
 - RiverShift workflow candidate contract validator: PASS (20-job graph, path rewrite, immutable Node 24 action pins, artifact/retry/callback/retention checks);
 - full-history Gitleaks scan: [41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586), PASS with zero unreviewed findings.
 
-See `docs/migration/validation-baseline.md`.
+See `docs/migration/validation-baseline.md` and `docs/migration/readiness-and-remaining-work.md`.
 
 ## Mandatory production cutover gates
 
