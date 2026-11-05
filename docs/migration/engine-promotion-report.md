@@ -130,3 +130,29 @@ The promoted Web source tree is byte/object-and-mode identical to the selected D
 | `tests/test_river_shift_jobs.py` | Regression tests | Adds durable status-poll fallback tests for a completed run without signed callback, completed GitHub failure, dispatch timeout, and preserving signed terminal success. |
 
 No other tracked Backend API path is missing or extra. The 7 differences are integration/documentation/test deltas, not accidental file loss. The RiverShift worker itself remains byte-identical in its separately checked 74/74 package tree. This audit does not replace execution of the code tests or end-to-end acceptance.
+
+
+## Complete Known Place runtime and test tree parity — 2026-11-05
+
+The correct promotion mapping is nested under the worker package, not flattened at the engine root. A recursive Git tree comparison checked:
+- Source: `moshiour0/SARGuardian-backend` PR #85 head `bfde7dde8ada92a03054cd8dbad8daa7a5c119f8`.
+- Promoted Monorepo: `migration/source-snapshot-import` at commit `e5a946b89598be603ed427d89547e96021249688`.
+- Both source and destination recursive tree results were complete and not truncated.
+
+### Known Place runtime package
+
+`tools/know_place/` → `engines/known-place/tools/know_place/`:
+- 36 source blobs / 36 promoted blobs;
+- 36/36 exact Git SHA and file-mode matches;
+- zero missing, extra, changed or mode-mismatched files.
+
+### Known Place tests
+
+`tools/tests/test_know_place*` → `engines/known-place/tools/tests/test_know_place*`:
+- 39 source test blobs / 39 promoted test blobs;
+- 39/39 exact Git SHA and file-mode matches;
+- zero missing, extra, changed or mode-mismatched files.
+
+The source branch PR #85's entire 277-file snapshot remains separately preserved under `migration/source-branch-snapshots/backend-known-place-pr85/`; `engines/known-place/` is a promoted, runnable package layout that also includes its app, support modules, retained evidence, and selected workflow source snapshots. The exact 36-file runtime and 39-file test mappings above verify the critical code/test subtree without conflating the whole 277-file lineage archive with the runtime import.
+
+This verifies source package integrity, not test execution, author-exact P05023 scientific validity, or production cutover.
