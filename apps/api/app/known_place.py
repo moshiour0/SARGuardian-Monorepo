@@ -337,7 +337,7 @@ def dispatch_known_place_analysis(
         request_id=request_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=workflow_PAGE,
+        github_run_url=workflow_page,
         execute_downloads=payload.execute_downloads,
         notice=(
             "Raw GOFF downloads and derived outputs were requested; check the run status for credential preflight and selected product inventory."
@@ -378,7 +378,7 @@ def dispatch_known_place_paper_reproduction(
         request_id=request_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=workflow_PAGE,
+        github_run_url=workflow_page,
         execute_downloads=True,
         notice=(
             "Author-exact Bhote Koshi P05023 replay requested. The workflow checks Earthdata and Drive credentials before any raw download; "
@@ -419,7 +419,7 @@ def get_known_place_paper_reproduction_status(
             request_id=normalized_id,
             status=state,
             github_run_id=str(run.get("id")) if run.get("id") is not None else None,
-            github_run_url=str(run.get("html_url") or workflow_PAGE),
+            github_run_url=str(run.get("html_url") or workflow_page),
             conclusion=str(run.get("conclusion")) if run.get("conclusion") is not None else None,
             created_at=str(run.get("created_at")) if run.get("created_at") else None,
             updated_at=str(run.get("updated_at")) if run.get("updated_at") else None,
@@ -430,7 +430,7 @@ def get_known_place_paper_reproduction_status(
         request_id=normalized_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=workflow_PAGE,
+        github_run_url=workflow_page,
         execute_downloads=True,
         notice="GitHub accepted the author-exact request. The workflow run is still being allocated; refresh status shortly.",
     )
@@ -468,7 +468,7 @@ def get_known_place_analysis_status(
             request_id=normalized_id,
             status=state,
             github_run_id=str(run.get("id")) if run.get("id") is not None else None,
-            github_run_url=str(run.get("html_url") or workflow_PAGE),
+            github_run_url=str(run.get("html_url") or workflow_page),
             conclusion=str(run.get("conclusion")) if run.get("conclusion") is not None else None,
             created_at=str(run.get("created_at")) if run.get("created_at") else None,
             updated_at=str(run.get("updated_at")) if run.get("updated_at") else None,
@@ -479,7 +479,7 @@ def get_known_place_analysis_status(
         request_id=normalized_id,
         status="dispatching",
         github_run_id=None,
-        github_run_url=workflow_PAGE,
+        github_run_url=workflow_page,
         execute_downloads=None,
         notice="GitHub accepted the request. The workflow run is still being allocated; refresh status shortly.",
     )
