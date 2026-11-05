@@ -57,7 +57,7 @@ Source snapshots remain immutable, and promoted paths are exact copies. Original
 
 ## Verified CI baseline
 
-Latest full source-and-promoted-path parity run: [GitHub Actions run 41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808).
+Latest full source-and-promoted-path parity run: [GitHub Actions run 41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), with 14/14 jobs green.
 
 <badge color="success">14/14 jobs passed</badge>
 
