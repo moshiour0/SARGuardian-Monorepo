@@ -101,6 +101,15 @@
       "ref_kind": "commit",
       "status": "ancestor_of_imported_nisar_main",
       "snapshot_path": "migration/source-snapshots/nisar-science"
+    },
+    {
+      "repository": "moshiour0/SARGuardian",
+      "ref": "f038e4dfdb53c8d9793aaaefe173570a1032026c",
+      "commit": "f038e4dfdb53c8d9793aaaefe173570a1032026c",
+      "role": "Dynamic active API science_adapter/run_displacement.py SCIENCE_REF",
+      "status": "ancestor_of_current_nisar_science_main",
+      "import_status": "preserved_in_history",
+      "notes": "Verified with GitHub compare: this exact source revision is an ancestor of NISAR science main and is therefore reachable through the imported main source history."
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update.",
