@@ -1,7 +1,7 @@
 # Engine and science source promotion report
 
 **Branch:** `migration/source-snapshot-import`  
-**Promotion commit:** `2e99b950665d2fa091f476b368ffd3b69aa93a63`  
+**Promotion commits:** `2e99b950665d2fa091f476b368ffd3b69aa93a63` plus workflow-fixture completion `46dbd27a74fc0a4d861ad8dbfeba0d24ad79ff50`  
 **Status:** exact-copy promotion complete; isolated path regression jobs added and under validation.
 
 ## Promoted source boundaries
