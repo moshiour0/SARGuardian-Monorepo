@@ -196,7 +196,7 @@ def validate_production_settings(settings: RuntimeSettings | None = None) -> Run
         if missing:
             raise SettingsError(f"RiverShift Actions is enabled but missing: {', '.join(missing)}.")
         repository_pattern = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\\.ya?ml$")
+        workflow_pattern = re.compile(r"^[A-Za-z0-9_.-]+\.ya?ml$")
         ref_pattern = re.compile(r"^[A-Za-z0-9._/-]+$")
         if not repository_pattern.fullmatch(current.river_shift_github_actions_repository):
             raise SettingsError("RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY must be owner/repository.")
