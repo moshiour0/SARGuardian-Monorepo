@@ -210,9 +210,6 @@ def main() -> int:
         fail("Reusable workflow must allow catalog-only dry runs while gating every raw download on explicit repository opt-in.")
 
     analysis_job = mapping(reusable_jobs.get("analyze-aoi"), "analyze-aoi job")
-    analysis_env = mapping(analysis_job.get("env"), "analyze-aoi env")
-    if analysis_env.get("GOOGLE_DRIVE_PARENT_FOLDER_ID") != expression("secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID"):
-        fail("Known Place Drive upload must use the configured parent-folder secret.")
     steps = analysis_job.get("steps")
     if not isinstance(steps, list):
         fail("Known Place analyze-aoi job must define steps.")
@@ -252,6 +249,9 @@ def main() -> int:
     )
     if drive_step is None or drive_step.get("if") != expression("inputs.execute_downloads && success()"):
         fail("Drive upload must happen only after an explicit raw-download opt-in and successful processing.")
+    drive_env = mapping(drive_step.get("env"), "Drive upload step env")
+    if drive_env.get("GOOGLE_DRIVE_PARENT_FOLDER_ID") != expression("secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID"):
+        fail("Known Place Drive upload must use the configured parent-folder secret in the upload step scope.")
     if steps.index(download_preflight) >= steps.index(download_step):
         fail("Earthdata/Drive credential preflight must precede the first source-data download.")
     artifact_name = mapping(upload.get("with"), "artifact upload with").get("name")
