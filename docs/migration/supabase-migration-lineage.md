@@ -37,10 +37,10 @@ The first four records have a remote `version` that differs from the timestamp e
 
 ## Required before any `supabase db push`
 
-Do not assume that matching SQL content or table structure makes the migration-history records interchangeable. Supabase CLI migration matching uses the migration version, and a version mismatch can make an already-applied migration appear pending.
+Do not assume that matching SQL content or table structure makes the migration-history records interchangeable. Supabase CLI migration matching uses the migration version, and a version mismatch can make an already-applied migration appear pending. The local first four filenames have UTC-style prefixes from their source commits, while the remote history contains the same names under different deployment timestamps; the two RiverShift files also use different remote names. A schema match alone does not repair this history.
 
 Before any future database write:
-1. run read-only `supabase migration list --linked` and compare it with the exact Monorepo migration files;
+1. run read-only `supabase migration list --remote` (CLI v3) against the intended project and compare it with the exact Monorepo migration files;
 2. inspect the original deployment/release history that created remote versions `20261026023221` through `20261103230606`;
 3. compare remote migration statements/functions/triggers and the local SQL contents, including transaction effects and any subsequent hotfixes;
 4. produce a reviewed version/name reconciliation plan;
