@@ -134,3 +134,25 @@ Both projects enable SSO on Preview. Environment inventory (names only; no secre
 The last 30-minute Vercel runtime-log query returned no records for either Preview deployment. This is not an endpoint smoke test; SSO-protected browser/API validation remains outstanding. The latest actual build logs establish compile/deploy readiness only. GitHub Vercel PR checks may still show a build-rate-limit failure; that status must not be confused with these two READY deployments.
 
 No production environment variables, aliases, domains or processing destinations were changed. Do not copy production credentials into Preview automatically; configure approved staging values only after the staging auth/data/callback design is reviewed.
+
+
+### Legacy-to-Monorepo environment-name crosswalk (values not decrypted)
+
+Read-only environment inventory of the existing production projects confirms the intended names that must be deliberately mapped if an approved Preview/staging runtime is configured later.
+
+| Consumer | Existing Production names | Current Monorepo Preview |
+|---|---|---|
+| Web | VITE_SARGUARDIAN_API_URL; VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, VITE_FIREBASE_STORAGE_BUCKET, VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID, VITE_FIREBASE_MEASUREMENT_ID; VITE_GOOGLE_MAPS_API_KEY | Only VITE_SARGUARDIAN_API_URL is present. |
+| API runtime/auth | APP_ENV, CORS_ORIGINS, PUBLIC_API_URL, FIREBASE_SERVICE_ACCOUNT_JSON | Only APP_ENV and CORS_ORIGINS are present. |
+| Supabase | SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY | Neither present. |
+| ASF catalogue | ASF_CATALOG_ENABLED, ASF_SEARCH_URL, ASF_MAX_RESULTS, ASF_TIMEOUT_SECONDS, PREFLIGHT_TTL_SECONDS | None present. |
+| Find Displacements | DISPLACEMENT_ACTIONS_ENABLED, GITHUB_ACTIONS_TOKEN, GITHUB_ACTIONS_REPOSITORY, GITHUB_ACTIONS_WORKFLOW, GITHUB_ACTIONS_REF, DISPLACEMENT_CALLBACK_SECRET, DISPLACEMENT_DISPATCH_TIMEOUT_SECONDS | Only DISPLACEMENT_ACTIONS_ENABLED=false is present. |
+| Known Place | KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY, KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW, KNOWN_PLACE_GITHUB_ACTIONS_REF, KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY, KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW, KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF (plus shared GitHub token and callback/Drive credentials) | No Known Place dispatch or credential variables present. |
+| RiverShift | RIVERSHIFT_ACTIONS_ENABLED, RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY, RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW, RIVERSHIFT_GITHUB_ACTIONS_REF, RIVERSHIFT_PUBLIC_API_URL, RIVERSHIFT_CALLBACK_SECRET | Only RIVERSHIFT_ACTIONS_ENABLED=false is present. |
+| Drive | GOOGLE_DRIVE_OAUTH_CLIENT_JSON, GOOGLE_DRIVE_REFRESH_TOKEN, GOOGLE_DRIVE_FOLDER_ID | No Drive variables present. |
+
+The old Web production project has one additional sensitive variable named `re` with no comment. It was not decrypted, changed or removed; the project owner should identify it before final secret review.
+
+**Do not treat every name in this matrix as a request to copy the old Production value.** Preview must use an approved staging Firebase project, Maps key/referrer restrictions, Supabase database/role, GitHub token scope, callback secrets, Earthdata account and Drive destination. Prefer separate staging credentials and data. No legacy secret value was decrypted or moved by this audit.
+
+The legacy Vercel API variable GOOGLE_DRIVE_FOLDER_ID is a project/runtime setting. It is not the GitHub Actions secret/variable documented by the source processing workflows as “Google drive parent folder id”. The Monorepo must preserve the correct consumer-specific contract; do not rename either one or assume they are interchangeable.
