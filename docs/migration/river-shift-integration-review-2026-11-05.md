@@ -136,3 +136,8 @@ Until the diagnostic receives a nonzero runner ID and executes shell steps:
 - do not promote the migration PR to production.
 
 After runner access is restored, execute the focused RiverShift worker/API/config tests, then the full source-integrity and regression workflows. Only after those pass should an approved non-production configuration test the signed callback and private Drive receipts end to end. Production cutover remains a separate explicit decision.
+
+
+## Latest Preview deployment state
+
+The RiverShift API configuration-hardening change and its tests are committed in the migration branch, but the latest API Preview deployment is still older (commit 4f9ed1ad09cce1261afd5e68938bc4a12a8685cc). A direct API Preview deployment request for migration branch head 280af486a49eb42b18e0de41aaa7817a287b2591 returned Vercel HTTP 402, resource api-deployments-free-per-day, because the free API deployment allowance (>100) had been reached; Vercel indicated a 24-hour retry window. No new deployment was created. Therefore the new API config code remains unbuilt by Vercel and must not be considered deployment-verified.
