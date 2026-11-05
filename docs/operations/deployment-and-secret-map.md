@@ -42,6 +42,33 @@ The active Dynamic API is configured to dispatch processing into `moshiour0/SARG
 
 The Vercel Production environment inventory confirms Displacement and RiverShift Actions are enabled and both currently target backend `main`; the public callback API domain remains the existing `sarguardian-backend-api.vercel.app`. The current frontend Production and Preview `VITE_SARGUARDIAN_API_URL` both target that API. This is the operational baseline—not a target Monorepo route.
 
+## Monorepo Known Place two-polygon candidate — not cut over
+
+The migration branch now contains two separate root workflows:
+
+- `.github/workflows/know-place-aoi-monorepo-dispatcher.yml`: manual `workflow_dispatch` entrypoint used by the API. It sets `run-name: Known Place Analysis {request_id}`, so API status polling can bind the exact request.
+- `.github/workflows/know-place-aoi-analysis.yml`: local `workflow_call` reusable workflow. It checks out the exact caller commit and verifies the imported Known Place runner/requirements Git blob SHAs.
+
+The dispatcher/reusable pair is not active in Production while it remains only in the migration branch. The current API defaults remain the original Backend dispatcher. The author-exact P05023 workflow remains separate and continues to target its existing Backend dispatcher; it must not be redirected to the generic two-polygon workflow.
+
+Before changing the API's generic Known Place variables to the Monorepo dispatcher, all of the following are required:
+
+1. Merge the dispatcher and reusable workflow to the default `main` branch and obtain a successful current-head regression run, including `tools/validate_known_place_workflow_contract.py`.
+2. Give the API's server-side GitHub token Actions **read and write** access to `moshiour0/SARGuardian-Monorepo`. It must dispatch the workflow, poll its run, list the artifact, and download the artifact for API result retrieval.
+3. Add these server-side Actions secrets in the Monorepo: `EARTHDATA_TOKEN` (or `EARTHDATA_USERNAME` plus `EARTHDATA_PASSWORD`), `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_PARENT_FOLDER_ID`. Keep the Drive parent ID variable name unchanged; do not introduce `GOOGLE_DRIVE_FOLDER_ID`.
+4. Keep repository variable `MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED` unset/false during dry-run testing. Catalog-only dry runs are permitted without this variable; raw HDF5 downloads and Drive upload require it to be exactly `true`, plus the user's explicit raw-download consent marker and credential preflight.
+5. Validate a manual catalog-only run, API request-ID/status matching, artifact prefix/digest retrieval, derived-only Drive receipt, and rollback to the existing Backend dispatcher before any production API environment change.
+
+The API cutover values, when separately approved, are:
+
+```
+KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY=moshiour0/SARGuardian-Monorepo
+KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW=know-place-aoi-monorepo-dispatcher.yml
+KNOWN_PLACE_GITHUB_ACTIONS_REF=main
+```
+
+Do not set these on Production now. The paper-reproduction `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_*` variables remain independent.
+
 **Cutover rule:** the Monorepo Preview must initially use the existing backend dispatch targets and existing Supabase project. Do not point production or Preview dispatches at Monorepo root workflows until the new workflow copies, payload schemas, callback signatures, result artifacts, retries, and retention behavior are validated together. Change the API environment and worker ownership in one controlled cutover with a rollback route; do not switch only one side.
 
 ## Required pre-cutover evidence
