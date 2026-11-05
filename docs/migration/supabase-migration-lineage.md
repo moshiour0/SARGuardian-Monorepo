@@ -127,6 +127,28 @@ The read-only Performance Advisor returned:
 
 These are performance observations, not Security Advisor findings. No index or policy was changed in this recheck.
 
+
+
+## Forward retention migration — 2026-11-06
+
+Two identical copies of the new forward migration are maintained at the active API's configured migration path and the infrastructure source-of-truth path:
+
+- `apps/api/supabase/migrations/20261106120000_catalog_preflight_retention.sql`
+- `infrastructure/supabase/migrations/20261106120000_catalog_preflight_retention.sql`
+
+The migration implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
+
+- Preserve expired catalogue preflight snapshots for a further **7-day support grace period**.
+- Once the grace period has elapsed, delete only preflights that are **not referenced** by `processing_jobs`.
+- Process no more than 500 rows per daily run; row locks use `SKIP LOCKED`.
+- Keep the original immutable guard for all ordinary UPDATE/DELETE operations. A transaction-local, owner-only SECURITY DEFINER purge path is the only exception.
+- Schedule one Supabase Cron job, `sarguardian-expired-preflight-cleanup`, daily at **03:20 UTC**.
+- No browser role or API `service_role` can execute the purge function directly.
+
+The current live inventory contains three expired preflights: one unreferenced and two referenced by the two existing `processing_jobs` rows. None has been expired for more than seven days yet. Therefore the first scheduled execution is expected to delete **zero** existing rows; the referenced records remain protected regardless of age. The migration does not purge `processing_jobs`, `displacement_jobs`, or `river_shift_jobs`, nor does it delete Google Drive files, GitHub artifacts, raw NISAR source data, or scientific result bundles. Those retention windows require separate explicit policies.
+
+The old seven remote migration records remain version/name-mismatched with their corresponding pre-existing local SQL filenames. This new forward migration uses a fresh timestamp and is not an attempt to rewrite or repair those old records. The forward migration should be applied once and then verified through `list_migrations`, `cron.job`, `cron.job_run_details`, the trigger/function catalog, and before/after row counts.
+
 ## Safe future CLI operation after Supabase CLI v3
 
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
