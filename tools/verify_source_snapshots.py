@@ -160,6 +160,16 @@ def main() -> int:
             "migration/source-snapshots/dynamic/Backend/",
             "apps/api/",
         ),
+        (
+            "Dynamic shared tools promotion",
+            "migration/source-snapshots/dynamic/tools/",
+            "apps/tools/",
+        ),
+        (
+            "Dynamic workflow compatibility promotion",
+            "migration/source-snapshots/dynamic/.github/workflows/",
+            "apps/.github/workflows/",
+        ),
     )
     for label, source_prefix, destination_prefix in promoted_paths:
         source_view = {
