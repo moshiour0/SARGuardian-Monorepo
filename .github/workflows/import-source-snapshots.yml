@@ -1,4 +1,4 @@
-name: Import Immutable Source Snapshots
+name: Import Immutable Source Snapshots and Historical Science Pins
 
 on:
   push:
