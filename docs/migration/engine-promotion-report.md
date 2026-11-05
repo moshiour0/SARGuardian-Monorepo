@@ -78,3 +78,16 @@ Five critical runtime files were fetched directly from their source repository m
 | Backend Find Displacements screen: `tools/aoi_wide_displacement_screen.py` → `engines/find-displacements/tools/aoi_wide_displacement_screen.py` | `cea9a8bd7f95a3107f3aec0bbc66f9bdce253141` | same | same | Exact |
 
 This verifies the source, immutable snapshot and promoted destination contain byte-identical Git blobs for these five high-risk runtime files. It is a targeted live spot-check, not a substitute for the complete all-path object/mode CI gate. No workflow, runtime code or production setting was modified by this check.
+
+
+## Complete RiverShift directory tree integrity — 2026-11-05
+
+A recursive Git tree comparison checked every blob and file mode under Backend main tools/river_shift/ against Monorepo engines/river-shift/tools/river_shift/:
+- source Backend tree: 867279c8de20e43dd3d36746480052dd9625d900;
+- promoted Monorepo tree: ad8a698804be94147924c40b51f58ff131954fda;
+- 74 source blobs, 74 promoted blobs;
+- 74/74 exact SHA and file-mode matches;
+- zero missing, extra, changed or mode-mismatched files;
+- neither recursive tree result was truncated.
+
+This verifies complete RiverShift package promotion integrity, including worker, batch scheduler, CLI modules, tests and environment file. It does not replace execution of the tests or the separate workflow/callback/runtime acceptance gates.
