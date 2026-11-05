@@ -309,6 +309,42 @@ def main() -> int:
         output_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
 
     print(json.dumps(summary, indent=2, sort_keys=True))
+
+    print("WORKFLOW_REVIEW_QUEUE_BEGIN")
+    for item in records:
+        if item.get("parse") != "ok":
+            print(f"PARSE_ERROR source={item['source']} path={item['path']}")
+            continue
+        risks = []
+        if item.get("undeclared_job_permissions"):
+            risks.append("implicit_permissions=" + ",".join(item["undeclared_job_permissions"]))
+        if item.get("unpinned_action_count"):
+            risks.append("unpinned_actions=" + str(item["unpinned_action_count"]))
+        if item.get("secret_names"):
+            risks.append("secret_names=" + ",".join(item["secret_names"]))
+        if item.get("external_checkout_repositories"):
+            risks.append("external_checkouts=" + ",".join(item["external_checkout_repositories"]))
+        if item.get("reusable_workflow_calls"):
+            risks.append("reusable_calls=" + str(len(item["reusable_workflow_calls"])))
+        if item.get("artifact_steps"):
+            risks.append("artifact_steps=" + str(len(item["artifact_steps"])))
+        if item.get("retry_markers"):
+            risks.append("retry_markers=" + ",".join(item["retry_markers"]))
+        if risks:
+            print(
+                f"REVIEW source={item['source']} path={item['path']} "
+                f"triggers={','.join(item['triggers']) or 'none'} "
+                + " ".join(risks)
+            )
+
+    action_refs: dict[str, int] = {}
+    for item in records:
+        for action in item.get("unpinned_actions", []):
+            action_refs[action["uses"]] = action_refs.get(action["uses"], 0) + 1
+    print("UNPINNED_ACTION_REFERENCE_FREQUENCY_BEGIN")
+    for action, count in sorted(action_refs.items(), key=lambda pair: (-pair[1], pair[0])):
+        print(f"UNPINNED_ACTION_REF count={count} uses={action}")
+    print("WORKFLOW_REVIEW_QUEUE_END")
     print("WORKFLOW_CONTRACT_AUDIT_PASS" if summary["parse_errors"] == 0 else "WORKFLOW_CONTRACT_AUDIT_PARSE_FAILURE")
     return 0 if summary["parse_errors"] == 0 else 1
 
