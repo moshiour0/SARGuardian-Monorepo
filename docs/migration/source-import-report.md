@@ -6,7 +6,7 @@
 
 ## Result
 
-Nine immutable source trees were imported under `migration/source-snapshots/`. Their exact source commit IDs are retained in the Git parent graph and in `docs/migration/source-pins.json`.
+Ten immutable source snapshots are now preserved under `migration/source-snapshots/`; nine carry full source commit ancestry and the additional Known Place author-exact backend code pin is a separate exact tree snapshot. Their exact source commit IDs are retained in the Git parent graph and in `docs/migration/source-pins.json`.
 
 | Snapshot | Immutable source ref | Tracked paths |
 |---|---|---:|
@@ -19,7 +19,8 @@ Nine immutable source trees were imported under `migration/source-snapshots/`. T
 | Dynamic historical callback API | `SARGuardian_Dynamic@db6472e1c304e21242f1ab1dfd671ccb21ba5697` | 130 |
 | Backend historical reassembly tools | `SARGuardian-backend@d9e67df7d800032c37d23f74df44c98e3ab655f7` | 86 |
 | Legacy NISAR science fork (manual diagnostic refs) | `Sagormodak/SARGuardian@77cc9646cfa46d3aff3669d351912f984cf67aa3` | 108 |
-| **Total** | | **1,408** |
+| Known Place author-exact backend code pin | `SARGuardian-backend@b825df798ea4cb9874aa10dd01174d2a8ef73cba` | 277 |
+| **Total** | | **1,685** |
 
 The total counts tracked paths across snapshots; files shared by multiple source refs intentionally appear in more than one snapshot when their provenance differs.
 
@@ -30,8 +31,13 @@ A second embedded-reference scan found three more exact checkout pins that are n
 - Dynamic `db6472…`: checked out by the backend AOI dashboard for the signed callback/API contract. This commit diverges from Dynamic main and has 130 tracked paths; it is imported independently.
 - Backend `d9e67…`: checked out by the reassembly workflow for the aggregation tools. This commit diverges from backend main and has 86 tracked paths; it is imported independently.
 - `Sagormodak/SARGuardian@77cc964…`: pinned by legacy manual GOFF/GUNW Earthaccess diagnostics in the Known Place PR lineage. It is a distinct fork, not the current `moshiour0/SARGuardian` source. Its 108 tracked paths are preserved as a legacy external source, not promoted as the canonical NISAR science engine.
+- `SARGuardian-backend@b825df…`: the `backend_code_ref` input in the backend-main Known Place author-exact paper dispatcher. It is a sibling branch pin, three commits beyond common base `d847b0…`, and is not an ancestor of PR #85 head. Its full 277-blob tree is now preserved at `migration/source-snapshots/backend-pins/b825df/` with source commit SHA `b825df…` and tree SHA `3c77b2d52474364020acebeb4338b5babe7ff4ec`.
 
 The backend `ecd125…` dependency and Dynamic science pin `f038…` are ancestors of their respective imported source-main histories and remain reachable without duplicate trees.
+
+## Known Place dispatcher pins
+
+The backend-main generic Known Place dispatcher calls its pinned reusable workflow at `0e0611c12913044787ee84a39fa60a81d30ae516`; the author-exact paper dispatcher calls its pinned reusable workflow at `d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9`. GitHub compare confirms both commits are ancestors of Known Place PR #85 head, so their exact workflow content and history are already reachable through the PR snapshot. The author-exact dispatcher additionally passes `backend_code_ref=b825df798ea4cb9874aa10dd01174d2a8ef73cba`, a sibling code revision not included in the PR #85 tree. This is why the `b825df` exact tree snapshot is separately retained.
 
 ## Why multiple science snapshots were required
 
@@ -51,7 +57,8 @@ This avoids the incomplete result that would come from copying backend `main` al
 - Git trees were inserted without file-content rewriting; Git object identity is retained.
 - Import commit `c7afa9c…` has the Dynamic, backend-main, Known Place PR #85, and NISAR-main commits as parents.
 - Import commit `c100570…` has the historical NISAR pins `10639…` and `006d…` as additional parents.
-- A recursive target tree query was not truncated and returned the expected nine path counts above.
+- A recursive target tree query was not truncated and returned the expected ten snapshot path counts above.
+- The author-exact backend code pin `b825df…` is compared by exact recursive tree identity; its 277 blob SHAs and file modes are independently checked by the snapshot validator.
 - Representative paths were found: Dynamic `Frontend/src/App.tsx`, backend RiverShift `tools/river_shift/process_gcov_job.py`, Known Place `tools/know_place/aoi_runner.py`, and NISAR `src/timeseries.py`.
 - The source repositories were not modified.
 
