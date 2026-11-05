@@ -110,6 +110,36 @@
       "status": "ancestor_of_current_nisar_science_main",
       "import_status": "preserved_in_history",
       "notes": "Verified with GitHub compare: this exact source revision is an ancestor of NISAR science main and is therefore reachable through the imported main source history."
+    },
+    {
+      "repository": "moshiour0/SARGuardian_Dynamic",
+      "ref": "db6472e1c304e21242f1ab1dfd671ccb21ba5697",
+      "commit": "db6472e1c304e21242f1ab1dfd671ccb21ba5697",
+      "role": "Dynamic historical API/workflow snapshot checked out by backend main sarguardian-aoi-wkt-dashboard.yml",
+      "status": "diverged_from_audited_dynamic_main",
+      "import_status": "pending",
+      "snapshot_path": "migration/source-snapshots/dynamic-pins/db6472",
+      "notes": "Exact revision not an ancestor of Dynamic main; GitHub compare shows 14 commits on this revision not present in audited main. Preserve separately."
+    },
+    {
+      "repository": "moshiour0/SARGuardian-backend",
+      "ref": "d9e67df7d800032c37d23f74df44c98e3ab655f7",
+      "commit": "d9e67df7d800032c37d23f74df44c98e3ab655f7",
+      "role": "Backend historical aggregation/reassembly tool snapshot checked out by reassemble workflow",
+      "status": "diverged_from_audited_backend_main",
+      "import_status": "pending",
+      "snapshot_path": "migration/source-snapshots/backend-pins/d9e67",
+      "notes": "Exact revision not an ancestor of backend main; GitHub compare shows 98 commits on this revision not present in audited main. Preserve separately."
+    },
+    {
+      "repository": "Sagormodak/SARGuardian",
+      "ref": "77cc9646cfa46d3aff3669d351912f984cf67aa3",
+      "commit": "77cc9646cfa46d3aff3669d351912f984cf67aa3",
+      "role": "Legacy manual GOFF/GUNW Earthaccess diagnostic workflows pinned to alternate SARGuardian fork",
+      "status": "external_legacy_fork_pin",
+      "import_status": "pending",
+      "snapshot_path": "migration/source-snapshots/legacy-fork/77cc964",
+      "notes": "Pinned by PR #85 manual diagnostic workflows. It is not the current moshiour0/SARGuardian source. Preserve for provenance; do not automatically treat as production science source."
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update.",
