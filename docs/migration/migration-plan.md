@@ -15,8 +15,10 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 - [x] Import nine exact source trees and retain source commit history.
 - [x] Inventory all 42 Dynamic/backend-main workflow files with source blob SHAs, triggers, jobs, checkout repositories/pins, and credential-risk notes.
 - [x] Record the Known Place PR #85 workflow delta: 15 added workflows, 8 modified same-path workflows, and 10 backend-main-only workflows.
+- [x] Parse all 82 workflow variants and inventory permissions, action pins, secret references, external checkouts, artifacts, retries, reusable calls, and triggers; see `docs/migration/workflow-contract-audit.md`.
 - [ ] Complete exhaustive branch/tag inventory beyond the selected immutable refs.
-- [ ] Record Vercel project roots, production branch/alias, and Supabase linkage without changing them.
+- [x] Record existing Vercel frontend/API project IDs, verified domains, latest production SHAs, and environment variable names (without decrypting secrets); exact project Root Directory still requires team settings access.
+- [x] Verify active Supabase project identity, public table/RLS status, security advisor, and remote migration history without changing schema; retention policy review remains pending.
 - [ ] Trace calls to the old backend `app/` service and determine if it is still used.
 
 ## Phase 1 — safe monorepo foundation
@@ -52,6 +54,10 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 
 **Important:** engine-local `.github/workflows/` directories are inactive fixtures preserving existing tests' source-relative workflow paths. GitHub Actions only activates root `.github/workflows/`.
 
+## Static workflow audit result
+
+The automated contract audit parsed 82 workflow variants with zero YAML parse errors. It found 25 workflow instances with implicit/default job permissions, 432 tag-based action references, 58 secret-using workflow instances, 41 external-checkout instances across four repositories, 16 reusable workflow-call references, 189 artifact steps, and 23 workflows with retry markers. These are review counts across all source variants, not proof of production execution. See `docs/migration/workflow-contract-audit.md`.
+
 ## Phase 4 — central workflow migration
 
 The audited baseline has 42 workflow YAML files: 7 in Dynamic and 35 in backend main. The Known Place PR #85 feature branch contains 40 workflow YAMLs: 15 branch-specific additions, 8 changed same-path files, 17 unchanged files, and 10 backend-main-only files absent from that branch.
@@ -77,8 +83,9 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 ## Phase 5 — infrastructure, operational validation, and cutover
 
 - [ ] Verify Vercel project IDs, roots, build settings, output settings, function limits, environment scopes, production branch, and aliases.
-- [ ] Confirm Supabase project identity, schema ownership, RLS, retention, and migration state without applying schema changes.
-- [ ] Map GitHub/Vercel environment variable and secret names by consumer; transfer no secret values through Git.
+- [x] Confirm active Supabase project identity, four public tables, RLS enablement, owner policies, security advisor, and seven remote migrations by read-only query.
+- [ ] Verify Supabase retention/cleanup policy and reconcile remote migration version/name drift with local filenames without applying migrations.
+- [x] Record current Vercel environment variable names and worker dispatch destinations without decrypting or copying secret values; final target Preview variable mapping remains pending.
 - [ ] Deploy a Preview only; test authentication, map search/AOI drawing, dashboard/archive, all engine pages, and result retrieval.
 - [ ] Exercise API dispatch/callback signatures, sequence ordering, retry behavior, terminal failure, Drive receipts, and retention with mocks.
 - [ ] Compare canonical source and promoted output fixtures/manifests; path-level code identity is already verified, but real-output parity remains pending.
@@ -101,11 +108,14 @@ See `docs/migration/validation-baseline.md`.
 
 - Source integrity: PASS
 - Snapshot and promoted-path regression parity: PASS
-- Workflow inventory/disposition: IN PROGRESS
+- Workflow inventory: PASS (42 baseline files + 40 PR #85 branch variants catalogued)
+- Workflow security/caller/disposition review: IN PROGRESS
 - Workflow permissions/caller/callback/retry parity: PENDING
 - API live contract/auth/CORS: PENDING Preview
-- Supabase persistence/retention: PENDING live configuration check
+- Supabase identity/schema/RLS/security advisor: PASS (read-only)
+- Supabase migration-history alignment and retention policy: PENDING
 - Historical Git secret scan: PASS (zero unreviewed findings)
+- Workflow static contract parse: PASS (82 variants, zero YAML errors); runtime permission/caller/dispatch dry-run: PENDING
 - Runtime secret/permission mapping: PENDING
 - Vercel Preview/routing: PENDING
 - Scientific real-output parity and independent validation: PENDING
