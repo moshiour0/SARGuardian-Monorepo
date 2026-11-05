@@ -127,14 +127,21 @@ jobs:
       - name: Fail closed before any checkout, credentials, or data access
         env:
           MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
+          EXECUTE_DOWNLOADS: ${{ inputs.execute_downloads }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
-            echo "::error::Monorepo Known Place processing is disabled. Set repository variable MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval and secret/configuration review."
-            exit 1
+          if [[ "$EXECUTE_DOWNLOADS" == "true" ]]; then
+            if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
+              echo "::error::Monorepo Known Place raw downloads are disabled. Set MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval, secret review and rollback readiness."
+              exit 1
+            fi
+            echo "MONOREPO_KNOWN_PLACE_RAW_DOWNLOAD_GATE=PASS"
+          else
+            echo "MONOREPO_KNOWN_PLACE_CATALOG_ONLY_DRY_RUN=PASS"
+            echo "RAW_SOURCE_DOWNLOADS=DISABLED"
+            echo "DRIVE_UPLOAD=DISABLED"
           fi
-          echo "MONOREPO_KNOWN_PLACE_DISPATCH_GATE=PASS"
 
   known-place-aoi-analysis:
     name: Run Monorepo-local Known Place two-polygon science workflow
