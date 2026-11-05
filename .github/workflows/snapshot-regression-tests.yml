@@ -18,7 +18,10 @@ on:
       - "tools/audit_source_reference_pins.py"
       - "tools/audit_workflow_contracts.py"
       - "tools/validate_workflow_candidates.py"
-      - "tools/validate_known_place_workflow_contract.py"
+      - "tools/validate_known_place_workflows.py"
+      - ".github/workflows/**"
+      - "docs/submission/**"
+      - "README.md"
       - "migration/workflow-candidates/**"
       - ".github/workflows/snapshot-regression-tests.yml"
   pull_request:
@@ -33,7 +36,10 @@ on:
       - "tools/verify_source_snapshots.py"
       - "tools/audit_workflow_contracts.py"
       - "tools/validate_workflow_candidates.py"
-      - "tools/validate_known_place_workflow_contract.py"
+      - "tools/validate_known_place_workflows.py"
+      - ".github/workflows/**"
+      - "docs/submission/**"
+      - "README.md"
       - "migration/workflow-candidates/**"
       - ".github/workflows/snapshot-regression-tests.yml"
 
@@ -65,7 +71,7 @@ jobs:
       - name: Validate inactive RiverShift Monorepo workflow candidate
         run: python tools/validate_workflow_candidates.py
       - name: Validate Known Place API, manual dispatcher and reusable workflow contract
-        run: python tools/validate_known_place_workflow_contract.py
+        run: python tools/validate_known_place_workflows.py
       - name: Parse archived RiverShift validation workflows without activating them
         run: |
           python - <<'PY'
