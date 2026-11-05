@@ -9,14 +9,30 @@
 
 | Existing project | Project ID | Framework | Linked repository | Latest observed production |
 |---|---|---|---|---|
-| `sar-guardian-dynamic` | `prj_2wYF8FsOkzI0acPS0qINWGTZfwKQ` | Vite | `moshiour0/SARGuardian_Dynamic` | READY, main `42d977b5abd186866ac0d78454239563eebb18d2` |
-| `sarguardian-backend-api` | `prj_Dzh0myaGpcseGXWIj2PIZVSW2vXS` | FastAPI | `moshiour0/SARGuardian_Dynamic` | READY, main `42d977b5abd186866ac0d78454239563eebb18d2` |
+| `sar-guardian-dynamic` | `prj_2wYF8FsOkzI0acPS0qINWGTZfwKQ` | Vite | `moshiour0/SARGuardian_Dynamic` | READY, deployment `dpl_CLi5LFvrGUVKXuHyAbYXhBdQ9C9f`, main `42d977b5abd186866ac0d78454239563eebb18d2` |
+| `sarguardian-backend-api` | `prj_Dzh0myaGpcseGXWIj2PIZVSW2vXS` | FastAPI | `moshiour0/SARGuardian_Dynamic` | READY, deployment `dpl_P7BBnE7PG7EiowYB2w7hS64ZmfMs`, main `42d977b5abd186866ac0d78454239563eebb18d2` |
 
 Verified domains:
 - Frontend: `sar-guardian-dynamic-lilac.vercel.app`
 - API: `sarguardian-backend-api.vercel.app`
 
+The API project also has a newer READY **Preview** deployment:
+- Deployment: `dpl_9T8d5NAwNDkRSYHpNdYTpGFCqZoW`
+- Branch: `feat/rivershift-map-place-search-20261105`
+- Commit: `c5ff0c1273ddf75d9e7ea270a039e2ca5f9723e9`
+- Preview target: not production; no production domain alias was assigned in the returned deployment metadata.
+
+The latest project metadata for the frontend points to the READY production deployment above. The API project's latest deployment metadata points to the Preview build, while the production deployment list confirms `dpl_P7BB...` remains the active latest production entry. This distinction prevents confusing a READY Preview with a production cutover.
+
 The Monorepo is not yet linked to either Vercel project. No new Vercel project was created during migration.
+
+## Existing root/build evidence
+
+The team-scoped Vercel deployment/build logs were read:
+- Frontend production build runs `npm run build` and completes `tsc -b && vite build`. The source repository's frontend root is `Frontend/`, where `package.json`, `package-lock.json`, `vite.config.ts`, and `vercel.json` live. This build evidence is consistent with the current project's root being the frontend workspace, but the exact `rootDirectory` setting is not included in the project metadata response.
+- API production build reports `Installing required dependencies from Backend/requirements.txt` and builds the FastAPI/Python functions. The source repository's API root is `Backend/`, where `index.py`, `requirements.txt`, and `vercel.json` live. The exact configured `rootDirectory` field was not included in the project metadata response.
+
+The project-detail endpoint currently returns project ID/name/framework/deployment/aliases/protection fields, but not `rootDirectory`, `buildCommand`, `installCommand`, or `outputDirectory`. The project list can be read using the team slug; that result also does not include those settings. Therefore the build evidence identifies the current source workspaces, but the exact Vercel Settings values still need dashboard verification before any project root is changed.
 
 ## Existing environment-variable inventory (names and non-secret routing only)
 
@@ -48,13 +64,11 @@ The existing API Vercel project contains a production `GOOGLE_DRIVE_FOLDER_ID` s
 
 ## Remaining Vercel checks
 
-The connected Vercel context can read existing project summaries, aliases, latest deployments, and environment variable names. A team-scoped project-list request requiring full team authorization returned 403, and the consent-link attempt did not resolve the team grant. Therefore the exact existing project Root Directory/build settings and GitHub repository connection controls are **not yet independently verified** from the available read path.
-
 Before creating the Monorepo Preview projects:
-1. inspect each current Vercel project's Root Directory, build/install/output commands, and Git production branch in Vercel Settings;
+1. confirm the exact current frontend/API `rootDirectory`, build/install/output settings, and Git production branch in Vercel Settings (build logs indicate the source workspaces are `Frontend/` and `Backend/`, but project metadata did not expose the exact configured field);
 2. confirm frontend/API Preview env scopes separately from Production;
-3. confirm the Monorepo GitHub repo is accessible to the Vercel Git integration;
-4. create separate Monorepo Vercel projects for `apps/web` and `apps/api` with the correct root directories only after settings are ready;
+3. confirm the Monorepo GitHub repository is accessible to the Vercel Git integration;
+4. create separate Monorepo Vercel projects for `apps/web` and `apps/api` with those root directories only after settings and cross-root dependency handling are ready;
 5. deploy Preview only; do not assign the current production aliases.
 
 No production Vercel setting, environment variable, domain, or deployment was changed by this audit.
