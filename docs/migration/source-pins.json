@@ -117,9 +117,10 @@
       "commit": "db6472e1c304e21242f1ab1dfd671ccb21ba5697",
       "role": "Dynamic historical API/workflow snapshot checked out by backend main sarguardian-aoi-wkt-dashboard.yml",
       "status": "diverged_from_audited_dynamic_main",
-      "import_status": "pending",
+      "import_status": "verified",
       "snapshot_path": "migration/source-snapshots/dynamic-pins/db6472",
-      "notes": "Exact revision not an ancestor of Dynamic main; GitHub compare shows 14 commits on this revision not present in audited main. Preserve separately."
+      "notes": "Exact revision not an ancestor of Dynamic main; GitHub compare shows 14 commits on this revision not present in audited main. Preserve separately.",
+      "tree_import_method": "exact_git_tree_with_commit_history_parent"
     },
     {
       "repository": "moshiour0/SARGuardian-backend",
@@ -127,9 +128,10 @@
       "commit": "d9e67df7d800032c37d23f74df44c98e3ab655f7",
       "role": "Backend historical aggregation/reassembly tool snapshot checked out by reassemble workflow",
       "status": "diverged_from_audited_backend_main",
-      "import_status": "pending",
+      "import_status": "verified",
       "snapshot_path": "migration/source-snapshots/backend-pins/d9e67",
-      "notes": "Exact revision not an ancestor of backend main; GitHub compare shows 98 commits on this revision not present in audited main. Preserve separately."
+      "notes": "Exact revision not an ancestor of backend main; GitHub compare shows 98 commits on this revision not present in audited main. Preserve separately.",
+      "tree_import_method": "exact_git_tree_with_commit_history_parent"
     },
     {
       "repository": "Sagormodak/SARGuardian",
@@ -137,16 +139,17 @@
       "commit": "77cc9646cfa46d3aff3669d351912f984cf67aa3",
       "role": "Legacy manual GOFF/GUNW Earthaccess diagnostic workflows pinned to alternate SARGuardian fork",
       "status": "external_legacy_fork_pin",
-      "import_status": "pending",
+      "import_status": "verified",
       "snapshot_path": "migration/source-snapshots/legacy-fork/77cc964",
-      "notes": "Pinned by PR #85 manual diagnostic workflows. It is not the current moshiour0/SARGuardian source. Preserve for provenance; do not automatically treat as production science source."
+      "notes": "Pinned by PR #85 manual diagnostic workflows. It is not the current moshiour0/SARGuardian source. Preserve for provenance; do not automatically treat as production science source.",
+      "tree_import_method": "exact_git_tree_with_commit_history_parent"
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update.",
   "snapshot_import": {
-    "import_commit": "c100570aca60fc45decf032620fb0709f9cc185c",
+    "import_commit": "f4371f160efa6e32fce407a2909812a8545f2722",
     "method": "Exact Git tree import; monorepo import commits retain each source commit as a parent so its full history remains reachable.",
-    "total_source_tracked_paths": 1084,
+    "total_source_tracked_paths": 1408,
     "snapshot_paths": [
       {
         "source": "moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6",
@@ -177,11 +180,27 @@
         "source": "moshiour0/SARGuardian@006d4cd1485cf80e509eaf8717c12e9c6390ac09",
         "path": "migration/source-snapshots/nisar-pins/006d4cd",
         "tracked_paths": 135
+      },
+      {
+        "source": "moshiour0/SARGuardian_Dynamic@db6472e1c304e21242f1ab1dfd671ccb21ba5697",
+        "path": "migration/source-snapshots/dynamic-pins/db6472",
+        "tracked_paths": 130
+      },
+      {
+        "source": "moshiour0/SARGuardian-backend@d9e67df7d800032c37d23f74df44c98e3ab655f7",
+        "path": "migration/source-snapshots/backend-pins/d9e67",
+        "tracked_paths": 86
+      },
+      {
+        "source": "Sagormodak/SARGuardian@77cc9646cfa46d3aff3669d351912f984cf67aa3",
+        "path": "migration/source-snapshots/legacy-fork/77cc964",
+        "tracked_paths": 108
       }
     ],
     "verified": {
       "recursive_target_tree_not_truncated": true,
-      "path_counts_match_source_tree_api": true,
+      "source_and_snapshot_path_object_counts_match": true,
+      "source_file_modes_types_and_blob_shas_verified_by_ci": true,
       "source_commit_parents_preserved": true,
       "original_repositories_modified": false
     }
