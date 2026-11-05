@@ -171,7 +171,7 @@ jobs:
         if: inputs.job_id != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: moshiour0/SARGuardian-Monorepo-Monorepo
+          repository: moshiour0/SARGuardian-Monorepo
           ref: db6472e1c304e21242f1ab1dfd671ccb21ba5697
           path: dynamic-api
 
@@ -435,7 +435,7 @@ jobs:
       - name: Checkout AOI aggregator and interactive dashboard at the dispatched revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: moshiour0/SARGuardian-Monorepo-Monorepo
+          repository: moshiour0/SARGuardian-Monorepo
           ref: ${{ needs.manifest.outputs.orchestration_sha }}
           path: dashboard-source
 
@@ -598,7 +598,7 @@ jobs:
         if: inputs.job_id != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: moshiour0/SARGuardian-Monorepo-Monorepo
+          repository: moshiour0/SARGuardian-Monorepo
           ref: db6472e1c304e21242f1ab1dfd671ccb21ba5697
           path: dynamic-api
 
