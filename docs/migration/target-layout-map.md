@@ -16,9 +16,9 @@
 
 | Source snapshot | Promoted destination | Status / notes |
 |---|---|---|
-| Backend main `dashboard/` plus non-RiverShift `tools/` | `engines/find-displacements/` | Exact copies; includes three inactive workflow fixtures and requirement files. Keeps target-free AOI discovery, candidate-local floors, gated GUNW pixel diagnostics, and GOFF diagnostics separate. |
+| Backend main `dashboard/` plus non-RiverShift `tools/` | `engines/find-displacements/` | Exact copies; includes seven inactive workflow compatibility fixtures and requirement files. These mirror backend-root workflow files that original tests read by relative path; the Known Place dispatchers remain contract fixtures only. Keeps target-free AOI discovery, candidate-local floors, gated GUNW pixel diagnostics, and GOFF diagnostics separate. |
 | Backend Known Place PR #85 head | `engines/known-place/` | Entire PR-head snapshot exact-copied; preserves the feature-branch ancestor, author-exact P05023 workflow and two-polygon implementation. |
-| Backend main `tools/river_shift/` | `engines/river-shift/tools/river_shift/` | Exact copy of 74 tracked paths; keeps the original source-relative package/test path. One inactive workflow fixture is under the engine root. |
+| Backend main `tools/river_shift/` | `engines/river-shift/tools/river_shift/` | Exact copy of 74 tracked paths; keeps the original source-relative package/test path. Two inactive workflow fixtures are under the engine root. |
 | NISAR science main | `science/nisar-core/` | Whole current science tree exact-copied. Historical non-ancestor pins remain in distinct snapshot directories. |
 | Divergent worker checkouts | `migration/source-snapshots/*-pins/` | Immutable, provenance-only source snapshots; not silently overlaid into current engine code. |
  
