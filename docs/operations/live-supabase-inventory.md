@@ -84,3 +84,18 @@ The live index list for `processing_jobs` confirms there is no index whose leadi
 The two unused-index notices are low-confidence at the current small row counts (2 rows in `processing_jobs`, 3 in `catalog_preflights`) and must not trigger index removal. Keep them until representative production workload evidence exists.
 
 **Change scope remains read-only:** no SQL DDL, policy, index, table, data, or migration-history entry was changed during this recheck.
+
+## Live catalog recheck — 2026-11-05
+
+A second read-only Supabase catalog audit after the original inventory confirmed:
+- all four expected tables still exist;
+- RLS is enabled and `FORCE ROW LEVEL SECURITY` is off on each;
+- the four owner-read policies remain the scalar-subquery JWT `sub` predicate;
+- no direct `anon` or `authenticated` table grants appear in the privilege inventory; the API's trusted `service_role` remains the database access path;
+- RiverShift's analysis-mode column, event-date constraints, other request-contract constraints, indexes and transition trigger match the current local migration's expected post-migration contract;
+- the current RiverShift row counts are 23 in total: 18 failed Event-Based, 1 failed General Scan, 2 succeeded Event-Based and 2 succeeded General Scan. These are aggregate state counts only, not an accuracy assessment;
+- the Supabase Security Advisor returned no security lints.
+
+No table, index, trigger, policy, privilege, row or migration-history entry was changed.
+
+**CLI caution:** Supabase CLI v3 became the default on 2 November 2026. The 4 November breaking-change notice changes hosted-command targeting: explicitly use `--remote` for remote operations; hosted changes require confirmation and unattended runs need explicit `--yes`. Pin the intended CLI version and review the [v2→v3 guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) before adding any Supabase command to CI. Do not run `db push` while migration versions/names remain unreconciled.
