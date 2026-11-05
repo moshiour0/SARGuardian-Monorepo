@@ -24,7 +24,7 @@ The API project also has a newer READY **Preview** deployment:
 
 The latest project metadata for the frontend points to the READY production deployment above. The API project's latest deployment metadata points to the Preview build, while the production deployment list confirms `dpl_P7BB...` remains the active latest production entry. This distinction prevents confusing a READY Preview with a production cutover.
 
-The Monorepo is not yet linked to either Vercel project. No new Vercel project was created during migration.
+At the initial source inventory the Monorepo had not yet been linked. Two separate Monorepo Preview projects were subsequently created and are documented below. No existing Production project was repointed or modified.
 
 ## Existing root/build evidence
 
@@ -64,7 +64,7 @@ The existing API Vercel project contains a production `GOOGLE_DRIVE_FOLDER_ID` s
 
 ## Remaining Vercel checks
 
-Before creating the Monorepo Preview projects:
+Before any Preview runtime smoke test or production cutover:
 1. confirm the exact current frontend/API `rootDirectory`, build/install/output settings, and Git production branch in Vercel Settings (build logs indicate the source workspaces are `Frontend/` and `Backend/`, but project metadata did not expose the exact configured field);
 2. confirm frontend/API Preview env scopes separately from Production;
 3. confirm the Monorepo GitHub repository is accessible to the Vercel Git integration;
@@ -121,3 +121,16 @@ Both Preview projects have SSO protection enabled. The last 30-minute Vercel run
 ### Existing Production routing
 
 The Dynamic frontend and API Production deployments remain on the existing repository/project. No production deployment was triggered, promoted, rolled back, or reassigned. The Monorepo Preview projects are separate and are not production replacements.
+
+
+## Monorepo Preview build and environment recheck — 2026-11-05
+
+The Monorepo has two separate Vercel projects linked to the migration branch. The latest inspected builds are READY Preview deployments, not Production:
+- Web: dpl_AHJQWERG7geqzMZSNJL2KDFsh5y9, commit e82a42d1677e478276ee4f47830cd165eed8a83f; npm ci, TypeScript build and Vite production build completed. Build emitted a 560.16 kB JS chunk warning and npm reported 19 advisories (10 moderate, 7 high, 2 critical).
+- API: dpl_4A846M3FHcbVZNBaKPAXBVPHBNgf, commit 078de6bd23cd7bc156f985b2d067df53a5098281; FastAPI/Python dependency install, bytecode compilation, and Vercel output deployment completed.
+
+Both projects enable SSO on Preview. Environment inventory (names only; no secret values decrypted) confirms Web Preview currently has only VITE_SARGUARDIAN_API_URL; Firebase browser config and VITE_GOOGLE_MAPS_API_KEY are absent. API Preview has APP_ENV=preview, matching CORS_ORIGINS, and DISPLACEMENT_ACTIONS_ENABLED=false plus RIVERSHIFT_ACTIONS_ENABLED=false. No Supabase URL/service key, Firebase service-account JSON, GitHub token, Earthdata token, Drive OAuth or callback secret was present in Preview. This is fail-closed, but Firebase login, Maps, Supabase persistence and processing cannot be considered runtime-tested.
+
+The last 30-minute Vercel runtime-log query returned no records for either Preview deployment. This is not an endpoint smoke test; SSO-protected browser/API validation remains outstanding. The latest actual build logs establish compile/deploy readiness only. GitHub Vercel PR checks may still show a build-rate-limit failure; that status must not be confused with these two READY deployments.
+
+No production environment variables, aliases, domains or processing destinations were changed. Do not copy production credentials into Preview automatically; configure approved staging values only after the staging auth/data/callback design is reviewed.
