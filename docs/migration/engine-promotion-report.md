@@ -63,3 +63,18 @@ The backend-main author-exact P05023 dispatcher passes `backend_code_ref=b825df7
 - Reconcile workflow source pins, caller graph, token permissions, callback contracts, and duplicate dispatch protection before moving selected workflows to root.
 - Complete secret scanning and environment-name mapping before promoting operational workflows.
 - Verify Vercel project root/build settings and Supabase live linkage without changing production settings.
+
+
+## Live source-to-snapshot-to-promoted blob parity recheck — 2026-11-05
+
+Five critical runtime files were fetched directly from their source repository main branch, the matching immutable Monorepo source snapshot, and the promoted engine/application path. All three Git blob SHA values matched for every file:
+
+| Runtime component | Source blob SHA | Snapshot blob SHA | Promoted blob SHA | Result |
+|---|---|---|---|---|
+| Dynamic RiverShift UI: `Frontend/src/pages/RiverShiftPage.tsx` → `apps/web/src/pages/RiverShiftPage.tsx` | `7ea0a96a6798ada7d348c227bece1b6557f13303` | same | same | Exact |
+| Dynamic active API: `Backend/app/main.py` → `apps/api/app/main.py` | `27316589dbfd4213f16c0de9ebd22beb8434ccae` | same | same | Exact |
+| Backend RiverShift GCOV worker: `tools/river_shift/process_gcov_job.py` → `engines/river-shift/tools/river_shift/process_gcov_job.py` | `7e57dc2cb053128aa70833c98af036031b923ff0` | same | same | Exact |
+| NISAR science main: `src/pixel_stack.py` → `science/nisar-core/src/pixel_stack.py` | `e4d35ab3ede7f7741af15dd4d6c6ad4d624a81e9` | same | same | Exact |
+| Backend Find Displacements screen: `tools/aoi_wide_displacement_screen.py` → `engines/find-displacements/tools/aoi_wide_displacement_screen.py` | `cea9a8bd7f95a3107f3aec0bbc66f9bdce253141` | same | same | Exact |
+
+This verifies the source, immutable snapshot and promoted destination contain byte-identical Git blobs for these five high-risk runtime files. It is a targeted live spot-check, not a substitute for the complete all-path object/mode CI gate. No workflow, runtime code or production setting was modified by this check.
