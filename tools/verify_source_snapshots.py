@@ -13,6 +13,7 @@ class Snapshot:
     label: str
     source_sha: str
     destination_prefix: str
+    source_tree_sha: str | None = None
 
 
 SNAPSHOTS = (
@@ -60,6 +61,12 @@ SNAPSHOTS = (
         "Legacy Sagormodak science pin 77cc964",
         "77cc9646cfa46d3aff3669d351912f984cf67aa3",
         "migration/source-snapshots/legacy-fork/77cc964",
+    ),
+    Snapshot(
+        "Known Place author-exact backend code pin b825df",
+        "b825df798ea4cb9874aa10dd01174d2a8ef73cba",
+        "migration/source-snapshots/backend-pins/b825df",
+        "3c77b2d52474364020acebeb4338b5babe7ff4ec",
     ),
 )
 
@@ -132,9 +139,11 @@ def main() -> int:
 
     total = 0
     for snapshot in SNAPSHOTS:
-        # Failing here means the checkout did not fetch the source history parents.
-        git("cat-file", "-e", f"{snapshot.source_sha}^{{tree}}")
-        source_entries = tree_entries(snapshot.source_sha)
+        # Divergent code pins can be preserved by their exact tree even when
+        # their full commit history is not an ancestor of an imported branch.
+        tree_revision = snapshot.source_tree_sha or snapshot.source_sha
+        git("cat-file", "-e", f"{tree_revision}^{{tree}}")
+        source_entries = tree_entries(tree_revision)
         prefix = snapshot.destination_prefix + "/"
         imported_entries = {
             path[len(prefix) :]: entry
@@ -159,9 +168,14 @@ def main() -> int:
             raise RuntimeError("; ".join(details))
 
         total += len(source_entries)
+        source_identity = (
+            f"commit={snapshot.source_sha} tree={tree_revision}"
+            if snapshot.source_tree_sha
+            else f"commit={snapshot.source_sha}"
+        )
         print(
             f"SNAPSHOT_BLOB_INTEGRITY_PASS {snapshot.label}: "
-            f"{len(source_entries)} entries at {snapshot.source_sha}"
+            f"{len(source_entries)} entries {source_identity}"
         )
 
     promoted_paths = (
