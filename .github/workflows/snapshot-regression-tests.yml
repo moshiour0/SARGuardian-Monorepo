@@ -6,6 +6,7 @@ on:
       - "migration/source-snapshot-import"
     paths:
       - "migration/source-snapshots/**"
+      - "apps/**"
       - "tools/verify_source_snapshots.py"
       - "tools/audit_source_reference_pins.py"
       - ".github/workflows/snapshot-regression-tests.yml"
@@ -48,6 +49,51 @@ jobs:
           python-version: "3.12"
       - name: Scan imported text sources for 40-character revisions
         run: python tools/audit_source_reference_pins.py
+
+  promoted-dynamic-frontend:
+    name: Promoted apps/web build, lint and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Type-check and build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+
+  promoted-dynamic-api:
+    name: Promoted apps/api regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install API test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-test.txt
+      - name: Test Google Maps dashboard adapter contract
+        run: node tests/google_maps_dashboard_adapter.test.mjs
+      - name: Run active API regression suite
+        run: python -m pytest -q
 
   dynamic-frontend:
     name: Dynamic frontend build, lint and tests
