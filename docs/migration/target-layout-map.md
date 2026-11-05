@@ -1,57 +1,57 @@
 # Source-to-target layout map
 
-**Status:** proposed promotion map after immutable snapshot import. No source files have been relocated yet.
+**Status:** first code-promotion pass committed; runtime parity jobs are in progress. The original immutable snapshots remain intact.
 
 ## Application layer
 
-| Source snapshot | Candidate destination | Notes |
+| Source snapshot | Promoted destination | Status / notes |
 |---|---|---|
-| `migration/source-snapshots/dynamic/Frontend/` | `apps/web/` | React/Vite app. Preserve build config, public assets, routes, and map loader semantics. |
-| `migration/source-snapshots/dynamic/Backend/` | `apps/api/` | Active Firebase-authenticated FastAPI API with Supabase persistence and Vercel entrypoint. |
-| `migration/source-snapshots/backend-main/app/` | `legacy/backend-api/` or retained snapshot | Separate SQLAlchemy/session-oriented service. Do not fold into active API before usage and contract tracing. |
+| `migration/source-snapshots/dynamic/Frontend/` | `apps/web/` | Promoted as an exact copy; frontend build, lint and tests pass from this path. Vercel project root is not changed yet. |
+| `migration/source-snapshots/dynamic/Backend/` | `apps/api/` | Promoted as an exact copy; the 215-test API suite passes from this path. Live Firebase/Supabase/CORS/callback environment checks remain pending. |
+| Dynamic root `tools/` | `apps/tools/` | Test/runtime compatibility helpers required by original API tests. Not yet deduplicated with backend tools. |
+| Dynamic `.github/workflows/` | `apps/.github/workflows/` | Inactive path compatibility fixtures; GitHub does not activate workflows below `apps/`. |
+| Backend main `app/` | Not promoted | Separate SQLAlchemy/session-oriented service; caller and deployment audit required before choosing `legacy/backend-api/` or retirement. |
 
 ## Engine and science layer
 
-| Source snapshot | Candidate destination | Notes |
+| Source snapshot | Promoted destination | Status / notes |
 |---|---|---|
-| Backend main `dashboard/` plus relevant `tools/` | `engines/find-displacements/` | Target-free AOI discovery, candidate-local floors, GUNW gated pixel diagnostics, GOFF diagnostics. Preserve separate measurement families. |
-| Backend Known Place PR #85 head | `engines/known-place/` | Use the PR-head snapshot as the current reviewed lineage; preserve the feature-branch ancestor and author-exact replay contracts. |
-| Backend main `tools/river_shift/river_shift/` and related GCOV runner files | `engines/river-shift/` | Independent GCOV engine; keep orchestration and validation stages intact. |
-| NISAR science main `src/` | `science/nisar-core/` | Preserve exact current source revision and module provenance. |
-| Historical NISAR pin snapshots | `science/nisar-core/versions/` or pinned compatibility packages | Do not overlay different revisions into one directory. Keep worker-specific pins addressable. |
+| Backend main `dashboard/` plus non-RiverShift `tools/` | `engines/find-displacements/` | Exact copies; includes three inactive workflow fixtures and requirement files. Keeps target-free AOI discovery, candidate-local floors, gated GUNW pixel diagnostics, and GOFF diagnostics separate. |
+| Backend Known Place PR #85 head | `engines/known-place/` | Entire PR-head snapshot exact-copied; preserves the feature-branch ancestor, author-exact P05023 workflow and two-polygon implementation. |
+| Backend main `tools/river_shift/` | `engines/river-shift/tools/river_shift/` | Exact copy of 74 tracked paths; keeps the original source-relative package/test path. One inactive workflow fixture is under the engine root. |
+| NISAR science main | `science/nisar-core/` | Whole current science tree exact-copied. Historical non-ancestor pins remain in distinct snapshot directories. |
+| Divergent worker checkouts | `migration/source-snapshots/*-pins/` | Immutable, provenance-only source snapshots; not silently overlaid into current engine code. |
+ 
+Detailed counts and decisions are in [engine-promotion-report.md](engine-promotion-report.md).
 
 ## Workflow layer
 
-Source workflow folders currently exist only inside their imported snapshots:
-- Dynamic: `migration/source-snapshots/dynamic/.github/workflows/`
-- Backend main: `migration/source-snapshots/backend-main/.github/workflows/`
-- Known Place PR #85 head: `migration/source-snapshots/backend-known-place-pr85/.github/workflows/`
-- NISAR science main: `migration/source-snapshots/nisar-science/.github/workflows/`
+Active workflows are only those in repository-root `.github/workflows/`. Current root workflows are:
+- `migration-metadata.yml`
+- `snapshot-regression-tests.yml`
 
-The active root `.github/workflows/` should receive only workflows that pass the 42-file workflow register. For each workflow, preserve trigger filters, job graph, permissions, cross-repository checkout, artifacts, callback, retry, retention, and rollback semantics. Never promote all files in a bulk copy.
+The following nested locations are inactive copies/fixtures, not active workflows:
+- `migration/source-snapshots/**/.github/workflows/`
+- `apps/.github/workflows/`
+- `engines/find-displacements/.github/workflows/`
+- `engines/known-place/.github/workflows/`
+- `engines/river-shift/.github/workflows/`
+- `science/nisar-core/.github/workflows/`
+
+The active root `.github/workflows/` should receive only workflows that pass the 42-file workflow register. For each selected workflow, preserve trigger filters, job graph, permissions, cross-repository checkout, artifacts, callback, retry, retention, and rollback semantics. Never bulk-copy all source workflow files.
 
 ## Verified collision result
 
-Dynamic and backend main share 24 exact source paths: 5 paths have identical Git blobs and 19 have different blobs. The full source SHA comparison and resolution constraints are documented in [path-collision-report.md](path-collision-report.md). Do not promote the two source trees into common root paths by overlay.
+Dynamic and backend main share 24 exact source paths: 5 paths have identical Git blobs and 19 have different blobs. The full source SHA comparison and resolution constraints are in [path-collision-report.md](path-collision-report.md). Do not overlay both source tool trees into one common root.
 
-## Shared-code collision and dependency checks
+## Promotion verification
 
-Some utilities occur in more than one repository, including HDF5 archive helpers and AOI worker scripts. Do not deduplicate based on filename or apparent similarity. First compare blob SHA, imports, call sites, tests, environment assumptions, and workflow working directories.
+The validator compares path, Git file mode, object type, and blob SHA for each source and destination mapping. Any missing, extra, or changed entry in the promoted directories fails CI. See [source-import-report.md](source-import-report.md) and [validation-baseline.md](validation-baseline.md).
 
-For every promoted module, record:
-- original source path and SHA;
-- destination path;
-- import rewrites and compatibility shims;
-- tests that cover the moved module;
-- any behaviour change (migration-only changes should have none).
+## Remaining dependency and deployment checks
 
-## Promotion order
-
-1. Dynamic frontend/API with build and route parity.
-2. Backend worker libraries as isolated packages, without activating their workflows.
-3. NISAR source and explicit version pins.
-4. Find Displacements and Known Place engine boundaries.
-5. RiverShift GCOV engine and its full orchestration/validation tests.
-6. Selected root workflows, one classified group at a time.
-
-This order is provisional. Import-graph evidence and deployment requirements can change the order, but not the engine boundaries or science invariants.
+- Trace backend root `app/` callers and workflow references.
+- Identify shared utilities by import and call graph, not filename.
+- Decide whether `apps/tools/` should become a versioned shared library or remain an API compatibility package; do not merge divergent backend versions.
+- Verify Vercel root paths, static assets, Python function config, environment scopes and aliases before preview deployment.
+- Keep production dispatch/callback endpoints and Supabase schema unchanged until isolated API and engine tests, security checks and rollback rehearsal pass.
