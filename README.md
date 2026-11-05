@@ -57,20 +57,21 @@ Source snapshots remain immutable, and promoted paths are exact copies. Original
 
 ## Verified CI baseline
 
-Latest full source-and-promoted-path parity run: [GitHub Actions run 41964029591](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029591), with 15/15 jobs green.
+Latest complete source-and-promoted-path parity run: [GitHub Actions run 41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548), with 16/16 jobs green.
 
-<badge color="success">15/15 jobs passed</badge>
+<badge color="success">16/16 jobs passed</badge>
 
 The run recorded:
 - **1,463** passing test executions and 1 skipped across immutable source snapshots.
 - **1,231** passing test executions across promoted application/engine paths.
 - **2,694** total passing test executions, 1 skipped. The same suites intentionally execute at both source and promoted paths; this is execution count, not unique test-case count.
-- Exact Git object/mode integrity for all **1,685** source snapshot entries and promoted code/fixture mappings.
-- RiverShift candidate workflow validation: 20-job graph, 15-product batches, failed-only retries, artifact/retention/callback contract, and Node 24 action pins unchanged.
+- Exact Git object/mode integrity for all **1,685** source snapshot entries, promoted code/fixture mappings, and all 8 Supabase config/migration files.
+- Workflow dependency parser: 82 variants, 135 jobs, 20 reusable call edges (12 local, 8 external), and 141 external checkout steps.
+- RiverShift candidate workflow validation: 20-job graph, 15-product batches, failed-only retries, artifact/retention/callback contract, and immutable Node 24 action pins unchanged.
 
-The latest full-history Gitleaks scan [41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586) also passed with zero unreviewed findings.
+The latest full-history Gitleaks scan [41966982003](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966982003) also passed with zero unreviewed findings.
 
-See the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
+See the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
@@ -79,14 +80,15 @@ See the [validation report](docs/migration/validation-baseline.md), [secret-scan
 - [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
-- [x] Static workflow contract audit: 82 variants parsed, zero YAML errors; permissions/action-pin/caller/artifact/retry risk counts documented.
+- [x] Static workflow contract audit: 82 variants parsed, zero YAML errors; 20 reusable call edges and 141 external checkout steps enumerated; permissions/action-pin/caller/artifact/retry risk counts documented.
 - [x] RiverShift Monorepo workflow candidate parsed and validated; it remains inactive and awaits 20-job mock/runtime dry-run and cutover review.
 - [ ] Complete remaining runtime workflow caller/permissions/callback/artifact/retention review and dry-runs before activating central root workflows.
 - [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
 - [ ] Complete runtime configuration-name mapping (names only).
 - [x] Verify current Production deployments and API Preview commit refs read-only; Production remains one Dynamic-main commit behind and Root Directories/Preview scopes still need dashboard verification.
 - [ ] Configure Monorepo Preview project roots, environment scopes, and routes.
-- [x] Verify active Supabase project identity, schema, RLS, and migration history read-only; migration-version alignment and retention cleanup policy remain pending.
+- [x] Verify active Supabase project identity, schema, RLS, and migration history read-only; promote the exact `config.toml` and seven local SQL migrations under `infrastructure/supabase/`.
+- [ ] Reconcile remote migration version/name drift and retention cleanup policy; no remote SQL was applied.
 - [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
 - [ ] Explicit production cutover approval.
 
