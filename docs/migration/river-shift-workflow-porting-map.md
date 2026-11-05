@@ -54,12 +54,13 @@ Each SHA was resolved from the corresponding upstream tag, and the referenced `a
 
 ## Promotion gates still outstanding
 
+**Static and unit validation:** PASS in [CI run 41964029591](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029591). The exact transformation validator passed, and the promoted RiverShift engine suite passed 259 tests. The candidate still remains inactive.
+
 Before this candidate can enter root `.github/workflows/`:
-1. Run the validator and the full promoted RiverShift regression suite.
-2. Add an isolated dry-run/mock test for all 20 jobs, including batch barriers, missing artifacts, failed-only retry waves, callback sequence, Drive receipt mismatch, and terminal failure propagation.
-3. Review the top-level `contents: read` permission and any additional token scope; do not broaden it by default.
-4. Verify all secrets/variables by name in the target repository without transferring values.
-5. Test a non-production workflow_dispatch in an isolated branch and ensure one run cannot trigger old and new processing simultaneously.
-6. Keep the API dispatch destination at `moshiour0/SARGuardian-backend@main` until explicit cutover approval.
+1. Add an isolated dry-run/mock test for all 20 jobs, including batch barriers, missing artifacts, failed-only retry waves, callback sequence, Drive receipt mismatch, and terminal failure propagation.
+2. Review the top-level `contents: read` permission and any additional token scope; do not broaden it by default.
+3. Verify all secrets/variables by name in the target repository without transferring values.
+4. Test a non-production workflow_dispatch in an isolated branch and ensure one run cannot trigger old and new processing simultaneously.
+5. Keep the API dispatch destination at `moshiour0/SARGuardian-backend@main` until explicit cutover approval.
 
 A candidate CI PASS is not permission to enable the workflow or move live processing.

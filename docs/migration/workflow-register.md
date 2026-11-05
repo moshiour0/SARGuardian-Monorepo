@@ -147,7 +147,7 @@ The machine-readable structural audit is documented in [workflow-contract-audit.
 - Three retained RiverShift replay workflows have `push` triggers in addition to manual dispatch. These must not be promoted unchanged into the monorepo because unrelated source pushes could cause replay activity.
 - Multiple worker/test workflows still check out `Sagormodak/SARGuardian`. Do not silently redirect these to `moshiour0/SARGuardian` until source identity and expected historical revision are verified.
 - Dynamic and backend each contain copies of similarly named AOI worker/dashboard workflows. Their role must be decided from actual callers and payload contracts, not filename similarity.
-- The root monorepo workflows currently include only migration metadata validation and isolated snapshot regression validation. Imported source workflow folders and engine-local compatibility fixtures remain nested/inactive.
+- The active root monorepo workflows are migration metadata validation, snapshot regression validation, and the full-history Gitleaks scan. The RiverShift Monorepo port remains under `migration/workflow-candidates/` and is validated by the snapshot-regression job, not activated. Imported source workflow folders and engine-local compatibility fixtures remain nested/inactive.
 
 ## High-risk engine constraints
 

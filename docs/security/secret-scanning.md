@@ -40,9 +40,10 @@ The allowlist is checked by [Migration Metadata Validation](../.github/workflows
 
 ## Latest result
 
-- Full-history scan workflow: [run 41959790362](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41959790362).
-- Result: **PASS**.
+- Latest full-history scan workflow: [run 41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586).
+- Result: **PASS** on the latest migration branch head `25aa5c76f04b1b1e3a7588a24ff3b29317ebc54c`.
 - Gitleaks unignored finding count: **0**.
+- The RiverShift candidate workflow and its validator were included in this scanned commit.
 - Allowlist validator: **PASS** in metadata-validation CI.
 - No raw report artifact retained.
 

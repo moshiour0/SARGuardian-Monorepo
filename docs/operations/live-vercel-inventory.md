@@ -72,3 +72,17 @@ Before creating the Monorepo Preview projects:
 5. deploy Preview only; do not assign the current production aliases.
 
 No production Vercel setting, environment variable, domain, or deployment was changed by this audit.
+
+
+## Production deployment freshness cross-check — 2026-11-05
+
+The latest production deployment records were checked independently from project metadata:
+
+| Project | Latest Production deployment | Deployed commit | Current Dynamic main |
+|---|---|---|---|
+| Frontend `sar-guardian-dynamic` | `dpl_CLi5LFvrGUVKXuHyAbYXhBdQ9C9f` — READY | `42d977b5abd186866ac0d78454239563eebb18d2` | `dd64b7adc90594f1d7f316b352e39fbac2013cb6` |
+| API `sarguardian-backend-api` | `dpl_P7BBnE7PG7EiowYB2w7hS64ZmfMs` — READY | `42d977b5abd186866ac0d78454239563eebb18d2` | `dd64b7adc90594f1d7f316b352e39fbac2013cb6` |
+
+GitHub compare confirms `42d977b5…` is an ancestor of current Dynamic `main`; main is one commit ahead. Therefore both latest Production deployments are behind current main by one commit. The newer API Preview `c5ff0c1273ddf75d9e7ea270a039e2ca5f9723e9` is from the feature branch `feat/rivershift-map-place-search-20261105`; compare shows this branch and main have diverged, so it must not be mistaken for a production deployment or a direct main cutover.
+
+No deployment was triggered, promoted, cancelled, or reassigned during this check. This is existing-system deployment freshness, independent of the new Monorepo's inactive migration candidate.

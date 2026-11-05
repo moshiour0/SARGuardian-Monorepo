@@ -1,7 +1,7 @@
 # SARGuardian monorepo migration plan
 
 **Plan date:** 2026-11-05  
-**Execution state:** ten source snapshots preserved (nine commit-backed histories plus the divergent Known Place author-exact code tree); app and engine paths promoted on an isolated migration branch. The 14-job parity baseline passed before this tenth snapshot and is being rerun now. Workflow cutover and production deployment remain blocked pending the remaining integration/security gates.
+**Execution state:** ten source snapshots preserved (nine commit-backed histories plus the divergent Known Place author-exact code tree); app and engine paths promoted. The latest 15-job source/promoted parity run, migration metadata validation, and full-history secret scan all pass. The RiverShift workflow candidate is statically validated but remains inactive. Production cutover remains blocked.
 
 ## Executive decision
 
@@ -81,6 +81,8 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 **Exit condition:** every workflow version has a reviewed disposition; selected root workflows pass isolated tests; duplicate-dispatch prevention and rollback are demonstrated.
 
+**RiverShift candidate status:** `migration/workflow-candidates/river-shift-gcov-process.yml` now passes exact source-transformation validation and all promoted RiverShift regression tests. It is intentionally not in root `.github/workflows/`; 20-job operational mock/dry-run, secret mapping, and dispatch cutover checks remain outstanding.
+
 ## Phase 5 — infrastructure, operational validation, and cutover
 
 - [ ] Verify Vercel project IDs, roots, build settings, output settings, function limits, environment scopes, production branch, and aliases.
@@ -97,11 +99,13 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 ## Current CI acceptance baseline
 
-Previous full parity run: [41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), 14/14 jobs passed before the additional `b825df` snapshot was imported. CI must re-run against the full ten-snapshot tree:
+Latest full parity run: [41964029591](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029591), 15/15 jobs passed:
 - source snapshot tests: 1,463 passed, 1 skipped;
 - promoted-path tests: 1,231 passed;
 - total: 2,694 passing test executions, 1 skipped;
-- exact source blob/history checks: the previous 1,408 snapshot paths plus the new 277-path `b825df` source tree and promoted path/fixture mappings.
+- exact source blob/history checks: 1,685 snapshot entries plus promoted path/fixture mappings;
+- RiverShift workflow candidate contract validator: PASS (20-job graph, path rewrite, immutable Node 24 action pins, artifact/retry/callback/retention checks);
+- full-history Gitleaks scan: [41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586), PASS with zero unreviewed findings.
 
 See `docs/migration/validation-baseline.md`.
 
