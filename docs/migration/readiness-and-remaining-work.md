@@ -1,8 +1,14 @@
 # SARGuardian Monorepo readiness and remaining work
 
-**Last updated:** 2026-11-05  
+**Last updated:** 2026-11-06  
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
+
+> **Codespaces promoted-path validation update (2026-11-06; migration branch head `87f1595d397809a24b0969b069a1ac182786d408`):** the owner ran the promoted-path validation locally in isolated persistent Conda/npm environments. Results: active API **226 passed** plus the Node Google Maps adapter contract; Find Displacements **104 passed**; Known Place **318 passed** using the CI glob `tools/tests/test_know_place_*.py` and `tools/know_place` compile; RiverShift **259 passed** (Python 3.13.18, GDAL 3.13.3, Rasterio 1.5.2; 186 warnings); NISAR Science Core **180 passed** from the pinned requirements (15 warnings); Web **155 passed across 20 test files**, with `npm ci`, `npm run build`, and `npm run lint` passing on Node 20.20.2/npm 10.8.2. Total: **1,242 promoted-path test executions passed**. The Web build reports a 558.46 kB minified JS chunk; dependency audit advisories were not individually reviewed. No real NISAR downloads, processing, Drive writes, or workflow dispatches were performed.
+>
+> The current-head Known Place API/workflow contract validator now passes after correcting its environment-map lookup and Drive secret scope assertions. `validate_migration_manifest.py` passes (3 source repositories, 14 immutable refs). `verify_source_snapshots.py` passes with **1,685** source entries, five RiverShift source-branch archive files, promoted blob/mode/type checks, and both ancestry checks. The working tree was clean after these checks. The earlier current-head GitHub-hosted Actions runner allocation problem remains unresolved; local Codespaces tests do not replace a successful GitHub Actions run or fresh full-history Gitleaks scan.
+>
+> A read-only inventory of the ten root workflows found their third-party `uses:` references pinned to full 40-character commit SHAs; references to local reusable workflows (`./.github/workflows/...`) are same-commit local calls, not third-party action tags. The 432 unpinned references in the archival audit are source workflow variants and must not be rewritten inside immutable snapshots. Continue reviewing only workflows selected for root activation.
 
 > **Latest PR-head validation update (2026-11-05):** the current documentation branch head is `151f59854705351d34f234c4c78595ffe7d31a60`, following code-bearing commit `1bcc0648e01794496ec08375e3f245aaadaaf2cf`. New current-head runs [41996716079](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716079), [41996716004](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716004), and [41996715986](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996715986) again failed before runner steps (`steps=null`); the prior 419907 runs and their failed-job reruns behaved the same way. The exact cause remains unknown. See the [live migration checkpoint](live-migration-checkpoint-2026-11-05.md).
 
