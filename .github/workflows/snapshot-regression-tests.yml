@@ -12,6 +12,8 @@ on:
       - "tools/verify_source_snapshots.py"
       - "tools/audit_source_reference_pins.py"
       - "tools/audit_workflow_contracts.py"
+      - "tools/validate_workflow_candidates.py"
+      - "migration/workflow-candidates/**"
       - ".github/workflows/snapshot-regression-tests.yml"
   pull_request:
     paths:
@@ -20,6 +22,9 @@ on:
       - "engines/**"
       - "science/**"
       - "tools/verify_source_snapshots.py"
+      - "tools/audit_workflow_contracts.py"
+      - "tools/validate_workflow_candidates.py"
+      - "migration/workflow-candidates/**"
       - ".github/workflows/snapshot-regression-tests.yml"
 
 permissions:
@@ -47,6 +52,8 @@ jobs:
         run: |
           python tools/audit_workflow_contracts.py "$RUNNER_TEMP/workflow-contract-audit.json"
           test -s "$RUNNER_TEMP/workflow-contract-audit.json"
+      - name: Validate inactive RiverShift Monorepo workflow candidate
+        run: python tools/validate_workflow_candidates.py
 
   snapshot-integrity:
     name: Exact Git blob and source-history integrity
