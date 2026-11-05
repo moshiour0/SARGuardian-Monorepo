@@ -83,7 +83,7 @@ See the [readiness and remaining-work report](docs/migration/readiness-and-remai
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
 - [x] Static workflow contract audit: 82 variants parsed, zero YAML errors; 20 reusable call edges and 141 external checkout steps enumerated; permissions/action-pin/caller/artifact/retry risk counts documented.
-- [x] RiverShift Monorepo workflow candidate parsed and validated; it remains inactive and awaits 20-job mock/runtime dry-run and cutover review.
+- [x] RiverShift 20-job candidate preserved; a 21-job root workflow port added with a fail-closed MONOREPO_RIVERSHIFT_PROCESSING_ENABLED preflight. API still defaults to Backend; root dispatcher is not yet enabled or runtime-dry-run verified.
 - [ ] Complete remaining runtime workflow caller/permissions/callback/artifact/retention review and dry-runs before activating central root workflows.
 - [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
 - [x] Runtime configuration-name map created; generic and author-exact Known Place workflow destinations are independently configurable while defaulting to the existing Backend dispatchers.
