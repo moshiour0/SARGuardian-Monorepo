@@ -76,11 +76,12 @@ See the [validation report](docs/migration/validation-baseline.md), [secret-scan
 - [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
-- [ ] Complete workflow caller/permissions/callback/artifact/retention audit before activating central root workflows.
+- [x] Static workflow contract audit: 82 variants parsed, zero YAML errors; permissions/action-pin/caller/artifact/retry risk counts documented.
+- [ ] Complete runtime workflow caller/permissions/callback/artifact/retention review and dry-runs before activating central root workflows.
 - [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
 - [ ] Complete runtime configuration-name mapping (names only).
-- [ ] Verify existing Vercel project roots, environment scopes, Preview deployment, and routes.
-- [ ] Verify Supabase project/schema linkage without applying migrations.
+- [ ] Verify existing Vercel project Root Directories (team settings permission approval needed), target Preview environment scopes, and routes.
+- [x] Verify active Supabase project identity, schema, RLS, and migration history read-only; migration-version alignment and retention cleanup policy remain pending.
 - [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
 - [ ] Explicit production cutover approval.
 
