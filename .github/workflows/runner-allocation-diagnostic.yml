@@ -1,0 +1,27 @@
+name: Runner Allocation Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/runner-allocation-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-smoke:
+    name: Minimal GitHub-hosted runner smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Report runner allocation and shell execution
+        run: |
+          echo "RUNNER_SMOKE_TEST=STARTED"
+          echo "RUNNER_ID=$RUNNER_ID"
+          echo "RUNNER_NAME=$RUNNER_NAME"
+          echo "RUNNER_OS=$RUNNER_OS"
+          echo "RUNNER_ARCH=$RUNNER_ARCH"
+          uname -a
+          date -u
+          echo "RUNNER_SMOKE_TEST=PASS"
