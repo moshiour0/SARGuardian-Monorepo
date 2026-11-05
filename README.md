@@ -12,7 +12,7 @@ A controlled consolidation of SARGuardian's web application, active API, indepen
 | [SARGuardian-backend](https://github.com/moshiour0/SARGuardian-backend) | Scientific processing workers, RiverShift GCOV engine, Find Displacements diagnostics, reusable Actions workflows | `97d849454918b1425ac41bb70e7a32d11cfd3833` |
 | [SARGuardian](https://github.com/moshiour0/SARGuardian) | NISAR science source used by pinned processing workflows | Current main at audit: `9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec` |
 
-These are provenance references, not proof that all source files have already been imported. See [source pins](docs/migration/source-pins.json).
+The exact source trees have been imported under `migration/source-snapshots/` with their source commit histories preserved. See the [source-pin manifest](docs/migration/source-pins.json) and [source import report](docs/migration/source-import-report.md).
 
 ## Engine boundaries
 
@@ -61,11 +61,11 @@ The first import phase may retain source-layout snapshots to avoid changing runt
 
 - [x] New private repository created and write access verified.
 - [x] Source repository baselines verified.
-- [ ] Full file-level import and source integrity checks.
-- [ ] Workflow-by-workflow centralization and permissions audit.
+- [x] Immutable source snapshots imported and tree/path counts verified (1,084 tracked source paths across six snapshots).
+- [ ] Workflow-by-workflow centralization and permissions audit (source YAML is currently nested/inactive).
 - [ ] API/deployment path and Vercel project-root verification.
 - [ ] Secret and Supabase configuration mapping (names only).
 - [ ] Regression tests, preview deploy, and isolated pilot.
 - [ ] Explicit production cutover approval.
 
-See [migration plan](docs/migration/migration-plan.md), [architecture boundaries](docs/architecture/system-boundaries.md), and [scientific invariants](docs/scientific-validation/invariants.md).
+Source snapshots are archival/provenance-preserving inputs, not yet the final app/engine layout. Their nested GitHub workflow folders are not active root workflows. See the [target layout map](docs/migration/target-layout-map.md), [migration plan](docs/migration/migration-plan.md), [architecture boundaries](docs/architecture/system-boundaries.md), and [scientific invariants](docs/scientific-validation/invariants.md).
