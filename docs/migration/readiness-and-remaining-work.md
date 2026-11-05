@@ -4,6 +4,9 @@
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
+> **Latest PR-head validation update (2026-11-05):** the current documentation branch head is `151f59854705351d34f234c4c78595ffe7d31a60`, following code-bearing commit `1bcc0648e01794496ec08375e3f245aaadaaf2cf`. New current-head runs [41996716079](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716079), [41996716004](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996716004), and [41996715986](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41996715986) again failed before runner steps (`steps=null`); the prior 419907 runs and their failed-job reruns behaved the same way. The exact cause remains unknown. See the [live migration checkpoint](live-migration-checkpoint-2026-11-05.md).
+
+
 > **Live checkpoint update (2026-11-05):** this report's earlier CI references predate Monorepo head [`1bcc0648e01794496ec08375e3f245aaadaaf2cf`](https://github.com/moshiour0/SARGuardian-Monorepo/commit/1bcc0648e01794496ec08375e3f245aaadaaf2cf). Its latest regression, metadata and full-history secret-scan runs (41990721765, 41990721786, 41990721757) all failed before any runner step; failed-job reruns reproduced `steps=null`. This is not a test assertion failure, but it is not a green validation. See the [live migration checkpoint](live-migration-checkpoint-2026-11-05.md) for current source-PR dispositions, root-workflow gates, rerun evidence and exact remaining cutover conditions. That checkpoint supersedes stale “latest head” identifiers below.
 
 ## Executive status
