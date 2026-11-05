@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Explicit, hash-pinned promotion deltas. Immutable source snapshots remain byte-for-byte preserved; only these reviewed destination files may differ.",
+  "approved_overrides": [
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/config.py",
+      "destination_path": "apps/api/app/config.py",
+      "source_blob_sha": "b2fed548e2a33c85707c01e8dfed3d7de89953ca",
+      "destination_blob_sha": "97c32feeb5354517062f943a8b0195807a48b88f",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add separately configurable generic and author-exact Known Place workflow repository, filename and ref settings. Defaults remain SARGuardian-backend@main so existing deployments are not redirected during migration.",
+      "implementation_commits": [
+        "ff86cce2363c7aac7d0a41e6bf534f05d0f9ff3b",
+        "1f6ed9adc873167bcae6dd65605274f1114d09b9"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_config.py"
+      ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/known_place.py",
+      "destination_path": "apps/api/app/known_place.py",
+      "source_blob_sha": "4b5a36a0a88a7e46c27ba0b2f52b5925279de7fc",
+      "destination_blob_sha": "f23926eaa481688adbee6b5f43b5c9cf758889bf",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Route generic two-polygon and author-exact P05023 dispatch, status, result and artifact retrieval through separate validated RuntimeSettings destinations while preserving legacy backend defaults.",
+      "implementation_commits": [
+        "097243026e42fe9e09573046380be5c0d8c232d9",
+        "62a8cec36a5bf4c30d5dccb17ffe2c0108e925a0",
+        "796f978b9a80a96db92fb2e4ec3f359593bae0b4"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_known_place.py"
+      ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_config.py",
+      "destination_path": "apps/api/tests/test_config.py",
+      "source_blob_sha": "17dd98c0fe943c7d8551663c1aa702f0ab7e5687",
+      "destination_blob_sha": "50cd57d7b913e718728cf9783dc792e07fd7fb18",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add regression coverage for legacy compatibility defaults, independent generic/paper workflow destinations and unsafe workflow-name rejection.",
+      "implementation_commits": [
+        "41c3f15e2d4da58026b2e2229f8ad09c33919671"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_config.py"
+      ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_known_place.py",
+      "destination_path": "apps/api/tests/test_known_place.py",
+      "source_blob_sha": "ea5e93ba91e548de8b86ff128b9145d34b78e5a6",
+      "destination_blob_sha": "777c43f26350065af4f49eb02f7be33d8c115da0",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add integration-level regression tests for separate configured workflow routes, status matching and artifact repository selection; mock the opener at the same boundary used by the downloader.",
+      "implementation_commits": [
+        "f2cca2b57ccd40ad93ff1ab41a5b862f41833b51",
+        "f9a6695d8f5f52a75cda93d8df07c5565b29b5b9"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_known_place.py"
+      ]
+    }
+  ]
+}
