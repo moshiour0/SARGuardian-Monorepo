@@ -65,14 +65,14 @@ The run recorded:
 - **1,463** passing test executions and 1 skipped across immutable source snapshots.
 - **1,231** passing test executions across promoted application/engine paths.
 - **2,694** total passing test executions, 1 skipped. The same suites intentionally execute at both source and promoted paths; this is execution count, not unique test-case count.
-- Exact Git blob/mode/type checks for all **1,408** snapshot paths and the promoted path/fixture mappings.
+- The previous CI baseline checked **1,408** snapshot paths; the additional `b825df` 277-path tree is included and awaiting the next integrity run.
 
 See the [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
 - [x] New private repository created and write access verified.
-- [x] Nine immutable source snapshots imported with exact source history.
+- [x] Nine commit-backed source snapshots and the divergent Known Place author-exact `b825df` tree pin preserved (1,685 tracked snapshot paths).
 - [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
 - [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
 - [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
