@@ -37,8 +37,8 @@ The active Dynamic API is configured to dispatch processing into `moshiour0/SARG
 |---|---|---|
 | Find Displacements | `moshiour0/SARGuardian-backend` / `sarguardian-aoi-wkt-dashboard.yml` / `main` | `GITHUB_ACTIONS_REPOSITORY`, `GITHUB_ACTIONS_WORKFLOW`, `GITHUB_ACTIONS_REF`; signed displacement callback to `PUBLIC_API_URL` |
 | RiverShift | `moshiour0/SARGuardian-backend` / `river-shift-gcov-process.yml` / `main` | `RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY`, `RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW`, `RIVERSHIFT_GITHUB_ACTIONS_REF`; signed RiverShift callback to `RIVERSHIFT_PUBLIC_API_URL` |
-| Known Place two-polygon | `moshiour0/SARGuardian-backend` / `know-place-aoi-dispatcher.yml` / `main` | API adapter hardcodes stable dispatcher; dispatcher calls reusable workflow at immutable `0e0611…` |
-| Known Place author-exact P05023 | `moshiour0/SARGuardian-backend` / `know-place-paper-reproduction-dispatcher.yml` / `main` | API adapter hardcodes stable dispatcher; it calls reusable workflow at `d847b0…` and passes exact code pin `b825df…` |
+| Known Place two-polygon | Compatibility default: `moshiour0/SARGuardian-backend` / `know-place-aoi-dispatcher.yml` / `main` | API reads `KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, `KNOWN_PLACE_GITHUB_ACTIONS_REF`; defaults preserve current Backend dispatcher; Monorepo cutover only after root workflow validation |
+| Known Place author-exact P05023 | Compatibility default: `moshiour0/SARGuardian-backend` / `know-place-paper-reproduction-dispatcher.yml` / `main` | API independently reads `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF`; exact author/product/code pin remains independently enforced |
 
 The Vercel Production environment inventory confirms Displacement and RiverShift Actions are enabled and both currently target backend `main`; the public callback API domain remains the existing `sarguardian-backend-api.vercel.app`. The current frontend Production and Preview `VITE_SARGUARDIAN_API_URL` both target that API. This is the operational baseline—not a target Monorepo route.
 
