@@ -1,12 +1,12 @@
 # Find Displacements — science-script audit
 
-> **Monorepo audit provenance:** adapted from [SARGuardian PR #9](https://github.com/moshiour0/SARGuardian/pull/9), originally audited against `006d4cd1485cf80e509eaf8717c12e9c6390ac09`. The active Backend worker pin is now `006d4cd1485cf80e509eaf8717c12e9c6390ac09`; the source-history comparison found a 13-commit delta affecting only `src/goff_reader.py`, `src/pixel_stack.py`, `tests/test_detectability.py`, and `tests/test_goff_reader.py`. This document is reviewed with that delta and is not evidence of independent geophysical validation.
+> **Monorepo audit provenance:** adapted from [SARGuardian PR #9](https://github.com/moshiour0/SARGuardian/pull/9), originally audited against `f038e4dfdb53c8d9793aaaefe173570a1032026c`. The active Backend worker pin is now `006d4cd1485cf80e509eaf8717c12e9c6390ac09`; the source-history comparison found a 13-commit delta affecting only `src/goff_reader.py`, `src/pixel_stack.py`, `tests/test_detectability.py`, and `tests/test_goff_reader.py`. This document is reviewed with that delta and is not evidence of independent geophysical validation.
 
 **Audit date:** 2026-10-30  
 
-> **Pin status:** The backend is currently configured to run the science revision at the head of [SARGuardian PR #8](https://github.com/moshiour0/SARGuardian/pull/8). Science `main` is still at `9fcb543`; the active worker intentionally pins `006d4cd`, which preserves the exact GUNW network/withheld-null changes. Do not replace this worker pin with `main` until the workflow and science changes are intentionally reconciled. PR #8 is still open, so this is a deployed immutable code pin, not a merged science-main release.
+> **Pin status:** The backend is currently configured to run the science revision at the head of [SARGuardian PR #8](https://github.com/moshiour0/SARGuardian/pull/8). Science `main` is still at `9fcb543`; the active worker intentionally pins `006d4cd`, which preserves the exact GUNW network/withheld-null changes. This is the head of open SARGuardian PR #11 and descends from PR #8 head `3b227f9`; both remain open. Do not replace this worker pin with `main` until the workflow and science changes are intentionally reconciled.
 
-**Runtime science pin:** `moshiour0/SARGuardian@006d4cd1485cf80e509eaf8717c12e9c6390ac09` (current backend pin; this is the HEAD of open SARGuardian PR #8, not yet merged into science `main`)  
+**Runtime science pin:** `moshiour0/SARGuardian@006d4cd1485cf80e509eaf8717c12e9c6390ac09` (current Backend product-worker pin; head of open PR #11, based on PR #8's `3b227f9` line)  
 **Backend aggregator pin:** `moshiour0/SARGuardian-backend@ecd125f68ed61c276406f73a1d77eb27979e204e`  
 **Scope:** target-free `Find Displacements` only. `Known Place Analysis` is explicitly out of scope and must remain a separate target-selected workflow.
 
