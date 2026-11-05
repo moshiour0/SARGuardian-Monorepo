@@ -1,9 +1,9 @@
 # Migration and promoted-path validation baseline
 
-**Latest complete source/promoted-path run:** [GitHub Actions run 41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548)  
-**Validated commit:** `cc8f0c5f4345a65d61ecbe697302b90d38b2f0cc`  
+**Latest complete source/promoted-path run:** [GitHub Actions run 41967622599](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622599)  
+**Validated commit:** `107e17c3a05330e1675736cd1cdf4f1f1092ec01`  
 **Result:** **16/16 jobs passed**.  
-**Latest historical secret scan:** [run 41966982003](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966982003) — PASS, zero unreviewed Gitleaks findings.  
+**Latest historical secret scan:** [run 41967622669](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622669) — PASS, zero unreviewed Gitleaks findings.  
 **Latest migration metadata validation:** [run 41964029595](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029595) — PASS.  
 **Source snapshot scope:** 10 snapshots, 1,685 tracked source paths.  
 **Promoted scope:** `apps/web`, `apps/api`, Find Displacements, Known Place, RiverShift GCOV, and NISAR science.
