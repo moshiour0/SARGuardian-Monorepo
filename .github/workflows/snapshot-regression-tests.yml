@@ -7,6 +7,7 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "tools/verify_source_snapshots.py"
+      - "tools/audit_source_reference_pins.py"
       - ".github/workflows/snapshot-regression-tests.yml"
   pull_request:
     paths:
@@ -35,6 +36,18 @@ jobs:
           python-version: "3.12"
       - name: Compare every imported source path and Git blob
         run: python tools/verify_source_snapshots.py
+
+  source-pin-discovery:
+    name: Discover embedded source revision pins
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan imported text sources for 40-character revisions
+        run: python tools/audit_source_reference_pins.py
 
   dynamic-frontend:
     name: Dynamic frontend build, lint and tests
