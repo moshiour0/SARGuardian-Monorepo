@@ -167,3 +167,15 @@ The repository metadata API confirms the owner has repository admin permission, 
 3. If Actions says it is disabled for the account/repository by GitHub, follow GitHub's notice and contact GitHub Support; GitHub documents that some platform-controlled disabled states cannot be restored by changing repository settings. See [Managing GitHub Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository) and [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 
 Keep the diagnostic workflow: it is credential-free and can be manually dispatched after runner access is restored. Do not rerun the 17-job regression matrix repeatedly until a minimal diagnostic run allocates a nonzero runner and reaches its first step.
+
+
+## Latest RiverShift API code/test commit validation — 2026-11-05
+
+RiverShift-only API configuration validation was added to reject malformed GitHub repository owner/name, unsafe workflow filenames/path traversal and invalid refs. New tests cover four unsafe target variants and accept a slash-delimited migration branch. Four additional API status-polling tests cover missing signed callback, completed GitHub failure, dispatch timeout and terminal signed-success preservation. The latest code-bearing test commit is 70c780d2bee11dc2a821040b4d10209ac519affa; subsequent commits only update migration documentation.
+
+Latest Actions on that code head:
+- Runner Allocation Diagnostic 42002234943 completed failure after about 43 seconds, still runner_id=0, blank runner name, and zero steps.
+- Snapshot Regression Tests 42002235091: 17 jobs, with a subset failing before runner assignment while the rest remained queued at the latest sample; all observed jobs had zero steps.
+- Migration Metadata Validation 42002235044 and Historical Secret Scan 42002234981 completed failure before any runner step.
+
+The newly added API/config tests therefore remain unexecuted. Do not mark CI green based on queued jobs.
