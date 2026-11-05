@@ -143,6 +143,15 @@
       "snapshot_path": "migration/source-snapshots/legacy-fork/77cc964",
       "notes": "Pinned by PR #85 manual diagnostic workflows. It is not the current moshiour0/SARGuardian source. Preserve for provenance; do not automatically treat as production science source.",
       "tree_import_method": "exact_git_tree_with_commit_history_parent"
+    },
+    {
+      "repository": "moshiour0/SARGuardian-backend",
+      "ref": "ecd125f68ed61c276406f73a1d77eb27979e204e",
+      "commit": "ecd125f68ed61c276406f73a1d77eb27979e204e",
+      "role": "Dynamic AOI workflow's pinned dashboard-source checkout for backend retention dependencies",
+      "status": "ancestor_of_audited_backend_main",
+      "import_status": "preserved_in_history",
+      "notes": "Exact revision is an ancestor of backend main and remains reachable through migration/source-snapshots/backend-main; no duplicate tree was needed."
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update.",
