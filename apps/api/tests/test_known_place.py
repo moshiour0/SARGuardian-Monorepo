@@ -643,7 +643,7 @@ def test_generic_and_author_exact_workflows_use_independent_configured_targets(m
         displacement_actions_enabled=True,
         github_actions_token="test-token",
         known_place_github_actions_repository="moshiour0/SARGuardian-Monorepo",
-        known_place_github_actions_workflow="know-place-aoi-monorepo-dispatcher.yml",
+        known_place_github_actions_workflow="know-place-aoi-dispatcher.yml",
         known_place_github_actions_ref="main",
         known_place_paper_github_actions_repository="moshiour0/SARGuardian-Monorepo",
         known_place_paper_github_actions_workflow="known-place-author-exact.yml",
@@ -666,11 +666,11 @@ def test_generic_and_author_exact_workflows_use_independent_configured_targets(m
     )
 
     assert requests[0]["path"] == (
-        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-monorepo-dispatcher.yml/dispatches"
+        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-dispatcher.yml/dispatches"
     )
     assert requests[0]["body"]["ref"] == "main"
     assert generic.github_run_url == (
-        "https://github.com/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-monorepo-dispatcher.yml"
+        "https://github.com/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-dispatcher.yml"
     )
     assert requests[1]["path"] == (
         "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/known-place-author-exact.yml/dispatches"
@@ -684,11 +684,11 @@ def test_generic_and_author_exact_workflows_use_independent_configured_targets(m
 
     def fake_status_request(_settings, method, path, body=None):
         assert method == "GET"
-        if "know-place-aoi-monorepo-dispatcher.yml/runs" in path:
+        if "know-place-aoi-dispatcher.yml/runs" in path:
             return 200, {"workflow_runs": [{
                 "id": 70001,
                 "display_title": f"Known Place Analysis {request_id}",
-                "path": ".github/workflows/know-place-aoi-monorepo-dispatcher.yml",
+                "path": ".github/workflows/know-place-aoi-dispatcher.yml",
                 "head_branch": "main",
                 "event": "workflow_dispatch",
                 "status": "completed",
@@ -717,7 +717,7 @@ def test_known_place_artifact_download_uses_configured_repository(monkeypatch: p
     settings_with_monorepo_target = SimpleNamespace(
         github_actions_token="test-token",
         known_place_github_actions_repository="moshiour0/SARGuardian-Monorepo",
-        known_place_github_actions_workflow="know-place-aoi-monorepo-dispatcher.yml",
+        known_place_github_actions_workflow="know-place-aoi-dispatcher.yml",
         known_place_github_actions_ref="main",
     )
     observed: dict = {}
