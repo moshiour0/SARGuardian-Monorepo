@@ -1,0 +1,169 @@
+name: Snapshot Regression Tests
+
+on:
+  push:
+    branches:
+      - "migration/source-snapshot-import"
+    paths:
+      - "migration/source-snapshots/**"
+      - ".github/workflows/snapshot-regression-tests.yml"
+  pull_request:
+    paths:
+      - "migration/source-snapshots/**"
+      - ".github/workflows/snapshot-regression-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot-regression-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dynamic-frontend:
+    name: Dynamic frontend build, lint and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/dynamic/Frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: migration/source-snapshots/dynamic/Frontend/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Type-check and build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+
+  dynamic-api:
+    name: Dynamic active API tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/dynamic/Backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: migration/source-snapshots/dynamic/Backend/requirements-test.txt
+      - name: Install API test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-test.txt
+      - name: Test Google Maps dashboard adapter contract
+        run: node tests/google_maps_dashboard_adapter.test.mjs
+      - name: Run active API regression suite
+        run: python -m pytest -q
+
+  backend-core:
+    name: Backend worker, Find Displacements and dashboard tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/backend-main
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            migration/source-snapshots/backend-main/requirements-dev.txt
+            migration/source-snapshots/backend-main/tools/requirements-retention.txt
+      - name: Install isolated backend test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -r tools/requirements-retention.txt
+          python -m pip install --disable-pip-version-check matplotlib pyproj shapely pillow pyyaml
+      - name: Compile worker and dashboard modules
+        run: python -m compileall -q tools dashboard
+      - name: Run backend and Find Displacements regression tests
+        run: python -m pytest -q tests dashboard/tests tools/tests
+
+  known-place:
+    name: Known Place PR #85 regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/backend-known-place-pr85
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            migration/source-snapshots/backend-known-place-pr85/requirements-dev.txt
+            migration/source-snapshots/backend-known-place-pr85/tools/requirements-retention.txt
+      - name: Install Known Place regression dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip install --disable-pip-version-check -r tools/requirements-retention.txt
+          python -m pip install --disable-pip-version-check matplotlib pyproj shapely pillow pyyaml
+      - name: Compile Known Place implementation
+        run: python -m compileall -q tools/know_place
+      - name: Run Known Place analysis and two-polygon regression tests
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -m pytest -q tools/tests/test_know_place_*.py
+
+  river-shift:
+    name: RiverShift GCOV worker regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/backend-main
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned RiverShift geospatial environment
+        uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: migration/source-snapshots/backend-main/tools/river_shift/environment.yml
+          cache-environment: true
+          generate-run-shell: true
+      - name: Compile RiverShift worker modules
+        shell: micromamba-shell {0}
+        run: |
+          python --version
+          python -m compileall -q tools/river_shift
+          echo "RIVERSHIFT_COMPILE_PASS"
+      - name: Run isolated RiverShift unit and workflow-contract tests
+        shell: micromamba-shell {0}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/migration/source-snapshots/backend-main/tools/river_shift
+        run: python -m pytest -q tools/river_shift/tests
+
+  nisar-science:
+    name: NISAR science pinned regression tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: migration/source-snapshots/nisar-science
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: migration/source-snapshots/nisar-science/requirements.txt
+      - name: Install exact science dependencies
+        run: python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r requirements.txt
+      - name: Run complete science regression suite
+        run: python -m pytest tests/ -q
