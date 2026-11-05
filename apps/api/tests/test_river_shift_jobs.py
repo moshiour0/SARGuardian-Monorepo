@@ -885,7 +885,7 @@ def test_completed_failed_github_run_marks_running_job_failed(monkeypatch) -> No
     created = api.post("/api/river-shift/jobs", json=payload()).json()
     job_id = created["id"]
     row = store.rows[job_id]
-    row.update({"state": river_module.JobState.RUNNING.value, "callback_sequence": 1})
+    row.update({"state": river_module.JobState.RUNNING.value, "callback_sequence": 1, "github_run_id": "123456789"})
     run = {
         "id": 123456789,
         "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
