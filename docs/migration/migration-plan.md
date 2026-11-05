@@ -12,9 +12,9 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate the thre
 - [x] Verify target repository exists and connected GitHub integration has push/admin access.
 - [x] Record current default-branch SHAs for all three source repositories.
 - [x] Record Known Place feature branch and open PR #85 separately from backend main.
-- [x] Import exact recursive tree snapshots for the three current main refs, Known Place PR #85 head, and two non-ancestor NISAR science pins; preserve source commit history.
+- [x] Import exact recursive tree snapshots for the three current main refs, Known Place PR #85 head, two non-ancestor NISAR science pins, and three additional historical workflow checkouts; preserve source commit history.
 - [ ] Complete the exhaustive branch/tag inventory beyond the immutable refs currently selected.
-- [ ] Export active workflow inventory and run evidence.
+- [x] Export the 42-file active workflow inventory and record run/trigger/checkout/secret-risk evidence.
 - [ ] Record Vercel project roots, production branch/alias, and Supabase linkage without changing them.
 - [ ] Confirm which old backend `app/` endpoints are still called by workflows or external deployments.
 
@@ -23,7 +23,8 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate the thre
 ## Phase 1 — safe monorepo foundation
 
 - [x] Create README, engineering guardrails, architecture boundary document, and source-pin manifest.
-- [ ] Add CODEOWNERS, contribution rules, and CI baseline.
+- [x] Add contribution rules and isolated source/app regression CI.
+- [ ] Add CODEOWNERS and verify branch protection.
 - [ ] Set branch protection and verify required checks.
 - [ ] Add secrets-free environment templates after name mapping.
 
@@ -31,10 +32,15 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate the thre
 
 ## Phase 2 — import source snapshots without refactoring
 
-- [x] Import six immutable source trees (1,084 tracked source paths) under `migration/source-snapshots/`.
+- [x] Import nine immutable source trees (1,408 tracked source paths) under `migration/source-snapshots/`.
 - [x] Preserve source history through source commits retained as parents of the import commits.
+- [x] Promote Dynamic `Frontend/` and active `Backend/` into `apps/web/` and `apps/api/` as exact Git-blob copies.
+- [x] Promote Dynamic root `tools/` and workflow test fixtures into `apps/tools/` and inactive `apps/.github/workflows/` compatibility paths.
+- [x] Verify exact path/mode/type/blob identity for all nine snapshots and four promoted paths.
+- [x] Run frontend and API regression suites from promoted paths successfully.
 - [x] Verify recursive target tree is not truncated, snapshot path counts match source tree counts, and representative engine files exist.
-- [ ] Run a full path/blob comparison report and secret scan before promotion.
+- [x] Run a full Dynamic/backend path collision report: 24 shared paths, 19 divergent blobs.
+- [ ] Complete automated secret scanning before runtime promotion beyond the Dynamic application layer.
 
 Imported snapshots:
 - Dynamic main: 185 paths.
@@ -43,6 +49,9 @@ Imported snapshots:
 - NISAR science main: 110 paths.
 - Historical NISAR pin 10639: 133 paths.
 - Historical NISAR pin 006d: 135 paths.
+- Divergent Dynamic callback API pin db6472: 130 paths.
+- Divergent backend reassembly pin d9e67: 86 paths.
+- Legacy Sagormodak science fork pin 77cc964: 108 paths.
 
 Recommended source mapping:
 - Dynamic: `Frontend/`, active `Backend/`, tests, tools, and relevant docs.
@@ -74,7 +83,7 @@ Do not enable duplicate production dispatch in old and new repositories. Keep or
 
 ## Phase 4 — app, API, engine, infrastructure integration
 
-- Promote React/Vite app into `apps/web` after Vercel build root and asset paths are tested.
+- [x] Promote React/Vite source into `apps/web`; [x] build, lint, and unit tests pass at the promoted path. Vercel root/domain configuration remains pending and unchanged.
 - Promote Dynamic active Firebase/Supabase API into `apps/api` after route, auth, CORS, callback, and persistence tests pass.
 - Keep old SQLAlchemy/session-oriented backend `app/` isolated until inbound usage is proven absent or its role is explicitly retained.
 - Promote Find Displacements, Known Place, RiverShift, and NISAR code into separate engine/source boundaries.
