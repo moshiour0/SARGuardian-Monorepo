@@ -88,7 +88,7 @@ Before moving any operational workflow into root `.github/workflows/`, record:
 
 ## Current CI acceptance baseline
 
-Latest full parity run: [41958426808](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958426808), 14/14 jobs passed:
+Latest full parity run: [41958659688](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41958659688), 14/14 jobs passed:
 - source snapshot tests: 1,463 passed, 1 skipped;
 - promoted-path tests: 1,231 passed;
 - total: 2,694 passing test executions, 1 skipped;
