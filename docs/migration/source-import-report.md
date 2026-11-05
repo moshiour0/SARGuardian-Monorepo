@@ -2,7 +2,7 @@
 
 **Completed:** 2026-11-05  
 **Destination branch:** `migration/source-snapshot-import`  
-**Import commits:** `c7afa9c566ad954515c014162fbb2d59f1e04095` and `c100570aca60fc45decf032620fb0709f9cc185c`
+**Import commits:** `c7afa9c566ad954515c014162fbb2d59f1e04095`, `c100570aca60fc45decf032620fb0709f9cc185c`, and `f4371f160efa6e32fce407a2909812a8545f2722`
 
 ## Result
 
@@ -61,7 +61,7 @@ All source files are nested below `migration/source-snapshots/`. Their embedded 
 
 ## Runtime regression result
 
-The isolated snapshot regression workflow [41956286197](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41956286197) completed with all seven jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,408 imported entries. Details are in [validation-baseline.md](validation-baseline.md).
+The expanded isolated snapshot regression workflow [41957402595](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41957402595) completed with all ten jobs passing: 1,463 tests passed, 1 was skipped, and exact Git blob/mode/history verification passed for all 1,408 imported entries. This run includes all nine snapshots. The promoted-path parity run [41957169272](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41957169272) also passed, including `apps/web` and `apps/api` build/test jobs and exact comparison of all four promoted compatibility paths. Details are in [validation-baseline.md](validation-baseline.md).
 
 The Dynamic/backend same-path collision audit found 24 overlaps, including 19 different-content paths; see [path-collision-report.md](path-collision-report.md).
 
