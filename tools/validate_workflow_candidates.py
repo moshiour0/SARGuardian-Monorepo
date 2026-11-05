@@ -11,6 +11,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "migration/source-snapshots/backend-main/.github/workflows/river-shift-gcov-process.yml"
 CANDIDATE = ROOT / "migration/workflow-candidates/river-shift-gcov-process.yml"
+ROOT_WORKFLOW = ROOT / ".github/workflows/river-shift-gcov-process.yml"
 
 REPLACEMENTS = (
     ("actions/checkout@v4", "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1"),
@@ -26,6 +27,7 @@ REPLACEMENTS = (
 def main() -> int:
     source_text = SOURCE.read_text(encoding="utf-8")
     candidate_text = CANDIDATE.read_text(encoding="utf-8")
+    root_workflow_text = ROOT_WORKFLOW.read_text(encoding="utf-8")
     expected = source_text
 
     for old, new in REPLACEMENTS:
@@ -39,13 +41,43 @@ def main() -> int:
 
     source_doc = yaml.safe_load(source_text)
     candidate_doc = yaml.safe_load(candidate_text)
-    if not isinstance(source_doc, dict) or not isinstance(candidate_doc, dict):
+    root_workflow_doc = yaml.safe_load(root_workflow_text)
+    if not isinstance(source_doc, dict) or not isinstance(candidate_doc, dict) or not isinstance(root_workflow_doc, dict):
         raise SystemExit("ERROR=RIVERSHIFT_WORKFLOW_YAML_INVALID")
     source_jobs, candidate_jobs = source_doc.get("jobs"), candidate_doc.get("jobs")
     if not isinstance(source_jobs, dict) or not isinstance(candidate_jobs, dict):
         raise SystemExit("ERROR=RIVERSHIFT_WORKFLOW_JOBS_MISSING")
     if list(source_jobs) != list(candidate_jobs) or len(candidate_jobs) != 20:
         raise SystemExit("ERROR=RIVERSHIFT_20_JOB_GRAPH_CHANGED")
+
+    root_jobs = root_workflow_doc.get("jobs")
+    if not isinstance(root_jobs, dict) or list(root_jobs) != ["preflight", *list(candidate_jobs)]:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_WORKFLOW_JOB_GRAPH_CHANGED")
+    root_preflight = root_jobs.get("preflight")
+    if not isinstance(root_preflight, dict):
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_PREFLIGHT_GATE_MISSING")
+    preflight_text = str(root_preflight)
+    if "MONOREPO_RIVERSHIFT_PROCESSING_ENABLED" not in root_workflow_text or "vars.MONOREPO_RIVERSHIFT_PROCESSING_ENABLED" not in root_workflow_text:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_OPT_IN_VARIABLE_MISSING")
+    if "MONOREPO_PROCESSING_ENABLED" not in root_workflow_text or "!= \"true\"" not in root_workflow_text:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_OPT_IN_FAIL_OPEN")
+    if "secrets." in preflight_text or "uses" in root_preflight:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_PREFLIGHT_MUST_BE_CREDENTIAL_FREE")
+    root_prepare = root_jobs.get("prepare")
+    if not isinstance(root_prepare, dict) or root_prepare.get("needs") != "preflight":
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_PREPARE_NOT_GATED")
+    comparable_root = dict(root_workflow_doc)
+    comparable_candidate = dict(candidate_doc)
+    comparable_root_jobs = dict(root_jobs)
+    comparable_root_jobs.pop("preflight")
+    comparable_prepare = dict(root_prepare)
+    comparable_prepare.pop("needs")
+    comparable_root_jobs["prepare"] = comparable_prepare
+    comparable_root["jobs"] = comparable_root_jobs
+    if comparable_root != comparable_candidate:
+        raise SystemExit("ERROR=RIVERSHIFT_ROOT_WORKFLOW_DIFFERS_FROM_VALIDATED_CANDIDATE")
+    print("RIVERSHIFT_ROOT_WORKFLOW_GATE_PASS")
+    print(f"RIVERSHIFT_ROOT_JOB_COUNT={len(root_jobs)}")
 
     if len(re.findall(r"(?m)^\s+max-parallel:\s*15\s*$", candidate_text)) != 7:
         raise SystemExit("ERROR=RIVERSHIFT_MAX_PARALLEL_MATRIX_COUNT_CHANGED")
@@ -100,7 +132,7 @@ def main() -> int:
     print("RIVERSHIFT_DOWNLOAD_PIN_COUNT=30")
     print("RIVERSHIFT_MICROMAMBA_PIN_COUNT=17")
     print("RIVERSHIFT_BATCH_RETRY_ARTIFACT_CALLBACK_RETENTION_CONTRACT=UNCHANGED")
-    print("RIVERSHIFT_WORKFLOW_STATUS=INACTIVE_CANDIDATE_ONLY")
+    print("RIVERSHIFT_WORKFLOW_STATUS=ROOT_WORKFLOW_GATED_UNTIL_EXPLICIT_OPT_IN")
     return 0
 
 
