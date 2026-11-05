@@ -169,3 +169,15 @@ The promoted API source was inspected alongside the environment-name inventory:
 - Find Displacements dispatch is likewise disabled by DISPLACEMENT_ACTIONS_ENABLED=false.
 
 This validates the fail-closed configuration path by source inspection, not by live HTTP response. Do not label Preview's authenticated routes as working until the owner supplies approved staging credentials and an SSO-authorized request verifies health, auth, persistence and callbacks end to end.
+
+
+## Latest API Preview redeploy attempt — 2026-11-05
+
+After the RiverShift API dispatch-target validation code was added under apps/api, a direct Git-backed Preview deployment was requested for current migration branch head 280af486a49eb42b18e0de41aaa7817a287b2591, scoped to the existing Monorepo API project only. The request was rejected by Vercel before deployment creation:
+
+- HTTP 402 payment_required
+- Resource: api-deployments-free-per-day
+- Message: daily free API deployment allowance exceeded (more than 100); retry window reported as 24 hours.
+- No deployment ID was returned and no deployment was created.
+
+The latest inspectable API Preview deployment remains dpl_4jzEgnNBE4Yv7KMTqgdUbz2Y3uKe at commit 4f9ed1ad09cce1261afd5e68938bc4a12a8685cc. It predates the RiverShift API config-hardening commits, so the new config code has **not** been Vercel-built or deployed. Do not treat prior READY API Preview builds as evidence for the latest code. No Production project/alias/environment was changed. Avoid further create-deployment calls until the Vercel quota window has reset or the project owner resolves the plan/usage limit.
