@@ -253,7 +253,7 @@ jobs:
         shell: micromamba-shell {0}
         env:
           PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift
-        run: python -m pytest -q tools/river_shift/tests
+        run: python -m pytest -q tools/river_shift/tests "$GITHUB_WORKSPACE/tools/tests/test_monorepo_rivershift_workflow_contract.py"
       - name: Run archived OPERA DSWx-S1 and RTC-S1 regression suite against promoted engine
         shell: micromamba-shell {0}
         env:
