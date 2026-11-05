@@ -25,7 +25,8 @@ Use a **preserve-first, staged monorepo migration**. Do not concatenate source r
 - [x] Add secrets-free metadata validation and isolated source/promoted regression CI.
 - [ ] Add CODEOWNERS and verify branch protection/required checks.
 - [ ] Complete configuration-name mapping before creating environment templates.
-- [ ] Run automated secret scanning and review findings before operational workflow activation.
+- [x] Run Gitleaks across the full reachable Git history using a checksum-verified binary; 20 synthetic test-only findings were reviewed and scoped to exact fingerprints.
+- [x] Validate that the Gitleaks exception file has exactly 20 unique test-file fingerprints and no directory/rule-wide exclusions.
 
 ## Phase 2 — immutable imports and source integrity
 
@@ -104,7 +105,8 @@ See `docs/migration/validation-baseline.md`.
 - Workflow permissions/caller/callback/retry parity: PENDING
 - API live contract/auth/CORS: PENDING Preview
 - Supabase persistence/retention: PENDING live configuration check
-- Security/secret scan: PENDING
+- Historical Git secret scan: PASS (zero unreviewed findings)
+- Runtime secret/permission mapping: PENDING
 - Vercel Preview/routing: PENDING
 - Scientific real-output parity and independent validation: PENDING
 - Rollback rehearsal: PENDING
