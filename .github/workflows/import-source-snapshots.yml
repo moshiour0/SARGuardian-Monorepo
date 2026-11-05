@@ -1,0 +1,38 @@
+name: Import Immutable Source Snapshots
+
+on:
+  push:
+    branches:
+      - "migration/import-runner"
+    paths:
+      - ".github/workflows/import-source-snapshots.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sarguardian-monorepo-source-import
+  cancel-in-progress: false
+
+jobs:
+  import-pinned-snapshots:
+    name: Import pinned source trees and history
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out destination migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/source-snapshot-import
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Configure migration commit identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Import exact source commits
+        env:
+          DESTINATION_BRANCH: migration/source-snapshot-import
+        run: bash tools/import_source_snapshots.sh
