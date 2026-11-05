@@ -266,6 +266,31 @@ def main() -> int:
             "engines/find-displacements/.github/workflows/sarguardian-aoi-code-validation.yml",
         ),
         (
+            "Find Displacements retained artifact smoke test fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/dashboard-real-artifact-smoke.yml",
+            "engines/find-displacements/.github/workflows/dashboard-real-artifact-smoke.yml",
+        ),
+        (
+            "Find Displacements Known Place AOI dispatcher compatibility fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/know-place-aoi-dispatcher.yml",
+            "engines/find-displacements/.github/workflows/know-place-aoi-dispatcher.yml",
+        ),
+        (
+            "Find Displacements Known Place paper dispatcher compatibility fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/know-place-paper-reproduction-dispatcher.yml",
+            "engines/find-displacements/.github/workflows/know-place-paper-reproduction-dispatcher.yml",
+        ),
+        (
+            "Find Displacements AOI WKT dispatcher compatibility fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/sarguardian-aoi-wkt-dispatcher.yml",
+            "engines/find-displacements/.github/workflows/sarguardian-aoi-wkt-dispatcher.yml",
+        ),
+        (
+            "RiverShift independent-reference validation fixture",
+            "migration/source-snapshots/backend-main/.github/workflows/river-shift-independent-reference-validation.yml",
+            "engines/river-shift/.github/workflows/river-shift-independent-reference-validation.yml",
+        ),
+        (
             "RiverShift GCOV workflow fixture",
             "migration/source-snapshots/backend-main/.github/workflows/river-shift-gcov-process.yml",
             "engines/river-shift/.github/workflows/river-shift-gcov-process.yml",
