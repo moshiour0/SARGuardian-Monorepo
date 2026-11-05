@@ -173,3 +173,45 @@ def test_production_rejects_unsafe_known_place_workflow_filename() -> None:
         assert "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW" in str(error)
     else:
         raise AssertionError("production validation unexpectedly accepted an unsafe Known Place workflow path")
+
+
+def test_production_rejects_unsafe_river_shift_dispatch_targets() -> None:
+    base = {
+        "APP_ENV": "production",
+        "CORS_ORIGINS": "https://app.example.test",
+        "SUPABASE_URL": "https://project.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "sb_secret_test_only",
+        "RIVERSHIFT_ACTIONS_ENABLED": "true",
+        "RIVERSHIFT_GITHUB_ACTIONS_TOKEN": "server-token",
+        "RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY": "moshiour0/SARGuardian-backend",
+        "RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW": "river-shift-gcov-process.yml",
+        "RIVERSHIFT_GITHUB_ACTIONS_REF": "main",
+        "RIVERSHIFT_CALLBACK_SECRET": "callback-secret",
+        "RIVERSHIFT_PUBLIC_API_URL": "https://api.example.test",
+    }
+    unsafe_targets = (
+        (
+            {"RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY": "https://github.com/moshiour0/SARGuardian-backend"},
+            "RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY",
+        ),
+        (
+            {"RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW": "../river-shift-gcov-process.yml"},
+            "RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW",
+        ),
+        (
+            {"RIVERSHIFT_GITHUB_ACTIONS_REF": "../main"},
+            "RIVERSHIFT_GITHUB_ACTIONS_REF",
+        ),
+        (
+            {"RIVERSHIFT_GITHUB_ACTIONS_REF": "main//prod"},
+            "RIVERSHIFT_GITHUB_ACTIONS_REF",
+        ),
+    )
+    for overrides, expected_error in unsafe_targets:
+        settings = config.get_settings(base | overrides)
+        try:
+            config.validate_production_settings(settings)
+        except config.SettingsError as error:
+            assert expected_error in str(error)
+        else:
+            raise AssertionError(f"production validation unexpectedly accepted unsafe {expected_error}")
