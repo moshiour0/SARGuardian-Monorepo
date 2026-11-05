@@ -61,6 +61,8 @@ obtaining staging values. The current code expects these names:
 - `CORS_ORIGINS` (comma-separated origins; required in production)
 - `PREFLIGHT_TTL_SECONDS` (60 through 604800 seconds)
 - `DISPLACEMENT_ACTIONS_ENABLED`, `GITHUB_ACTIONS_TOKEN`, `GITHUB_ACTIONS_REPOSITORY`, `GITHUB_ACTIONS_WORKFLOW`, `GITHUB_ACTIONS_REF`, `DISPLACEMENT_CALLBACK_SECRET`, and `PUBLIC_API_URL` for durable scientific-processing dispatch
+- `KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_GITHUB_ACTIONS_REF` for the generic two-polygon workflow
+- `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW`, and `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF` for the separate author-exact P05023 workflow
 - Worker-side GitHub Actions secrets: `EARTHDATA_USERNAME`, `EARTHDATA_PASSWORD` or `EARTHDATA_TOKEN`, `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
 - API runtime secrets (required on the Render `SARGuardian_Dynamic` service, and on any Vercel FastAPI deployment serving the dashboard): `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, and `GOOGLE_DRIVE_FOLDER_ID`
 - `PORT` (optional; defaults to 8000)
@@ -84,6 +86,17 @@ or read the Firebase credential file. It exits with code 0 only when all checks 
 Supabase secret is an API key for the server-side `apikey` header; it is not a Firebase token
 and is never the end-user `Authorization: Bearer` credential.
 
+## Known Place workflow routing
+
+Known Place has two independent GitHub Actions destinations. The generic two-polygon analysis uses
+`KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, and
+`KNOWN_PLACE_GITHUB_ACTIONS_REF`. The author-exact P05023 reproduction uses the corresponding
+`KNOWN_PLACE_PAPER_GITHUB_ACTIONS_*` variables. The defaults in `.env.example` deliberately
+retain the existing Backend dispatchers. Set either destination to Monorepo root workflows only
+after the matching workflow is promoted, its inputs/status/artifacts are contract-tested, and the
+coordinated production cutover is approved. Do not point author-exact reproduction at the generic
+workflow or substitute the author-pinned product/code revision.
+
 ## Private dashboard API storage requirements
 
 The GitHub Actions worker uploads the completed `aoi-derived-results.zip` bundle to private Google Drive and sends a checksum-verified Drive receipt to the API. The API then downloads that same private file only after confirming the signed-in user owns the succeeded job. **The API runtime must have its own Drive OAuth configuration as well as the worker.** GitHub Actions secrets do not automatically become Render service environment variables.
@@ -98,23 +111,26 @@ Keep the values private: do not commit them, put them in any `VITE_*` variable, 
 
 ## Vercel deployment preparation
 
-Create two Vercel projects from this repository without deploying from this phase:
+The Monorepo uses two separate Vercel projects:
 
-- Frontend project root: `Frontend/`
-- Backend project root: `Backend/`
+- Web project root: `apps/web/`; Vite build command `npm run build`; output directory `dist`.
+- API project root: `apps/api/`; Python/FastAPI runtime with `apps/api/index.py` as the entrypoint.
 
-For the backend project, use the Python runtime with `index.py` as the FastAPI entrypoint.
-Vercel installs the backend dependencies from `Backend/requirements.txt`; no separate server
-or long-running process is required. Set `APP_ENV=production` and an explicit trusted
-comma-separated `CORS_ORIGINS` value containing the final Vercel frontend origin. Also set
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `FIREBASE_SERVICE_ACCOUNT_JSON` in Vercel's
-server-side environment settings. Do not set `GOOGLE_APPLICATION_CREDENTIALS` to a Windows
-path on Vercel. Apply the timestamped SQL files in `supabase/migrations/` in ascending timestamp order through `20261027123456_place_target_contract.sql` before enabling dispatch. This latest migration adds immutable map-place context and optional in-AOI target coordinates; it must be applied before deploying code that writes those fields. The Actions worker retains private, verified results and reports them through the existing owner-scoped displacement API; see [`../docs/DISPLACEMENT_ACTIONS.md`](../docs/DISPLACEMENT_ACTIONS.md) and [`../docs/CONTROLLED_LIVE_PILOT.md`](../docs/CONTROLLED_LIVE_PILOT.md).
+The isolated Monorepo Preview projects have been created and the initial Web and API builds
+completed successfully from `migration/source-snapshot-import`. Preview has no production
+Supabase/Firebase/Google Drive/GitHub credentials, and processing dispatch is disabled there.
+The Preview is therefore a build and routing checkpoint, not yet an authenticated end-to-end
+processing environment.
 
-For the frontend project, use the Vite preset, root directory `Frontend/`, build command
-`npm run build`, and output directory `dist`. Set the public frontend variables documented in
-`Frontend/.env.example` before building. The existing `Frontend/vercel.json` provides the SPA
-rewrite for client-side routes such as `/landslide`.
+Before production cutover, configure the Preview/Production environment variables from
+`.env.example` and `../docs/operations/deployment-and-secret-map.md` using the appropriate
+server-side secrets. Never put Firebase Admin credentials, Supabase service-role keys, GitHub
+tokens, Drive OAuth credentials, or callback secrets in browser-visible `VITE_*` variables.
+
+Supabase SQL files are retained under `../../infrastructure/supabase/migrations/`. The remote
+migration-history inventory currently has naming/version drift against the local files. Do not
+run `db push`, replay migrations, or alter the live schema until a read-only reconciliation
+proves which versions are already applied and a backup/rollback plan is approved.
 
 ## Run
 
