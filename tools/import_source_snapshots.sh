@@ -16,8 +16,8 @@ add_source() {
   local expected_sha="$4"
 
   if [[ -e "$prefix" ]]; then
-    echo "Refusing to overwrite existing snapshot path: $prefix" >&2
-    exit 20
+    echo "Snapshot already present; preserving immutable path: $prefix"
+    return 0
   fi
 
   echo "::group::Fetch $label at $expected_sha"
@@ -64,6 +64,18 @@ add_source \
   "migration/source-snapshots/nisar-science" \
   "https://github.com/moshiour0/SARGuardian.git" \
   "9fcb543ef28a7f6fe70a379aed9cfe3e43e277ec"
+
+add_source \
+  "NISAR historical science pin 10639" \
+  "migration/source-snapshots/nisar-pins/10639a9" \
+  "https://github.com/moshiour0/SARGuardian.git" \
+  "10639a916c9829850775410b3ed7de62e527770d"
+
+add_source \
+  "NISAR historical science pin 006d" \
+  "migration/source-snapshots/nisar-pins/006d4cd" \
+  "https://github.com/moshiour0/SARGuardian.git" \
+  "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
 
 SNAPSHOT_TREE="$(git write-tree)"
 PARENT_ARGS=()
