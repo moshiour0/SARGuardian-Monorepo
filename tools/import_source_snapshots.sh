@@ -77,6 +77,24 @@ add_source \
   "https://github.com/moshiour0/SARGuardian.git" \
   "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
 
+add_source \
+  "Dynamic historical callback API pin db6472" \
+  "migration/source-snapshots/dynamic-pins/db6472" \
+  "https://github.com/moshiour0/SARGuardian_Dynamic.git" \
+  "db6472e1c304e21242f1ab1dfd671ccb21ba5697"
+
+add_source \
+  "Backend historical reassembly pin d9e67" \
+  "migration/source-snapshots/backend-pins/d9e67" \
+  "https://github.com/moshiour0/SARGuardian-backend.git" \
+  "d9e67df7d800032c37d23f74df44c98e3ab655f7"
+
+add_source \
+  "Legacy Sagormodak science source pin 77cc964" \
+  "migration/source-snapshots/legacy-fork/77cc964" \
+  "https://github.com/Sagormodak/SARGuardian.git" \
+  "77cc9646cfa46d3aff3669d351912f984cf67aa3"
+
 if [[ "${#SOURCE_COMMITS[@]}" -eq 0 ]]; then
   echo "All pinned source snapshots already exist; no new commit is required."
   exit 0
