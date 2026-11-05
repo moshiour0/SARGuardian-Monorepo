@@ -337,6 +337,27 @@ def main() -> int:
                 + " ".join(risks)
             )
 
+    print("REUSABLE_WORKFLOW_CALL_GRAPH_BEGIN")
+    for item in records:
+        for called in item.get("reusable_workflow_calls", []):
+            print(
+                f"REUSABLE_CALL source={item['source']} "
+                f"caller={item['path']} uses={called}"
+            )
+    print("EXTERNAL_CHECKOUT_REF_GRAPH_BEGIN")
+    for item in records:
+        for checkout in item.get("checkouts", []):
+            repository = checkout.get("repository")
+            if repository:
+                ref = str(checkout.get("ref") or "default-branch")
+                immutable = bool(SHA_RE.fullmatch(ref))
+                print(
+                    f"EXTERNAL_CHECKOUT source={item['source']} "
+                    f"workflow={item['path']} repository={repository} "
+                    f"ref={ref} immutable_ref={str(immutable).lower()} "
+                    f"checkout_path={checkout.get('path') or 'workspace-root'}"
+                )
+
     action_refs: dict[str, int] = {}
     for item in records:
         for action in item.get("unpinned_actions", []):
