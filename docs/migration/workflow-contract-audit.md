@@ -1,6 +1,6 @@
 # Workflow contract and security audit
 
-**Audit run:** [Snapshot Regression Tests 41960994177](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41960994177)  
+**Audit run:** [Snapshot Regression Tests 41966952548](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41966952548)  
 **Auditor:** `tools/audit_workflow_contracts.py`  
 **Source refs:**
 - Dynamic main `dd64b7adc90594f1d7f316b352e39fbac2013cb6`
@@ -42,6 +42,24 @@ Trigger counts are not additive: one workflow can declare multiple events. The e
 - `Sagormodak/SARGuardian`
 
 The legacy `Sagormodak/SARGuardian` checkout is an explicit provenance/ownership review item. Do not silently retarget it to `moshiour0/SARGuardian`.
+
+## Reusable workflow call graph
+
+The dedicated workflow dependency parser now enumerates **20 caller/job edges**:
+- 12 local reusable workflow calls;
+- 8 external reusable workflow calls;
+- 16 distinct call-target strings after deduplication.
+
+The 20-edge list is in [workflow-call-graph.md](workflow-call-graph.md). It identifies:
+- Dynamic Known Place generic and author-exact calls;
+- backend-main Known Place dispatchers;
+- Dynamic/backend/PR #85 variants of the AOI dashboard and reusable product workers;
+- the separate streaming worker;
+- the PR #85 consent bridges and feature-branch dispatcher calls.
+
+Four of the eight external reusable calls use mutable refs: one `@main` dashboard dispatcher and three `@feat/know-place-analysis` calls. Before promotion, replace each with an intentionally selected and verified immutable SHA, preserving the current API dispatch contract. The remaining four external reusable calls are full-SHA pinned.
+
+The same parser reports 141 external checkout steps. Three use runtime-selected refs rather than static SHAs: the Dynamic dashboard orchestration SHA output, Known Place `backend_science_ref`, and author-exact `backend_code_ref`. These must be validated as 40-character commit IDs and constrained to the expected repository/source ownership before any operational root workflow is activated.
 
 ## Permission review
 
