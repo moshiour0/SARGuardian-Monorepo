@@ -2,7 +2,7 @@
 
 **Source:** `moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6`  
 **Promoted destination:** `infrastructure/supabase/`  
-**Status:** exact source files promoted; live database remains untouched.
+**Status:** exact source files promoted; a separate forward retention migration is applied and verified on the live project. Historical migration rows remain unrepaired.
 
 ## Files imported
 
@@ -21,7 +21,7 @@ Every file is promoted without content rewriting. The exact-copy verifier compar
 
 ## Live remote migration-history mapping
 
-The existing Supabase project `SARGuardian_Dynamic` currently reports these seven remote migration records:
+The existing Supabase project `SARGuardian_Dynamic` reports these eight remote migration records after the new forward migration:
 
 | Remote version | Remote recorded name | Matching local source file |
 |---|---|---|
@@ -32,8 +32,9 @@ The existing Supabase project `SARGuardian_Dynamic` currently reports these seve
 | `20261027003643` | `place_target_contract` | `20261027003643_place_target_contract.sql` |
 | `20261103021845` | `river_shift_jobs` | `20261103100000_river_shift_jobs.sql` |
 | `20261103230606` | `river_shift_analysis_modes_phase2` | `20261104120000_river_shift_analysis_modes.sql` |
+| `20261105205909` | `catalog_preflight_retention` | `20261105205909_catalog_preflight_retention.sql` |
 
-The first four records have a remote `version` that differs from the timestamp embedded in the local filename. The final two RiverShift records also have timestamp and/or recorded-name differences. The actual schema/functions and analysis-mode constraints were read and checked against the migration intent, but this is not a migration-history reconciliation.
+The first four records have a remote `version` that differs from the timestamp embedded in the local filename. The two RiverShift records also have timestamp and/or recorded-name differences. The new eighth forward migration is aligned exactly by version and name. The actual schema/functions and analysis-mode constraints were read and checked against the migration intent, but this is not a migration-history reconciliation.
 
 ## Required before any `supabase db push`
 
@@ -91,9 +92,9 @@ The API uses privileged server-side access, so the database owner-read policy is
 
 #
 
-## Live retention and access recheck — read-only 2026-11-06
+## Live retention and access recheck — pre-migration baseline, read-only 2026-11-06
 
-The active `SARGuardian_Dynamic` project remains `ACTIVE_HEALTHY` in `ap-northeast-2`, PostgreSQL 17.11.0. The seven remote migration rows are unchanged from the mapping above. No migration history repair, DDL, row deletion, or extension installation was performed.
+The active `SARGuardian_Dynamic` project was `ACTIVE_HEALTHY` in `ap-northeast-2`, PostgreSQL 17.11.0. At this pre-migration baseline, seven remote migration rows existed. The following findings led to the bounded forward migration recorded below.
 
 ### Access contract
 
@@ -112,11 +113,11 @@ A read-only row-age check found:
 | `displacement_jobs` | 51 | 2026-10-26 03:30 UTC | No table-level expiry column |
 | `river_shift_jobs` | 24 | 2026-11-03 05:31 UTC | No table-level expiry column |
 
-No installed `pg_cron` or `pg_net` extension was reported; no `cron`/`net` schema job objects or public function named for retention, cleanup, expiry, purge, or old-row deletion were found in the read-only checks. This does not rule out an external scheduler, but no such external cleanup owner has yet been evidenced.
+At the pre-migration baseline, no installed `pg_cron` extension or database-side cleanup function/job was found. No external cleanup owner was evidenced.
 
 A more important conflict exists for `catalog_preflights`: its `catalog_preflights_immutable_guard` trigger fires on both UPDATE and DELETE and calls `public.enforce_catalog_preflight_immutable()`, whose current implementation always raises `catalog preflight snapshots are immutable`. Therefore the three expired rows cannot be purged through an ordinary DELETE while this trigger remains unchanged. The `expires_at` field currently acts as expiry metadata, not proof that rows are automatically removed.
 
-Before production acceptance, define the intended retention windows for each job table and retained artifact, identify the scheduler/cleanup owner, and design a narrow, auditable purge path that preserves immutable request/result evidence until expiry and respects foreign-key references. Any trigger/function or index change must be delivered as a reviewed forward migration with a test plan and backup/rollback path. Do not disable the immutability guard, install a scheduler, or delete rows ad hoc.
+A narrow preflight policy has since been applied as a forward migration. Job-table and artifact retention remains intentionally undefined and is not automatically purged.
 
 ### Performance advisor observations
 
@@ -125,7 +126,7 @@ The read-only Performance Advisor returned:
 - four WARN findings for owner-read RLS policies being re-evaluated per row, although the inspected policy expressions already wrap `auth.jwt()` in a scalar subquery; verify the advisor finding against an EXPLAIN/test before changing the policies;
 - two INFO unused-index findings on `catalog_preflights_owner_created_idx` and `processing_jobs_state_idx`. Do not remove indexes solely from a low-volume observation.
 
-These are performance observations, not Security Advisor findings. No index or policy was changed in this recheck.
+These are performance observations, not Security Advisor findings. The forward migration later added the expiry lookup index; no policy was changed.
 
 
 
@@ -133,10 +134,10 @@ These are performance observations, not Security Advisor findings. No index or p
 
 Two identical copies of the new forward migration are maintained at the active API's configured migration path and the infrastructure source-of-truth path:
 
-- `apps/api/supabase/migrations/20261106120000_catalog_preflight_retention.sql`
-- `infrastructure/supabase/migrations/20261106120000_catalog_preflight_retention.sql`
+- `apps/api/supabase/migrations/20261105205909_catalog_preflight_retention.sql`
+- `infrastructure/supabase/migrations/20261105205909_catalog_preflight_retention.sql`
 
-The migration implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
+The migration was applied successfully to live project `ufwjmhivvnoewjsbteey` (API response `success: true`) and verified. It implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
 
 - Preserve expired catalogue preflight snapshots for a further **7-day support grace period**.
 - Once the grace period has elapsed, delete only preflights that are **not referenced** by `processing_jobs`.
@@ -147,7 +148,7 @@ The migration implements a narrowly scoped policy derived from the API's existin
 
 The current live inventory contains three expired preflights: one unreferenced and two referenced by the two existing `processing_jobs` rows. None has been expired for more than seven days yet. Therefore the first scheduled execution is expected to delete **zero** existing rows; the referenced records remain protected regardless of age. The migration does not purge `processing_jobs`, `displacement_jobs`, or `river_shift_jobs`, nor does it delete Google Drive files, GitHub artifacts, raw NISAR source data, or scientific result bundles. Those retention windows require separate explicit policies.
 
-The old seven remote migration records remain version/name-mismatched with their corresponding pre-existing local SQL filenames. This new forward migration uses a fresh timestamp and is not an attempt to rewrite or repair those old records. The forward migration should be applied once and then verified through `list_migrations`, `cron.job`, `cron.job_run_details`, the trigger/function catalog, and before/after row counts.
+The seven pre-existing remote migration records remain version/name-mismatched with their corresponding source SQL filenames. The new eighth migration is aligned at remote version `20261105205909`. No historical migration repair or DDL replay was performed.
 
 ## Safe future CLI operation after Supabase CLI v3
 
