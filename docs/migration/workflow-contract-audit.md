@@ -104,6 +104,18 @@ Backend-main `river-shift-gcov-process.yml` has:
 
 This is the 20-job processing graph: prepare, four sequential batch/status barriers, up to three failed-only retry waves, final assemble. Any promotion must retain the graph and retry-only-failed-product semantics. A `continue-on-error` stage must not result in an outer green conclusion when a required processing stage failed.
 
+### Guarded Monorepo root port
+
+The validated candidate has now been copied to `.github/workflows/river-shift-gcov-process.yml` with one explicit preflight job (21 root jobs total). The 20-job source candidate remains unchanged under `migration/workflow-candidates/`.
+
+- Root workflow trigger is `workflow_dispatch` only; no push or pull-request trigger.
+- The new preflight job reads only the repository variable `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED`. Unless it equals the literal string `true`, it fails before checkout, credentials, Earthdata, Drive, callback or any processing step.
+- The prepare job requires successful preflight; all batch/status/retry/assemble jobs remain dependent on prepare and keep the original order and conditions.
+- The Monorepo API still defaults to the existing Backend repository/workflow/ref. The root workflow is not the active dispatch target and the opt-in variable must remain unset until the API routing, secrets, callback, artifact, retention, mock and rollback gates pass.
+- The workflow validator now compares the root YAML against the validated candidate and allows only the extra credential-free preflight gate and `prepare.needs: preflight`. It checks that the root gate is fail-closed and contains no secret references or third-party actions.
+
+A YAML/CI pass and a mock dispatch/skip test are still required for the root port. The initial static candidate test alone is not proof of the root workflow's runtime behavior.
+
 ### Find Displacements AOI workflow
 
 Three variants exist:
