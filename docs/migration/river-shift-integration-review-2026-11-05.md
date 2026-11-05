@@ -154,3 +154,22 @@ After the RiverShift API config hardening and status-polling tests, the latest P
 At that observation all jobs had null runner IDs, no runner names and zero steps, but were not yet completed. This differs from the earlier immediate pre-allocation failures; it is not yet a successful runner allocation. Recheck these same run IDs before deciding whether the GitHub runner issue is resolved.
 
 The latest API Preview code has not been deployed. Vercel rejected a direct Preview redeploy with HTTP 402 (api-deployments-free-per-day; daily free API deployment allowance exceeded). Latest inspectable API Preview remains older than the RiverShift API hardening commit. Do not treat the added config/status tests as passed or the new API code as Vercel-built until runner access and deployment quota both permit validation.
+
+
+## New API regression tests and latest runner status — 2026-11-05
+
+Four additional API tests were added for workflow status reconciliation in test_river_shift_jobs.py:
+- completed GitHub run without signed success callback -> terminal failed job;
+- completed GitHub run with failed conclusion -> terminal failed job;
+- missing workflow run past dispatch timeout -> terminal failed job;
+- previously verified signed success callback remains terminal and is not overwritten by later run-level history.
+
+test_river_shift_jobs.py now contains 28 test functions. test_config.py contains 14. These are still unexecuted.
+
+For API/config code head 70c780d2bee11dc2a821040b4d10209ac519affa, latest associated runs observed:
+- Runner Allocation Diagnostic 42002234943: completed failure after about 43 seconds, still runner_id=0, runner_name blank and 0 steps.
+- Snapshot Regression Tests 42002235091: 17 total jobs; at the latest sample, multiple jobs had failed with runner_id=0 and no steps while others remained queued, also without runner assignment.
+- Migration Metadata Validation 42002235044: completed failure with runner_id=0 and no steps.
+- Historical Secret Scan 42002234981: completed failure with runner_id=0 and no steps.
+
+No test command executed. A queued job is not a passing job, and the diagnostic still does not show a runner allocation.
