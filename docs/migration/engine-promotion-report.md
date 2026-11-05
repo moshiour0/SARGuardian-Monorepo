@@ -91,3 +91,42 @@ A recursive Git tree comparison checked every blob and file mode under Backend m
 - neither recursive tree result was truncated.
 
 This verifies complete RiverShift package promotion integrity, including worker, batch scheduler, CLI modules, tests and environment file. It does not replace execution of the tests or the separate workflow/callback/runtime acceptance gates.
+
+
+## Complete Dynamic application promotion tree audit — 2026-11-05
+
+A recursive Git tree comparison checked the selected Dynamic source commit and the promoted Monorepo tree:
+- Source: `moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6`
+- Monorepo: `migration/source-snapshot-import` at commit `3437fdcbcd106505fdaff79e1d16eaabcdb81e51`
+- Source tree: `c5d1d861b07a68295941201b633f4a219204fe6d`
+- Monorepo tree: `5059e2a5987f61149d8bed429e9dd8bc88cc7dc2`
+- Both recursive tree responses were complete and not truncated.
+
+### Dynamic Frontend
+
+`Frontend/` → `apps/web/`:
+- 90 source blobs / 90 promoted blobs;
+- 90/90 exact Git SHA and file-mode matches;
+- zero missing, extra, content-changed or mode-changed files.
+
+The promoted Web source tree is byte/object-and-mode identical to the selected Dynamic frontend tree.
+
+### Dynamic Backend API
+
+`Backend/` → `apps/api/`:
+- 55 source blobs / 55 promoted blobs;
+- 48/55 exact Git SHA and file-mode matches;
+- zero missing files, zero extra files;
+- seven intentional differences:
+
+| Path | Difference class | Purpose |
+|---|---|---|
+| `.env.example` | Example configuration | Adds separate generic Known Place and author-exact P05023 target variables while retaining RiverShift defaults. |
+| `README.md` | Migration/deployment documentation | Rewrites local paths for apps/api, describes independent Known Place routing and artifact retrieval, documents current Monorepo Vercel/Supabase state and removes obsolete Render-specific guidance. |
+| `app/config.py` | Runtime integration | Adds independently configurable generic and author-exact Known Place workflow destinations and target validation; retains original Dynamic API, Find Displacements and RiverShift runtime settings. A separate RiverShift-only safe repository/workflow/ref validation was added later on the migration branch. |
+| `app/known_place.py` | Runtime integration | Routes generic two-polygon analysis and author-exact paper reproduction to their independently configured repository/workflow/ref, retaining Backend defaults. |
+| `tests/test_config.py` | Regression tests | Tests the new Known Place routing defaults/validation and RiverShift safe target configuration. |
+| `tests/test_known_place.py` | Regression tests | Verifies generic and author-exact Known Place destinations remain independent. |
+| `tests/test_river_shift_jobs.py` | Regression tests | Adds durable status-poll fallback tests for a completed run without signed callback, completed GitHub failure, dispatch timeout, and preserving signed terminal success. |
+
+No other tracked Backend API path is missing or extra. The 7 differences are integration/documentation/test deltas, not accidental file loss. The RiverShift worker itself remains byte-identical in its separately checked 74/74 package tree. This audit does not replace execution of the code tests or end-to-end acceptance.
