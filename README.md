@@ -55,7 +55,9 @@ docs/
   scientific-validation/
 ```
 
-The first import phase may retain source-layout snapshots to avoid changing runtime paths before dependency and deployment checks are complete.
+The first import phase retains source-layout snapshots to avoid changing runtime paths before dependency and deployment checks are complete.
+
+The isolated snapshot regression baseline is green: **1,463 tests passed, 1 skipped**, and exact Git blob/mode/history verification passed for all 1,084 imported source paths. See the [validation baseline](docs/migration/validation-baseline.md) and [path collision report](docs/migration/path-collision-report.md).
 
 ## Current readiness
 
