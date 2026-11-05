@@ -52,6 +52,10 @@ The snapshot regression workflow now runs promoted-path suites separately; the l
 
 Passing these jobs establishes relocation parity, not production deployment readiness or independent scientific validation.
 
+## Additional Known Place author-exact code pin
+
+The backend-main author-exact P05023 dispatcher passes `backend_code_ref=b825df798ea4cb9874aa10dd01174d2a8ef73cba`. That commit is a sibling branch tip relative to PR #85 (common base `d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9`) and its full 277-entry tree is preserved at `migration/source-snapshots/backend-pins/b825df/`. It is intentionally not overlaid on `engines/known-place/`, whose canonical generic two-polygon implementation is PR #85 head `bfde7dde8ada92a03054cd8dbad8daa7a5c119f8`. The author-exact workflow must continue to use its explicit historical code pin until a separately reviewed reproduction parity test authorizes changing it.
+
 ## Remaining integration work
 
 - Trace backend root `app/` callers and decide whether it belongs under `legacy/backend-api/` or can be retired later.
