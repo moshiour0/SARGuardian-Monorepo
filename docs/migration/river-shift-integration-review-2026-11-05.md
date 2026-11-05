@@ -1,0 +1,138 @@
+# RiverShift integration review — 2026-11-05
+
+**Scope:** Monorepo RiverShift GCOV engine, FastAPI dispatch, GitHub Actions workflow, retries, private Drive storage and status reconciliation.  
+**Branch:** migration/source-snapshot-import  
+**Disposition:** source promotion and static contract review complete; runner-backed tests and runtime integration remain unverified. Production dispatch remains disabled.
+
+## 1. Source lineage and exact promoted blobs
+
+The current Backend main workflow and worker remain the compatibility baseline. The selected source files below were fetched from moshiour0/SARGuardian-backend main and compared with the promoted Monorepo destinations. Every listed source/promoted Git blob SHA is identical:
+
+| RiverShift file | Source and promoted blob SHA | Result |
+|---|---|---|
+| tools/river_shift/process_gcov_job.py | 7e57dc2cb053128aa70833c98af036031b923ff0 | Exact |
+| tools/river_shift/batched_gcov_job.py | 7e34e1b762c8d0ac3257ba5e98637a738ff4176c | Exact |
+| tools/river_shift/drive_upload_adapter.py | 5a3b0be509a7a1f67f0bb98a7ca40fb7d9c6da29 | Exact |
+| tools/river_shift/download_gcov_product.py | 80d21e13a5cd90b3f4f20d5095e6c27a79bef980 | Exact |
+| tools/river_shift/inspect_gcov_product.py | a59bc6de683a3bc203299a84a09e17f982f6d2ee | Exact |
+| tools/river_shift/export_gcov_layer.py | aece2a278a9c6c4cb5304091170b96981b4479e5 | Exact |
+| tools/river_shift/discover_gcov_products.py | aa06c3cc41047d92a6a804cd8441cc30397d0fde | Exact |
+| tools/river_shift/audit_gcov_acquisitions.py | 3c617f5f4850051a550e9eda8d850c1841ec6ab6 | Exact |
+| tools/river_shift/environment.yml | f75182746701f28bd928ae18d39362e225af0bd4 | Exact |
+
+The application-facing API is also an exact copy of Dynamic main at the time of source import; five high-risk source/snapshot/promoted files were separately checked in the engine-promotion report.
+
+The source processing workflow is Backend main blob 1720bc68ffb286d22caf48e94433301c8053a1a3. The Monorepo root workflow is blob e5dc6ae68c3effba0392c3fb766f77ea5a61c1bd. They are intentionally not byte-identical: the Monorepo adds one credential-free fail-closed preflight gate, pins action references, and adapts paths to the promoted package. The source workflow's 20 job definitions remain present in the Monorepo workflow. A comparison of each job's scheduling/needs/condition/runner, max-parallel, retry-wave and selected worker/artifact contract found no unintended divergence; the only additional job is preflight.
+
+## 2. API-to-workflow dispatch contract
+
+The API apps/api/app/river_shift_jobs.py _dispatch function emits exactly 17 workflow_dispatch inputs. The root workflow declares the same 17 names; programmatic name-set comparison returned no missing or extra input:
+
+- job_id
+- aoi_wkt
+- start_date
+- end_date
+- analysis_mode
+- event_date
+- maturity
+- main_band_polarization
+- flight_direction
+- frame_coverage
+- frequency
+- covariance_term
+- threshold_method
+- threshold_db
+- granule_names_json
+- request_fingerprint
+- callback_url
+
+The API test test_dispatch_payload_includes_exact_discovery_filters asserts the complete input-key set, string typing, exact workflow URL/ref, callback URL, optional empty values, request fingerprint and granule JSON. Additional tests cover sanitized HTTP 422 messages, persistence of dispatch failure and no stuck queued job when the DISPATCHING transition cannot be stored.
+
+The root workflow run-name is constructed as “RiverShift ” followed by the submitted job UUID. The API's _find_workflow_run matches GitHub display_title against the same value. The run ID is then bound into the HMAC callback sequence.
+
+## 3. Processing and retry contract
+
+The selected GCOV processing workflow has 21 jobs:
+- one preflight gate added for Monorepo safety;
+- one prepare job;
+- four 15-product matrix jobs and four corresponding reconciliation barriers;
+- three retry prepare/dispatch/product waves;
+- one final retry reconciliation job;
+- one final assembly/private-publication job.
+
+The original backend workflow has 20 jobs; all 20 source job names remain in the promoted workflow. Every batch has max-parallel 15. Product selection is bounded to at most four batches (60 products), and later batch dispatch waits for the previous reconciliation barrier.
+
+The worker and its tests establish these invariants:
+
+1. A product runner validates immutable job/fingerprint/granule/date identity before work.
+2. Each successful download produces an exact HDF5 checksum receipt and inventory. AOI COG and provenance sidecar must be present and bound to the exact downloaded source SHA-256.
+3. Batch reconciliation counts successful, failed and unverifiable products. It does not block subsequent first-attempt batches merely because one product failed.
+4. Retry selection contains only failed/missing/unverifiable products. Verified products are excluded and are not downloaded again.
+5. There are up to three delayed retry waves, each on a fresh runner, with a maximum of 15 concurrent product jobs and staged backoff of 15/30/60 seconds.
+6. Every retry wave has a distinct output/artifact namespace and a validated matrix bound to the expected wave and request. Later waves can continue after a previous product failure only when the prior retry-matrix handoff itself validated.
+7. Final retry reconciliation emits a terminal failed callback if any originally failed product remains unverified or a retry handoff failed.
+8. Assembly verifies the complete selected product set, every result/artifact checksum and source-provenance receipt before date mosaics and science processing.
+9. The result manifest is completed before private Drive upload begins. Drive remote receipts are required before the API accepts a succeeded callback.
+
+### Conservative workflow conclusion semantics
+
+The workflow deliberately does not set matrix product jobs to continue-on-error. If a first-attempt product job fails but its product is subsequently recovered by a delayed retry and assembly completes, the signed application job can receive a final succeeded callback because all required products and private receipts ultimately verified; the GitHub Actions workflow run can still conclude failure because the original matrix job failed. This preserves a red run-level signal instead of hiding an inner worker failure. It is a deliberate distinction between final result-package validity and the history of the workflow attempt; it must not be rewritten to green without an explicit release-policy decision.
+
+For unrecovered failures, the retry reconciler sends a terminal failure callback and raises a nonzero worker result; assembly is gated on successful retry reconciliation. If GitHub completes without a terminal signed callback, API polling marks the durable job failed. If no workflow run appears before the configured timeout, API polling marks the dispatch failed. Transient GitHub API polling errors leave the last durable state unchanged rather than inventing success.
+
+## 4. Private Drive storage contract
+
+The source worker and promoted worker both use GOOGLE_DRIVE_PARENT_FOLDER_ID, not GOOGLE_DRIVE_FOLDER_ID. Source and promoted drive_upload_adapter.py have identical blob SHA. The adapter treats the configured folder as the only parent; it creates/reuses a fixed RiverShift child folder, then a job-specific folder and output subfolders. It checks that the storage root is private, avoids overwriting a different existing scientific artifact, reuses byte-identical artifacts, verifies remote content checksums, and writes receipt information into the result manifest.
+
+The root workflow maps:
+- GOOGLE_DRIVE_OAUTH_CLIENT_JSON
+- GOOGLE_DRIVE_REFRESH_TOKEN
+- GOOGLE_DRIVE_PARENT_FOLDER_ID
+
+Do not substitute the legacy Vercel API project's separate GOOGLE_DRIVE_FOLDER_ID variable; the two names belong to different consumers.
+
+## 5. RiverShift API configuration hardening added in this review
+
+The API already defaulted to:
+- RIVERSHIFT_ACTIONS_ENABLED=false;
+- repository moshiour0/SARGuardian-backend;
+- workflow river-shift-gcov-process.yml;
+- ref main.
+
+This preserves current production worker routing until an explicit cutover. For production, if RiverShift is enabled, the API already required its server-side token, callback secret and HTTPS callback URL. This review adds format validation for:
+- repository: owner/repository form;
+- workflow: a simple .yml or .yaml filename (no path traversal);
+- ref: a safe branch/ref string, rejecting .., leading/trailing slash and double slash.
+
+New configuration tests reject unsafe repository, workflow and ref values and accept a normal slash-delimited branch such as migration/river-shift-preview. These changes are isolated to the RiverShift-enabled production validation branch; Find Displacements and Known Place defaults/validation are unchanged.
+
+These are code and test changes only. They do not change current Vercel Production variables, enable processing, add secrets, or repoint API dispatch.
+
+## 6. Focused test coverage currently present
+
+The following suites were statically inspected:
+
+| Suite | Test functions |
+|---|---:|
+| test_batched_gcov_job.py | 17 |
+| test_workflow_retry_contract.py | 4 |
+| test_validate_retry_matrix.py | 8 |
+| test_process_gcov_job.py | 25 |
+| Dynamic API test_river_shift_jobs.py | 24 |
+| API test_config.py after the new target-validation tests | 14 |
+
+These counts describe test functions present in the repository, not executed tests. They include the batch barrier, failed-only retry, fresh runner wave, matrix identity, callback ordering/HMAC, idempotency/owner scoping, private artifact verification, dispatch target and failure-path contracts.
+
+## 7. Validation state and release gates
+
+The current GitHub Actions runner issue prevents execution of both the 17-job Monorepo regression matrix and any real RiverShift runner-backed smoke test: all jobs examined have runner_id=0, blank runner_name and empty steps. A credential-free one-job ubuntu-latest diagnostic reproduces the same pre-run failure, so the problem is not isolated to the RiverShift workflow or its Python dependencies.
+
+Until the diagnostic receives a nonzero runner ID and executes shell steps:
+
+- do not declare the RiverShift CI or new config tests passed;
+- do not enable MONOREPO_RIVERSHIFT_PROCESSING_ENABLED;
+- do not set the API RIVERSHIFT_ACTIONS_ENABLED=true against the Monorepo;
+- do not dispatch a real GCOV workflow or copy Production secrets into Preview;
+- do not promote the migration PR to production.
+
+After runner access is restored, execute the focused RiverShift worker/API/config tests, then the full source-integrity and regression workflows. Only after those pass should an approved non-production configuration test the signed callback and private Drive receipts end to end. Production cutover remains a separate explicit decision.
