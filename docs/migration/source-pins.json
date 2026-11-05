@@ -152,13 +152,44 @@
       "status": "ancestor_of_audited_backend_main",
       "import_status": "preserved_in_history",
       "notes": "Exact revision is an ancestor of backend main and remains reachable through migration/source-snapshots/backend-main; no duplicate tree was needed."
+    },
+    {
+      "repository": "moshiour0/SARGuardian-backend",
+      "ref": "0e0611c12913044787ee84a39fa60a81d30ae516",
+      "commit": "0e0611c12913044787ee84a39fa60a81d30ae516",
+      "role": "Pinned Known Place two-polygon reusable workflow used by the backend main dispatcher",
+      "status": "ancestor_of_known_place_pr85_head",
+      "import_status": "preserved_in_history",
+      "notes": "GitHub compare confirms this exact workflow commit is an ancestor of PR #85 head bfde7dde8ada92a03054cd8dbad8daa7a5c119f8; it remains reachable through the immutable Known Place snapshot."
+    },
+    {
+      "repository": "moshiour0/SARGuardian-backend",
+      "ref": "d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9",
+      "commit": "d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9",
+      "role": "Pinned author-exact replay reusable workflow used by the backend main paper dispatcher",
+      "status": "ancestor_of_known_place_pr85_head",
+      "import_status": "preserved_in_history",
+      "notes": "GitHub compare confirms this exact reusable workflow commit is an ancestor of PR #85 head; no separate workflow tree was required."
+    },
+    {
+      "repository": "moshiour0/SARGuardian-backend",
+      "ref": "b825df798ea4cb9874aa10dd01174d2a8ef73cba",
+      "commit": "b825df798ea4cb9874aa10dd01174d2a8ef73cba",
+      "tree_sha": "3c77b2d52474364020acebeb4338b5babe7ff4ec",
+      "role": "backend_code_ref passed by the author-exact P05023 replay dispatcher",
+      "status": "diverged_from_known_place_pr85_head",
+      "import_status": "verified_exact_tree",
+      "snapshot_path": "migration/source-snapshots/backend-pins/b825df",
+      "tracked_paths": 277,
+      "notes": "This exact code pin is three commits on a sibling line from the PR #85 feature head, with merge base d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9. It is not an ancestor of the current PR #85 head. Its complete recursive tree is preserved separately; all 277 source blobs/modes are compared by CI. Do not substitute the PR #85 engine or backend main for this author-exact pinned code revision.",
+      "tree_import_method": "exact_git_tree_snapshot; source commit SHA and GitHub tree SHA recorded"
     }
   ],
   "integrity_rule": "Every imported snapshot must trace to an exact source tree SHA. Never advance pins without reviewed scientific regression and provenance update.",
   "snapshot_import": {
     "import_commit": "f4371f160efa6e32fce407a2909812a8545f2722",
-    "method": "Exact Git tree import; monorepo import commits retain each source commit as a parent so its full history remains reachable.",
-    "total_source_tracked_paths": 1408,
+    "method": "Exact Git tree imports. Source commit history is retained for the nine commit-backed snapshots; the divergent Known Place author-exact b825df code pin is additionally preserved as a separate exact tree snapshot with its commit SHA and tree SHA recorded.",
+    "total_source_tracked_paths": 1685,
     "snapshot_paths": [
       {
         "source": "moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6",
@@ -204,6 +235,13 @@
         "source": "Sagormodak/SARGuardian@77cc9646cfa46d3aff3669d351912f984cf67aa3",
         "path": "migration/source-snapshots/legacy-fork/77cc964",
         "tracked_paths": 108
+      },
+      {
+        "source": "moshiour0/SARGuardian-backend@b825df798ea4cb9874aa10dd01174d2a8ef73cba",
+        "path": "migration/source-snapshots/backend-pins/b825df",
+        "tracked_paths": 277,
+        "tree_sha": "3c77b2d52474364020acebeb4338b5babe7ff4ec",
+        "import_kind": "exact_tree_snapshot; not represented as an ancestor of PR #85"
       }
     ],
     "verified": {
