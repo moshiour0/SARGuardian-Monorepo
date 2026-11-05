@@ -156,3 +156,16 @@ The old Web production project has one additional sensitive variable named `re` 
 **Do not treat every name in this matrix as a request to copy the old Production value.** Preview must use an approved staging Firebase project, Maps key/referrer restrictions, Supabase database/role, GitHub token scope, callback secrets, Earthdata account and Drive destination. Prefer separate staging credentials and data. No legacy secret value was decrypted or moved by this audit.
 
 The legacy Vercel API variable GOOGLE_DRIVE_FOLDER_ID is a project/runtime setting. It is not the GitHub Actions secret/variable documented by the source processing workflows as “Google drive parent folder id”. The Monorepo must preserve the correct consumer-specific contract; do not rename either one or assume they are interchangeable.
+
+
+### Source-level expected behavior with current Preview configuration
+
+The promoted API source was inspected alongside the environment-name inventory:
+
+- GET /health is intentionally public and returns the API service health object. It is a code-level route contract only; the protected Preview URL was not successfully invoked in this audit.
+- Other user routes require a Firebase Bearer token. The API auth adapter uses FIREBASE_SERVICE_ACCOUNT_JSON or an approved application-default credential. Neither is present in Monorepo Preview, so Firebase-protected routes are expected to return a safe 503 configuration response rather than authenticate users.
+- Supabase get_job_store() requires both SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Both are absent from Preview; job persistence is expected to return a controlled 503 configuration error, not use an in-memory fallback.
+- RiverShift /jobs is gated by RIVERSHIFT_ACTIONS_ENABLED and persistence; with the flag false, dispatch is rejected before a worker is launched.
+- Find Displacements dispatch is likewise disabled by DISPLACEMENT_ACTIONS_ENABLED=false.
+
+This validates the fail-closed configuration path by source inspection, not by live HTTP response. Do not label Preview's authenticated routes as working until the owner supplies approved staging credentials and an SSO-authorized request verifies health, auth, persistence and callbacks end to end.
