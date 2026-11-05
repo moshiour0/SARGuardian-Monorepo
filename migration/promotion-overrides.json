@@ -3,16 +3,35 @@
   "purpose": "Explicit, hash-pinned promotion deltas. Immutable source snapshots remain byte-for-byte preserved; only these reviewed destination files may differ.",
   "approved_overrides": [
     {
+      "source_path": "migration/source-snapshots/dynamic/Backend/.env.example",
+      "destination_path": "apps/api/.env.example",
+      "source_blob_sha": "767a78697c484b572612a5807d1fc98d4de69460",
+      "destination_blob_sha": "57309a05329094823727f12e99f51b40381d2a80",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Document independently configurable generic and author-exact Known Place workflow targets while preserving existing Backend dispatcher defaults until an explicit cutover.",
+      "implementation_commits": [
+        "088dddb2c0b66f28328a7f8373390b6679fdff3a",
+        "3e8c6ff40fffca44447e7f98fef8383b5f638360",
+        "f336dc770d03c94560c41b4880fccbdff1c8c350"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_config.py"
+      ]
+    },
+    {
       "source_path": "migration/source-snapshots/dynamic/Backend/app/config.py",
       "destination_path": "apps/api/app/config.py",
       "source_blob_sha": "b2fed548e2a33c85707c01e8dfed3d7de89953ca",
-      "destination_blob_sha": "97c32feeb5354517062f943a8b0195807a48b88f",
+      "destination_blob_sha": "57e48ec42e217ffc5355cd6b07306fa8e2406659",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add separately configurable generic and author-exact Known Place workflow repository, filename and ref settings. Defaults remain SARGuardian-backend@main so existing deployments are not redirected during migration.",
+      "reason": "Add separate generic and author-exact Known Place workflow destinations with legacy Backend defaults, plus strict repository, workflow filename and branch/ref validation for RiverShift dispatch targets.",
       "implementation_commits": [
         "ff86cce2363c7aac7d0a41e6bf534f05d0f9ff3b",
-        "1f6ed9adc873167bcae6dd65605274f1114d09b9"
+        "1f6ed9adc873167bcae6dd65605274f1114d09b9",
+        "50638a7e0a4ca6add8f56df57706007cc2cdd978",
+        "04563332b71bac770dacb1cbbbc325900b48e501"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py"
@@ -39,12 +58,14 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_config.py",
       "destination_path": "apps/api/tests/test_config.py",
       "source_blob_sha": "17dd98c0fe943c7d8551663c1aa702f0ab7e5687",
-      "destination_blob_sha": "50cd57d7b913e718728cf9783dc792e07fd7fb18",
+      "destination_blob_sha": "7a26278564d03691292fe27a39a6be21ff988d8a",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add regression coverage for legacy compatibility defaults, independent generic/paper workflow destinations and unsafe workflow-name rejection.",
+      "reason": "Add regression coverage for Known Place legacy defaults and independent destinations, plus rejection of unsafe Known Place and RiverShift repository, workflow filename and branch/ref settings.",
       "implementation_commits": [
-        "41c3f15e2d4da58026b2e2229f8ad09c33919671"
+        "41c3f15e2d4da58026b2e2229f8ad09c33919671",
+        "db07a956493dc3eb4d09aa772e29642b4ae2c971",
+        "9f93dc1dd2681bd459ab91752e1bb38d8857d3a4"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py"
@@ -54,16 +75,34 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_known_place.py",
       "destination_path": "apps/api/tests/test_known_place.py",
       "source_blob_sha": "ea5e93ba91e548de8b86ff128b9145d34b78e5a6",
-      "destination_blob_sha": "777c43f26350065af4f49eb02f7be33d8c115da0",
+      "destination_blob_sha": "63fe9b2b350aad7a4a963840eb32ecca6621d99f",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add integration-level regression tests for separate configured workflow routes, status matching and artifact repository selection; mock the opener at the same boundary used by the downloader.",
+      "reason": "Add API regression coverage for generic and author-exact Known Place dispatch destinations, request-correlated run status, and artifact downloads from the configured repository.",
       "implementation_commits": [
         "f2cca2b57ccd40ad93ff1ab41a5b862f41833b51",
-        "f9a6695d8f5f52a75cda93d8df07c5565b29b5b9"
+        "f9a6695d8f5f52a75cda93d8df07c5565b29b5b9",
+        "d0326df1f9517925114ec285a524de38a500f276",
+        "71a081e380bec8094a5aac6b5d7f34249b88d6fd"
       ],
       "verification_paths": [
         "apps/api/tests/test_known_place.py"
+      ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_river_shift_jobs.py",
+      "destination_path": "apps/api/tests/test_river_shift_jobs.py",
+      "source_blob_sha": "fe9916362b343d14b9add6cb480c23496c10924c",
+      "destination_blob_sha": "a825f65b20dab7f4ee3a184bbf1a7658a7b925e2",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add regression tests proving failed or missing GitHub workflow runs reach failed terminal status while a verified signed success cannot be overwritten by later polling.",
+      "implementation_commits": [
+        "a2708d73cf8fe765676b003fe1c363c8764b9914",
+        "70c780d2bee11dc2a821040b4d10209ac519affa"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_river_shift_jobs.py"
       ]
     }
   ]
