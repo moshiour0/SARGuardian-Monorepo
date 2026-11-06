@@ -437,7 +437,7 @@ def main() -> int:
             (
                 "README.md",
                 "migrations/20261105205909_catalog_preflight_retention.sql",
-                "migrations/20261106100000_public_default_privileges_hardening.sql",
+                "migrations/20261106064055_public_default_privileges_hardening.sql",
             ),
         ),
     )
