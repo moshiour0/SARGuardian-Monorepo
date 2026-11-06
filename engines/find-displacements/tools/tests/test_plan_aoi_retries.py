@@ -313,8 +313,10 @@ def test_mixed_baseline_retries_only_the_product_with_a_missing_checkpoint(tmp_p
 
 
 def test_workflow_retries_failed_product_matrix_before_dashboard_assembly() -> None:
-    root = Path(__file__).resolve().parents[2]
-    workflow = (root / ".github" / "workflows" / "sarguardian-aoi-wkt-dashboard.yml").read_text(encoding="utf-8")
+    # The engine-local .github copies are inactive source fixtures. Assert the
+    # workflow graph that GitHub actually executes from the repository root.
+    root = Path(__file__).resolve().parents[4]
+    workflow = (root / ".github" / "workflows" / "sarguardian-aoi-dashboard-engine.yml").read_text(encoding="utf-8")
     worker = (root / ".github" / "workflows" / "sarguardian-aoi-product-worker.yml").read_text(encoding="utf-8")
 
     assert workflow.count("max-parallel: 15") == 2
