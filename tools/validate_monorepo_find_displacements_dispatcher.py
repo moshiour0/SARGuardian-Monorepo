@@ -17,6 +17,27 @@ def load_workflow(path: Path) -> dict:
     return value
 
 
+
+def validate_live_catalogue_diagnostic() -> None:
+    path = ROOT / ".github" / "workflows" / "find-displacements-live-catalogue-diagnostic.yml"
+    value = load_workflow(path)
+    if set(value.get("on", {})) != {"workflow_dispatch"}:
+        raise SystemExit("Live ASF catalogue diagnostic must remain manual-only.")
+    text = path.read_text(encoding="utf-8")
+    if "MONOREPO_DISPLACEMENT_DIAGNOSTICS_ENABLED" not in text or '!= "true"' not in text:
+        raise SystemExit("Live ASF catalogue diagnostic must fail closed.")
+    if "engines/find-displacements/tools/discover_aoi_products.py" not in text:
+        raise SystemExit("Diagnostic must use the promoted Find Displacements discovery tool.")
+    if "migration/source-snapshots/nisar-pins/006d4cd" not in text:
+        raise SystemExit("Diagnostic must use the exact 006d4cd science snapshot.")
+    if "repository: moshiour0/SARGuardian" in text or "repository: moshiour0/SARGuardian-backend" in text:
+        raise SystemExit("Diagnostic must not check out code from another repository.")
+    if "EARTHDATA_TOKEN" in text or "GOOGLE_DRIVE_PARENT_FOLDER_ID" in text:
+        raise SystemExit("Catalogue-only diagnostic must not receive download or Drive credentials.")
+    if "download_nisar_product.py" in text or "drive_resumable_upload.py" in text:
+        raise SystemExit("Catalogue-only diagnostic must not download or upload products.")
+
+
 def main() -> int:
     dispatcher = load_workflow(DISPATCHER)
     engine = load_workflow(ENGINE)
@@ -68,6 +89,8 @@ def main() -> int:
     if permissions.get("contents") != "read" or permissions.get("actions") != "read":
         raise SystemExit("Dispatcher must use read-only workflow token permissions.")
 
+    validate_live_catalogue_diagnostic()
+    print("MONOREPO_FIND_DISPLACEMENTS_LIVE_CATALOGUE_CONTRACT=PASS")
     print("MONOREPO_FIND_DISPLACEMENTS_DISPATCHER_CONTRACT=PASS")
     print("MONOREPO_FIND_DISPLACEMENTS_LOCAL_REUSABLE_WORKFLOW=PASS")
     print("MONOREPO_FIND_DISPLACEMENTS_SECRET_SCOPE=PASS")
