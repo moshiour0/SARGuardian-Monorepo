@@ -23,7 +23,15 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 
 ## Active runtime scope (evidence-based)
 
-The migration does **not** activate all 82 historical workflow instances. The primary proven runtime is the Dynamic Web/API → Find Displacements dispatch chain. RiverShift remains a connected feature that needs a positive-case GCOV pilot; Known Place is preserved as a separate gated feature because no matching dispatch appeared in the latest 100 Backend workflow runs reviewed on 2026-11-06. See the [active runtime scope and run evidence](docs/migration/active-runtime-scope-2026-11-06.md). Manual diagnostics, historical replays and unused research workflows are not required dependencies of the current Dynamic API product path.
+The migration preserves all **82 historical source workflow instances** without activating them indiscriminately. The current API application graph contains two primary processing paths—**Find Displacements** and the generic two-polygon **Known Place Analysis** workflow—and two separately gated paths: **RiverShift GCOV** and author-exact **P05023** reproduction.
+
+- **Find Displacements:** target-free AOI discovery and the separate GOFF/GUNW diagnostics remain isolated. Backend run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed its processing chain, recovered one failed GUNW product through a failed-only retry, assembled the dashboard and reported a terminal callback. A Monorepo live pilot is still pending.
+- **Known Place Analysis:** the generic dispatcher uses Backend main's active reusable workflow/source pin `0e0611c12913044787ee84a39fa60a81d30ae516`; successful Backend runs [41533701551](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533701551) and [41533582770](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533582770) retained result artifacts. Its Monorepo dispatcher and engine are imported and tested, but the Monorepo dispatch gate remains off. The separate PR #85 research lineage is preserved; it was not merged into Backend main.
+- **RiverShift:** it remains an independent NISAR GCOV engine, not part of Landslide/Find Displacements. The prior run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247) matched 14/14 catalogue granules but stopped safely at `EVENT_WINDOW_NOT_BRACKETED`; a positive-case Monorepo pilot is still required.
+- **Author-exact P05023:** kept separate and manual-consent-gated. The prior run [41423614257](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41423614257) did not pass source-manifest completeness, so it is not a complete successful reproduction.
+- **Glacier Movement:** currently a product/category route into the shared Find Displacements engine, not a separately promoted processing engine.
+
+The [active runtime scope and run evidence](docs/migration/active-runtime-scope-2026-11-06.md) records the source/workflow pins and gates. Historic diagnostics, alternate forks and unused worker variants remain preserved for provenance, not automatically activated.
 
 ## Migration principles
 
