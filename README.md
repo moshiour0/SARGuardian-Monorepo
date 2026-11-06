@@ -67,45 +67,39 @@ docs/
 
 Source snapshots remain immutable, and promoted paths are exact copies. Original source paths remain available until deployment, workflow parity, and security/cutover checks complete. Nested `.github/workflows/` directories beneath `apps/`, `engines/`, and `migration/source-snapshots/` are inactive compatibility/archive paths; GitHub Actions only executes workflow files from the repository-root `.github/workflows/`.
 
-## Verified CI baseline
+## Current verified migration state — 2026-11-06
 
-Latest complete code/regression baseline: [GitHub Actions run 41980756059](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41980756059), with 17/17 jobs green after Known Place routing, artifact selection and promotion-integrity checks.
+Verified source/workflow head: `9bd6858b7ea4e2500a531634e4a96f2d2288bf09`. The later branch commits through `9312ec5` are documentation-only.
 
-<badge color="success">17/17 jobs passed</badge>
+- [Snapshot Regression Tests 42187445481](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445481): **19/19 jobs passed**.
+- [Backend Source Snapshot Regression 42187445413](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445413): **2/2 jobs passed**, including the Known Place PR #85 source suite.
+- Migration Metadata [42187445630](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445630), Historical Secret Scan [42187445962](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445962), Runner Diagnostic [42187445578](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445578), Retention Archive [42187445646](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445646), Dashboard Assets [42187445703](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445703), and AOI Dual-Pin Validation [42187446475](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187446475): all successful.
 
-This is the last complete green run before the later OPERA/Run #36 validation-branch archive, submission evidence matrix and CI path-filter updates. Those newer commits require a fresh regression and full-history secret-scan confirmation; do not treat the older run as validation of those additions.
+### Vercel Preview
 
-The run recorded:
-- **1,463** passing test executions and 1 skipped across immutable source snapshots.
-- **1,231** passing test executions across promoted application/engine paths.
-- **2,694** total passing test executions, 1 skipped. The same suites intentionally execute at both source and promoted paths; this is execution count, not unique test-case count.
-- Exact Git object/mode integrity for all **1,685** source snapshot entries, promoted code/fixture mappings, and all 8 Supabase config/migration files.
-- Workflow dependency parser: 82 variants, 135 jobs, 20 reusable call edges (12 local, 8 external), and 141 external checkout steps.
-- RiverShift candidate workflow validation: 20-job graph, 15-product batches, failed-only retries, artifact/retention/callback contract, and immutable Node 24 action pins unchanged.
+The Web project (`apps/web`) and API project (`apps/api`) are separate Hobby/Free-plan projects linked to this repository. Latest inspected deployments are READY and Preview-only (`target=null`), with SSO protection and no Production aliases. The code-bearing commit deployed is `c246f3b16a5b7320ab97250f202847b9f4d5c8c2`; the diff from that commit to the current code head only changes docs/security validators, not Web/API runtime files. Web stable Preview root returned HTTP 200, and API stable Preview `/health` returned HTTP 200.
 
-The last confirmed full-history Gitleaks scan [41967622669](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41967622669) passed with zero unreviewed findings. Because validation-source snapshots were added afterward, repeat the history scan before any public visibility change.
+Preview is not functionally complete: Web currently has only `VITE_SARGUARDIAN_API_URL`. It still needs `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, optional `VITE_FIREBASE_MEASUREMENT_ID`, and `VITE_GOOGLE_MAPS_API_KEY`. These are browser-visible client configuration, not server secrets. Scope them to Preview/this branch and restrict the Maps key's HTTP referrers to the Monorepo Preview domain.
 
-See the [live migration checkpoint (2026-11-05)](docs/migration/live-migration-checkpoint-2026-11-05.md), See the [readiness and remaining-work report](docs/migration/readiness-and-remaining-work.md), [active branch audit](docs/migration/active-branch-audit-2026-11-05.md), [score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md), [validation report](docs/migration/validation-baseline.md), [secret-scanning report](docs/security/secret-scanning.md), [workflow contract audit](docs/migration/workflow-contract-audit.md), [workflow register](docs/migration/workflow-register.md), [reusable workflow call graph](docs/migration/workflow-call-graph.md), [Supabase migration lineage](docs/migration/supabase-migration-lineage.md), [engine promotion report](docs/migration/engine-promotion-report.md), [Supabase live inventory](docs/operations/live-supabase-inventory.md), [Vercel live inventory](docs/operations/live-vercel-inventory.md), and [path collision report](docs/migration/path-collision-report.md).
+API Preview has the Tokyo Supabase URL, CORS, callback bases and all four workflow destination names/refs. It lacks `SUPABASE_SERVICE_ROLE_KEY` (new key for the Monorepo project), `FIREBASE_SERVICE_ACCOUNT_JSON`, `GITHUB_ACTIONS_TOKEN`, `DISPLACEMENT_CALLBACK_SECRET`, `RIVERSHIFT_CALLBACK_SECRET`, and Google Drive result-read OAuth credentials. No Production credential was copied; the Vercel connector did not reveal the old project's sensitive values.
+
+### Supabase Preview database
+
+The Free Tokyo Supabase project `SARGuardian-Monorepo` (`qbmhpdprvxssqinnommz`) is `ACTIVE_HEALTHY`, with four empty RLS-enabled app tables and zero Security Advisor lints. The nine local migration filenames match the nine live remote version/name records in `migration/supabase-history-alignment.json`; CI verifies every path, version, name and Git blob SHA. The two Monorepo forward migrations are accounted for, including the applied default-privilege hardening migration and a successful transactional privilege probe. No `db push`, history repair, replay or reset was run. Dynamic Production Supabase remains a separate project and lineage.
 
 ## Current readiness
 
-- [x] New private repository created and write access verified.
-- [x] Nine commit-backed core source snapshots plus the divergent Known Place author-exact `b825df` tree pin preserved (1,685 tracked snapshot paths); additional RiverShift validation-source branch files are archived separately with exact blob pins.
-- [x] Dynamic frontend/API promoted and tested from `apps/web` and `apps/api`.
-- [x] Find Displacements, Known Place, RiverShift, and NISAR paths promoted and tested separately.
-- [x] 42 Dynamic/backend-main workflows inventoried; Known Place PR #85 branch delta documented.
-- [x] Static workflow contract audit: 82 variants parsed, zero YAML errors; 20 reusable call edges and 141 external checkout steps enumerated; permissions/action-pin/caller/artifact/retry risk counts documented.
-- [x] RiverShift 20-job candidate preserved; a 21-job root workflow port added with a fail-closed MONOREPO_RIVERSHIFT_PROCESSING_ENABLED preflight. API still defaults to Backend; root dispatcher is not yet enabled or runtime-dry-run verified.
-- [ ] Complete remaining runtime workflow caller/permissions/callback/artifact/retention review and dry-runs before activating central root workflows.
-- [x] Full reachable-history Gitleaks scan passes with zero unreviewed findings; 20 exact synthetic test-fixture fingerprints are narrowly allowlisted and CI-validated.
-- [x] Runtime configuration-name map created; generic and author-exact Known Place workflow destinations are independently configurable while defaulting to the existing Backend dispatchers.
-- [x] Existing Production projects inspected read-only and left unchanged.
-- [x] Two separate Monorepo Vercel Preview projects created with roots apps/web and apps/api; initial deployments from commit 8de4f0f reached READY with target=null.
-- [ ] Redeploy the latest branch head and complete Preview smoke tests; Vercel currently rejects new builds with build-rate-limit. Preview processing dispatch remains disabled and no Production credentials were copied.
-- [x] Verify active Supabase project identity, schema, RLS, and migration history read-only; promote the exact `config.toml` and seven local SQL migrations under `infrastructure/supabase/`.
-- [ ] Reconcile remote migration version/name drift and retention cleanup policy; no remote SQL was applied.
-- [ ] Mock callback/dispatch/retry/retention tests, isolated operational pilot, and rollback rehearsal.
-- [ ] Confirm repository-wide licensing/third-party rights. NISAR science main contains an MIT license; Dynamic, Backend and the current Monorepo have no LICENSE file. Do not label the entire product open-source or make the repo public until the project owner confirms the intended license and all contributions/assets permit redistribution.
-- [ ] Explicit production cutover approval.
+- [x] Source snapshots preserve 1,685 tracked paths and original commit ancestry.
+- [x] Dynamic Web/API, Find Displacements, current generic Known Place pin, RiverShift GCOV and NISAR science paths are promoted separately.
+- [x] Active product scope is limited to 5 primary workflows (Find Displacements + generic Known Place), 3 gated feature workflows (RiverShift + author-exact P05023), and 7 migration CI workflows; all 82 historical source variants remain preserved.
+- [x] Current source/workflow CI passed: Snapshot Regression 19/19, Backend Source Snapshot Regression 2/2, metadata, secret scan, runner, retention, dashboard asset and AOI dual-pin checks.
+- [x] Web/API Preview builds are READY and Preview-only; root and health probes returned HTTP 200. Existing Production aliases were not changed.
+- [x] Supabase Tokyo project is active with four RLS-enabled tables; all nine local migration versions/names and blob hashes match the connected remote inventory/manifest.
+- [ ] Configure Web Preview Firebase client config and Google Maps key, with HTTP-referrer restriction.
+- [ ] Configure API Preview's new Supabase service key, Firebase Admin, GitHub dispatch token, callback HMAC values and Drive result-read OAuth.
+- [ ] Configure Monorepo Actions Secrets: Earthdata, Google Drive OAuth/refresh token/parent folder ID, and matching callback HMAC secrets.
+- [ ] Complete authenticated login, owner-scoped Supabase persistence/readback, mock dispatch, callback/status correlation, artifact access, and controlled Find Displacements + Known Place pilots.
+- [ ] Keep RiverShift gated until an eligible event date produces a successful positive-case GCOV pilot; keep author-exact P05023 separately consent-gated until source manifest, science, Drive and cleanup all pass.
+- [ ] Review Web dependency advisories/bundle size, licensing, science validity and rollback. Merge PR #1 then PR #2 only after acceptance and explicit owner approval.
 
-The current work is isolated to migration branches. No source repository, production Vercel alias, Supabase schema, active dispatch destination, or production callback URL has been changed.
+**Release boundary:** PR #1 and PR #2 remain Draft/Open and unmerged. Monorepo `main` is still the bootstrap state. Existing Dynamic + Backend Production, Production Vercel aliases, callbacks, dispatch targets and Supabase remain authoritative and unchanged.

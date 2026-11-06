@@ -47,7 +47,7 @@ The Known Place generic engine now uses the active Backend main workflow/source 
 8. Confirm the nine Monorepo Supabase migration filename/version/name pairs using an authenticated read-only CLI v3 listing if available; no db push, repair, replay or reset is justified because the connected inventory already matches the local alignment manifest. Keep original Dynamic Production lineage separate.
 9. Review Web advisories/bundle size, licensing, science validity and rollback; then merge PRs in sequence. Production cutover requires explicit owner approval.
 
-**Current status:** the latest branch now contains the active generic Known Place 0e061 source overlay and matching workflow/API paths. CI is still being rerun against this exact head. Full operational migration is not complete until Preview credentials, authenticated persistence/callbacks, the required pilots and final merge/cutover gates pass.
+**Superseded status:** this section predates the current `9bd6858` CI and Preview verification. The authoritative current checkpoint is recorded in the latest live reconciliation section below.
 
 
 > **Current-head verification — 2026-11-06, code/workflow head `f6f48462a3546bccfe551549c931c87523d35fa8`:**
@@ -169,19 +169,15 @@ Still required:
 - rehearse rollback to existing Vercel deployment and original backend workflow targets;
 - obtain explicit production cutover approval before changing repository/ref values, callback destinations, domains, or aliases.
 
-## Recommended sequence
+## Current completion sequence
 
-1. The latest current-head Snapshot Regression run [42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19 jobs** on `8454a15fe2e014afa1297e2c03faff132734e998`. It includes all app/engine suites, exact source integrity, the active-runtime call-graph validator, Supabase migration filename/blob alignment test, and Supabase default-privilege contract.
-2. The primary production candidate is Find Displacements only. Complete its API Preview mock-dispatch, signed callback, failure/status polling, artifact and duplicate-dispatch checks. RiverShift remains gated until a scientifically eligible event window completes a positive-case GCOV pilot. Known Place remains preserved but disabled; do not include it in this cutover unless deliberately released.
-3. Import the missing non-production API/Actions credentials using the approved secret stores, then run SSO-authorized Firebase login, Maps, API health, owner-scoped staging persistence, Find Displacements mock dispatch, signed callback and private Drive receipt tests.
-4. Confirm Monorepo migration alignment through an authenticated read-only CLI v3 `supabase migration list --remote` against project `qbmhpdprvxssqinnommz`; reconcile the separate Dynamic Production history in a separate plan. No DDL replay or history repair is authorized by the filename alignment.
-5. Review Web npm advisories/bundle size, complete independent science review, one isolated real-data pilot for each feature actually released, and rehearse rollback.
-6. Merge PRs in dependency order and switch Production one path at a time only after explicit owner approval.
+1. Configure Preview-only Web client variables and API/Actions credentials listed in the current checkpoint. Generate a new Supabase API secret for `qbmhpdprvxssqinnommz`; do not reuse the old Dynamic project's service key.
+2. Add matching callback HMAC values to both API Preview and Monorepo Actions Secrets. Add Earthdata and Google Drive OAuth/parent-folder secrets only to the Monorepo repository's Actions secrets.
+3. Verify Firebase login, owner-scoped Supabase writes/reads, mock dispatch, request/run correlation, signed callback sequencing, failure propagation and private Drive artifact reads.
+4. Run controlled Find Displacements and generic Known Place pilots at the same exact source/runtime pins. Keep RiverShift and author-exact P05023 gated until their separate scientific/retention acceptance is complete.
+5. Perform final science, dependency/licensing and rollback review. Merge PR #1 then PR #2 in sequence; switch Production only after explicit owner approval.
 
-## What remains in plain terms
-
-Current migration branch head: `8454a15fe2e014afa1297e2c03faff132734e998`. Snapshot Regression run [42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19**; the separate Backend Source Snapshot Regression, migration metadata, historical secret scan, runner diagnostic, retention archive and dual-pin AOI validation also passed on this head. The Web/API Preview deployments remain isolated Preview deployments; they do not yet prove authenticated login, Supabase persistence or callback/Drive behavior because the required non-production secrets are absent. The primary Find Displacements source/workflow chain is promoted; RiverShift is gated; Known Place is preserved disabled. Existing Dynamic + Backend Production remains unchanged, and PR #2 is still Draft/unmerged. **The source/CI migration is substantially validated, but operational cutover is not complete.**
-
+**Supabase history note:** the nine Monorepo filename/version/name/blob mappings already match the connected remote project inventory and CI contract. An authenticated CLI v3 `migration list --remote` check remains optional if a CLI-authenticated environment is available. This does not justify a migration repair, replay or `db push`. Existing Dynamic Production has its own separate history and must remain untouched during this Monorepo work.
 
 ## Updated Preview and database verification — 2026-11-05
 
@@ -253,6 +249,7 @@ The primary cutover register now includes Find Displacements and generic Known P
 ### Operational blockers that remain
 - API Preview still lacks the server-only Supabase service-role key, Firebase Admin credential, GitHub Actions dispatch token, callback HMAC secrets and Google Drive read OAuth. Monorepo Actions still need owner-configured Earthdata/Drive OAuth, Drive parent-folder ID and matching callback secrets. Values must be added directly to the appropriate provider secret stores, never committed or pasted into chat.
 - Web Preview currently has only `VITE_SARGUARDIAN_API_URL`; Firebase browser configuration and a Maps key are not present in the branch-specific environment inventory.
+- Required Web Preview client variables from `apps/web/.env.example` / `apps/web/src/firebase.ts`: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, optional `VITE_FIREBASE_MEASUREMENT_ID`, and `VITE_GOOGLE_MAPS_API_KEY`. These values are public browser configuration; scope them to Preview and restrict Maps HTTP referrers to the Monorepo Preview domain. Existing Dynamic Vercel values are marked sensitive and were not exposed by the connected read interface, so no guessed values were added.
 - All Monorepo processing flags and root workflow gates remain fail-closed. No Monorepo live worker dispatch, real NISAR download, private Drive upload or signed callback round-trip has been performed.
 - Find Displacements needs a controlled Monorepo pilot; generic Known Place needs a catalog-only Preview check and a positive two-polygon pilot; RiverShift needs a genuinely bracketed event-date positive GCOV run; author-exact P05023 remains manual-consent-gated until source manifest, science, Drive receipt and cleanup all pass.
 - Reconcile the nine Monorepo local/remote migration identities using the authenticated CLI v3 read-only listing if available. Do not run `db push`, reset or replay. Review the processing_jobs FK index and four RLS policy performance notices against actual query patterns before changing schema.
