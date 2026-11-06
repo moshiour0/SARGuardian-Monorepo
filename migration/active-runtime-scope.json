@@ -80,7 +80,7 @@
       ],
       "science_pin": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
       "runtime_evidence": "Backend run 42097077601 completed successfully; one initial product download failed and was recovered by a retry of that product only; dashboard and terminal reporting succeeded.",
-      "migration_status": "promote-as-primary-runtime-path"
+      "migration_status": "primary-proven-runtime-path"
     },
     {
       "id": "river-shift",
@@ -95,7 +95,7 @@
       "dispatch_workflow": ".github/workflows/river-shift-gcov-process.yml",
       "engine_root": "engines/river-shift",
       "runtime_evidence": "Run 42089984247 reached catalogue matching (14/14) and failed closed at EVENT_WINDOW_NOT_BRACKETED before any product batch.",
-      "migration_status": "preserve-in-monorepo; keep-api-and-workflow-gates-disabled-until-positive-case-pilot"
+      "migration_status": "connected-feature-positive-case-pilot-required"
     },
     {
       "id": "known-place-generic",
@@ -111,7 +111,7 @@
       ],
       "science_pin": "bfde7dde8ada92a03054cd8dbad8daa7a5c119f8",
       "runtime_evidence": "No matching dispatch in the latest 100 Backend Actions runs observed on 2026-11-06.",
-      "migration_status": "preserve-feature; do-not-count-as-proven-production-path; require-separate-gated-pilot"
+      "migration_status": "preserved-feature-disabled-not-in-current-active-cutover"
     },
     {
       "id": "known-place-author-exact-p05023",
@@ -127,18 +127,13 @@
       ],
       "backend_code_pin": "b825df798ea4cb9874aa10dd01174d2a8ef73cba",
       "runtime_evidence": "No matching dispatch in the latest 100 Backend Actions runs observed on 2026-11-06.",
-      "migration_status": "preserve-separately; manual-consent-and-exact-pin; not-primary-runtime"
+      "migration_status": "preserved-research-feature-disabled-not-in-current-active-cutover"
     }
   ],
   "runtime_workflow_allowlist": [
     ".github/workflows/sarguardian-aoi-wkt-dashboard.yml",
     ".github/workflows/sarguardian-aoi-dashboard-engine.yml",
-    ".github/workflows/sarguardian-aoi-product-worker.yml",
-    ".github/workflows/river-shift-gcov-process.yml",
-    ".github/workflows/know-place-aoi-dispatcher.yml",
-    ".github/workflows/know-place-aoi-analysis.yml",
-    ".github/workflows/know-place-paper-reproduction-dispatcher.yml",
-    ".github/workflows/know-place-author-exact-replay.yml"
+    ".github/workflows/sarguardian-aoi-product-worker.yml"
   ],
   "migration_ci_allowlist": [
     ".github/workflows/snapshot-regression-tests.yml",
@@ -165,5 +160,14 @@
     "production_supabase_changed": false,
     "monorepo_processing_gates_default_false": true,
     "original_repositories_preserved": true
-  }
+  },
+  "gated_feature_workflow_allowlist": [
+    ".github/workflows/river-shift-gcov-process.yml"
+  ],
+  "preserved_disabled_feature_workflow_allowlist": [
+    ".github/workflows/know-place-aoi-dispatcher.yml",
+    ".github/workflows/know-place-aoi-analysis.yml",
+    ".github/workflows/know-place-paper-reproduction-dispatcher.yml",
+    ".github/workflows/know-place-author-exact-replay.yml"
+  ]
 }

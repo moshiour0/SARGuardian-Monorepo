@@ -4,11 +4,11 @@
 
 ## Decision
 
-Do not make all 82 source workflow instances active in the Monorepo. Preserve source snapshots for provenance, but treat only the application-linked call graph as runtime scope.
+Do not make all 82 source workflow instances active in the Monorepo. Preserve source snapshots for provenance, but distinguish the primary runtime, connected gated pilots and optional preserved features.
 
-- **Primary proven production path:** Dynamic Web/API → Find Displacements API → Backend `sarguardian-aoi-wkt-dashboard.yml` → local dashboard engine → per-product worker → receipts/retry → dashboard → terminal callback.
-- **Connected feature requiring a positive-case pilot:** RiverShift API → Backend `river-shift-gcov-process.yml` → `engines/river-shift`. The latest observed request reached exact catalogue matching (14/14) and stopped at `EVENT_WINDOW_NOT_BRACKETED` before product batches. This is a fail-closed scientific eligibility result, not a proven infrastructure defect; it also is not a successful processing pilot.
-- **Preserved, not counted as currently proven live:** Known Place generic and author-exact P05023 API routes/workflows. No matching Known Place `workflow_dispatch` appeared in the latest 100 Backend Actions runs reviewed on 2026-11-06. Preserve them separately and keep their dispatch gates closed until they receive independent acceptance evidence.
+- **Primary proven runtime:** Dynamic Web/API → Find Displacements API → `sarguardian-aoi-wkt-dashboard.yml` → local dashboard engine → per-product worker → receipts/retry → dashboard → terminal callback. The three-file root workflow chain is the only workflow chain in the current primary runtime allowlist.
+- **Connected, not yet validated feature:** RiverShift API → `river-shift-gcov-process.yml` → `engines/river-shift`. It is kept as a separate gated feature, not counted as a proven active processing path. The latest observed request reached exact catalogue matching (14/14) and stopped at `EVENT_WINDOW_NOT_BRACKETED` before product batches. This is a fail-closed scientific eligibility result, not a proven infrastructure defect; it is not a successful processing pilot.
+- **Preserved, disabled features outside the current cutover scope:** Known Place generic and author-exact P05023 API routes/workflows. No matching Known Place `workflow_dispatch` appeared in the latest 100 Backend Actions runs reviewed on 2026-11-06. Keep their code and pins for future acceptance, but do not enable or count these workflows as active production dependencies now.
 
 ## Direct live execution evidence
 
@@ -47,7 +47,7 @@ The current Dynamic API contains generic two-polygon and author-exact P05023 rou
 | Known Place generic | `apps/api/app/known_place.py` | `know-place-aoi-dispatcher.yml` → `know-place-aoi-analysis.yml` | Preserve as gated feature |
 | Known Place author-exact | `apps/api/app/known_place.py` | `know-place-paper-reproduction-dispatcher.yml` → `know-place-author-exact-replay.yml` | Preserve separately; manual consent and fixed P05023 pins |
 
-The Web and active Dynamic API belong in `apps/web` and `apps/api`. Their feature routes must remain intact; moving a UI screen without its API adapter, worker dispatch, callback, persistence and result retrieval would be an incomplete migration.
+The Web and active Dynamic API belong in `apps/web` and `apps/api`. Find Displacements is the primary currently proven runtime. RiverShift remains a gated connected feature; Known Place routes are retained but disabled and outside this cutover scope. Do not remove their API/source code merely because they are not in the primary active workflow allowlist.
 
 ## What is not part of the active product dispatch graph
 
@@ -69,4 +69,4 @@ CI and migration verification workflows are separate from product runtime. Keep 
 
 This scope reduction does not authorize turning off the existing Dynamic Production, changing its Backend dispatch targets, changing Production Vercel aliases, or modifying the existing Production Supabase project. The new Monorepo remains isolated until all acceptance gates pass and the owner explicitly approves Production cutover.
 
-Machine-readable counterpart: [`migration/active-runtime-scope.json`](../../migration/active-runtime-scope.json).
+Machine-readable counterpart: [`migration/active-runtime-scope.json`](../../migration/active-runtime-scope.json). The primary-runtime allowlist is deliberately smaller than the full historical inventory; separately gated and preserved features are listed in their own allowlists.
