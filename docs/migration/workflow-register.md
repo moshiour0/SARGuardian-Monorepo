@@ -178,10 +178,11 @@ workflow promotion.
 ### Root workflow entrypoints currently promoted
 
 - Find Displacements: API-facing AOI dispatcher and reusable dashboard engine,
-  product worker, plus the newly added manual AOI dispatcher. The manual
-  dispatcher now calls the local Monorepo reusable engine rather than the old
-  Backend workflow. It uses a fail-closed repository-variable gate and explicit
-  least-scope secret mapping.
+  product worker, manual AOI dispatcher, and live ASF catalogue-only diagnostic.
+  The manual dispatcher calls the local Monorepo reusable engine. The catalogue
+  diagnostic uses the promoted discovery tool plus the exact 006d4cd science
+  snapshot; it is manual-only, fail-closed, and receives no Earthdata or Drive
+  credentials. Both use separate gates and explicit least-scope contracts.
 - Known Place: generic two-polygon analysis dispatcher and the separate
   author-exact P05023 dispatcher/replay workflow. The paper reproduction keeps
   its explicit historical backend-code pin, independent science pin, and
@@ -189,7 +190,10 @@ workflow promotion.
 - RiverShift: independent NISAR GCOV dispatcher/worker with the original 20-job
   processing graph wrapped by a fail-closed gate. Four sequential first-pass
   batches retain max-parallel 15, failed-only retry waves, artifact receipt
-  reconciliation and final failure propagation.
+  reconciliation and final failure propagation. A separate manual-only
+  Independent Reference Validation workflow now calls the promoted local
+  validator, requires an explicit Monorepo API URL and uses its own fail-closed
+  gate; it cannot trigger the GCOV processor.
 - Shared migration CI: source-integrity, full-history secret scanning, workflow
   contract inventory, metadata checks and runner diagnostics.
 
@@ -213,8 +217,7 @@ in the Monorepo root workflow system. Remaining families include:
    analysis reanalysis and explicit author-exact acquisition/replay. Preserve
    author consent; remove unintended push triggers; keep author-exact P05023
    separate from generic two-polygon analysis.
-3. RiverShift: independent reference validation and retained OPERA DSWx-S1,
-   Run #36, and Sentinel-2 replays. These are not interchangeable with the
+3. RiverShift: retained OPERA DSWx-S1, Run #36, and Sentinel-2 replays. These are not interchangeable with the
    primary GCOV processor; preserve source evidence and require explicit manual
    run/consent boundaries. Remove accidental push-trigger execution on code
    changes.
