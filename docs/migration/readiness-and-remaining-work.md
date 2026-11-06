@@ -232,3 +232,35 @@ The generic Backend main dispatcher calls its reusable analysis workflow and sci
 The author-exact paper dispatcher separately uses reusable workflow pin d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9 and Backend code pin b825df798ea4cb9874aa10dd01174d2a8ef73cba. Its observed run 41423614257 did not complete: consent and initial Drive retention passed, but source-manifest completeness failed and post-delete cleanup was blocked. Keep author-exact gated and do not describe it as successfully reproduced.
 
 The primary cutover register now includes Find Displacements and generic Known Place. RiverShift remains gated pending positive-case GCOV. Author-exact P05023 remains a separately gated manual-consent path. All Monorepo API and repository processing flags remain false pending Preview credentials, authenticated persistence/callback checks and pilot acceptance.
+
+
+## Latest live reconciliation — 2026-11-06, branch head 9bd6858
+
+**Verified head:** `9bd6858b7ea4e2500a531634e4a96f2d2288bf09` on `migration/source-snapshot-import`.
+
+### Current CI state
+- Snapshot Regression Tests [42187445481](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445481): **19/19 jobs passed**.
+- Backend Source Snapshot Regression [42187445413](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445413): Backend main and Known Place PR #85 source suites both passed.
+- Historical Secret Scan [42187445962](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445962): **success** on this exact head after the reviewed 21-entry allowlist update.
+- Migration Metadata Validation [42187445630](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445630), Runner Allocation Diagnostic [42187445578](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445578), Dashboard Asset tests [42187445703](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445703), Retention Archive Regression [42187445646](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445646), and dual-pin AOI validation [42187446475](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187446475): all **success**.
+- This is source/build/static-contract CI evidence. It is not a live processing pilot or Production cutover.
+
+### Current hosting and database state
+- Monorepo Web and API Vercel projects are separate, SSO-protected, Preview-only projects (`live=false`, latest deployment `target=null`). The latest READY deployments inspected are on commit `c246f3b16a5b7320ab97250f202847b9f4d5c8c2`, not the current docs/security head. GitHub's Vercel checks for `9bd6858` point to the Free-plan build-rate-limit page; no current-head Vercel build was created. Older READY Preview builds are not evidence of an authenticated end-to-end runtime.
+- The dedicated Tokyo Supabase project `qbmhpdprvxssqinnommz` is `ACTIVE_HEALTHY`, PostgreSQL 17.11, with nine recorded migrations. Four app tables exist, all RLS-enabled and all empty. No user/job/result data has been migrated. Security Advisor and Health Advisor return zero findings. Performance Advisor currently reports one unindexed FK, four RLS-policy initialization-plan warnings and eight unused-index notices; the latter are expected to be low-confidence while all tables remain empty.
+- The existing `SARGuardian_Dynamic` Supabase Production project and original Dynamic/Backend Production routing remain separate and unchanged.
+
+### Operational blockers that remain
+- API Preview still lacks the server-only Supabase service-role key, Firebase Admin credential, GitHub Actions dispatch token, callback HMAC secrets and Google Drive read OAuth. Monorepo Actions still need owner-configured Earthdata/Drive OAuth, Drive parent-folder ID and matching callback secrets. Values must be added directly to the appropriate provider secret stores, never committed or pasted into chat.
+- Web Preview currently has only `VITE_SARGUARDIAN_API_URL`; Firebase browser configuration and a Maps key are not present in the branch-specific environment inventory.
+- All Monorepo processing flags and root workflow gates remain fail-closed. No Monorepo live worker dispatch, real NISAR download, private Drive upload or signed callback round-trip has been performed.
+- Find Displacements needs a controlled Monorepo pilot; generic Known Place needs a catalog-only Preview check and a positive two-polygon pilot; RiverShift needs a genuinely bracketed event-date positive GCOV run; author-exact P05023 remains manual-consent-gated until source manifest, science, Drive receipt and cleanup all pass.
+- Reconcile the nine Monorepo local/remote migration identities using the authenticated CLI v3 read-only listing if available. Do not run `db push`, reset or replay. Review the processing_jobs FK index and four RLS policy performance notices against actual query patterns before changing schema.
+- Review Web npm advisories and the large JS bundle, licensing/redistribution rights, independent science validation, rollback and final cutover controls.
+
+### Pull request and release state
+- PR #1 (foundation) is **Draft/Open**, base `main`, head `migration/bootstrap-and-provenance`.
+- PR #2 (source import/promotion) is **Draft/Open**, base `migration/bootstrap-and-provenance`, head `migration/source-snapshot-import`.
+- Default branch `main` remains at the initial bootstrap commit; the imported source and promoted code are not yet merged into `main`.
+- No Production aliases, production dispatch targets, source repositories or Dynamic Production database were changed. Merge and Production promotion remain separate approval gates.
+
