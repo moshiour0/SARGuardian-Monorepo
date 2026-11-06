@@ -24,8 +24,8 @@ def _base(path: Path, job: str):
     assert "MONOREPO_NISAR_PRODUCT_TESTS_ENABLED" in text
     assert '!= "true"' in text
     assert "77cc9646cfa46d3aff3669d351912f984cf67aa3" in text
-    assert 'git cat-file -e "$SCIENCE_COMMIT^{commit}"' in text
-    assert 'git archive "$SCIENCE_COMMIT"' in text
+    assert 'git -C "$GITHUB_WORKSPACE" cat-file -e "$SCIENCE_COMMIT^{commit}"' in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive "$SCIENCE_COMMIT"' in text
     assert 'os.environ.get("SCIENCE_COMMIT", "")' in text
     assert "rev-parse" not in text
     assert "repository: Sagormodak/SARGuardian" not in text
