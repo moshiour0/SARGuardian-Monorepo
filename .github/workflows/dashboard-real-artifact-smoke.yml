@@ -1,3 +1,6 @@
+name: Rebuild SARGuardian Dashboard from Retained AOI Artifacts (Monorepo)
+run-name: Rebuild dashboard from verified AOI run ${{ inputs.source_run_id }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -45,10 +48,6 @@ jobs:
     defaults:
       run:
         working-directory: migration/source-snapshots/backend-main
-  rebuild:
-    name: Rebuild dashboard from one verified Monorepo AOI artifact
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
     steps:
       - name: Check out full Monorepo history
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
