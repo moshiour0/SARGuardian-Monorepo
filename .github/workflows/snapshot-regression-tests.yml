@@ -322,7 +322,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install YAML parser
-        run: python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6,<7" "pytest>=8,<10"
       - name: Validate NISAR catalogue-only diagnostics
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_nisar_discovery_workflow_contract.py"
 
