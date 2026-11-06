@@ -77,6 +77,14 @@
       "blob_sha": "e39b6f4a5e6f1515e846561a4f80815fe367e80c",
       "source_path": null,
       "kind": "monorepo-forward-migration"
+    },
+    {
+      "remote_version": "20261106133548",
+      "remote_name": "processing_jobs_preflight_id_index",
+      "destination_path": "infrastructure/supabase/migrations/20261106133548_processing_jobs_preflight_id_index.sql",
+      "blob_sha": "94b175759d9e5205208af905a4468952849f55bc",
+      "source_path": null,
+      "kind": "monorepo-forward-migration"
     }
   ]
 }
