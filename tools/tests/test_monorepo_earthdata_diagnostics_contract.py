@@ -35,7 +35,7 @@ def test_earthdata_token_probe_diagnostic_is_local_and_no_download():
     assert '!= "true"' in text
     assert "secrets.EARTHDATA_TOKEN" in text
     assert "ab547ecc82bcc4d6ccef545a59852536c2beacc6" in text
-    assert "git archive" in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive' in text
     assert "repository: moshiour0/SARGuardian" not in text
     assert "repository: moshiour0/SARGuardian-backend" not in text
     assert "--probe-only" in text
