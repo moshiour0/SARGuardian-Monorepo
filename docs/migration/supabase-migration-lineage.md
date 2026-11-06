@@ -247,3 +247,29 @@ The Dynamic Production Supabase project remains separate and unchanged. The
 Monorepo database is for isolated Preview integration and eventual reviewed
 cutover; workflow credential setup and API dispatch cutover remain separate
 acceptance gates.
+
+
+## Superseding Monorepo target inventory — 2026-11-06
+
+The nine-row Monorepo checkpoint recorded above predates two later additive
+migrations. The current Tokyo project `qbmhpdprvxssqinnommz` now reports **11 remote
+migration records**, with 11 matching canonical Git filenames under
+`infrastructure/supabase/migrations/`. The two later additions are:
+
+| Remote version | Recorded name | Canonical local filename |
+|---|---|---|
+| `20261106133548` | `processing_jobs_preflight_id_index` | `20261106133548_processing_jobs_preflight_id_index.sql` |
+| `20261106134132` | `optimize_owner_read_rls_initplan` | `20261106134132_optimize_owner_read_rls_initplan.sql` |
+
+These are additive performance migrations: the first adds the
+`processing_jobs.preflight_id` index; the second changes owner-read policy
+expressions to an initplan-friendly scalar `(select auth.jwt())` form. The
+current Performance Advisor reports six INFO-level unused-index notices only;
+the earlier unindexed-FK and four RLS initplan warnings are no longer present.
+Security Advisor reports zero findings.
+
+The canonical migration root remains `infrastructure/supabase/`. The
+`apps/api/supabase/` directory remains the unchanged source-snapshot import and
+must not be used as the Monorepo target's migration root. See
+`supabase-target.md` for the current schema, 80-row metadata mirror and access
+verification.
