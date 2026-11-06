@@ -21,6 +21,10 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 - **River Shift:** an independent NISAR GCOV engine with ASF acquisition discovery, processing, overlap diagnostics, transects, and external validation.
 - **Glacier Movement:** currently a product/category route into the shared Find Displacements engine, not a separately proven processing engine.
 
+## Active runtime scope (evidence-based)
+
+The migration does **not** activate all 82 historical workflow instances. The primary proven runtime is the Dynamic Web/API → Find Displacements dispatch chain. RiverShift remains a connected feature that needs a positive-case GCOV pilot; Known Place is preserved as a separate gated feature because no matching dispatch appeared in the latest 100 Backend workflow runs reviewed on 2026-11-06. See the [active runtime scope and run evidence](docs/migration/active-runtime-scope-2026-11-06.md). Manual diagnostics, historical replays and unused research workflows are not required dependencies of the current Dynamic API product path.
+
 ## Migration principles
 
 1. Preserve the original repositories and immutable source SHAs until the monorepo passes acceptance.

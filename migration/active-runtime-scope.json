@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "audited_at": "2026-11-06",
+  "repository": "moshiour0/SARGuardian-Monorepo",
+  "branch": "migration/source-snapshot-import",
+  "source_baselines": {
+    "dynamic_main": "dd64b7adc90594f1d7f316b352e39fbac2013cb6",
+    "backend_main": "97d849454918b1425ac41bb70e7a32d11cfd3833",
+    "known_place_pr85": "bfde7dde8ada92a03054cd8dbad8daa7a5c119f8",
+    "active_find_displacements_science_pin": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
+    "known_place_author_exact_backend_pin": "b825df798ea4cb9874aa10dd01174d2a8ef73cba"
+  },
+  "evidence": {
+    "backend_actions_query": "GET /repos/moshiour0/SARGuardian-backend/actions/runs?per_page=100",
+    "backend_runs_observed": 100,
+    "find_displacements": {
+      "workflow": ".github/workflows/sarguardian-aoi-wkt-dashboard.yml",
+      "run_id": 42097077601,
+      "created_at_utc": "2026-11-05T19:46:26Z",
+      "event": "workflow_dispatch",
+      "conclusion": "success",
+      "jobs_total": 20,
+      "jobs_success": 19,
+      "jobs_failed_initial_attempt": 1,
+      "failed_initial_product": "GUNW-002",
+      "retry_job": "Retry AOI product — GUNW-002 / Process GUNW-002 (retry-1)",
+      "retry_conclusion": "success",
+      "final_dashboard_job": "Assemble results dashboard and downloadable maps",
+      "final_dashboard_conclusion": "success",
+      "terminal_callback_job": "Report validated terminal state",
+      "terminal_callback_conclusion": "success"
+    },
+    "river_shift": {
+      "workflow": ".github/workflows/river-shift-gcov-process.yml",
+      "run_id": 42089984247,
+      "created_at_utc": "2026-11-05T19:02:08Z",
+      "event": "workflow_dispatch",
+      "conclusion": "failure",
+      "catalogue_submitted_granules": 14,
+      "catalogue_exact_matches": 14,
+      "stop_stage": "acquisition_compatibility_audit",
+      "error_code": "EVENT_WINDOW_NOT_BRACKETED",
+      "product_batches_started": false,
+      "interpretation": "The selected event date was not bracketed by compatible acquisitions. The worker failed closed before product processing; this is not evidence of a broken download/runtime/Drive pipeline."
+    },
+    "known_place": {
+      "generic_workflow": ".github/workflows/know-place-aoi-dispatcher.yml",
+      "author_exact_workflow": ".github/workflows/know-place-paper-reproduction-dispatcher.yml",
+      "matching_dispatches_in_latest_100_backend_runs": 0,
+      "interpretation": "The authenticated API routes exist, but this audit found no matching workflow_dispatch in the latest 100 Backend workflow runs. Preserve the feature paths, but do not claim current live-run proof."
+    },
+    "dynamic_ci": {
+      "frontend_workflow": ".github/workflows/frontend-tests.yml",
+      "backend_workflow": ".github/workflows/backend-tests.yml",
+      "note": "Dynamic's recent workflow history is frontend/backend CI; product processing dispatches are observed in SARGuardian-backend."
+    }
+  },
+  "application_paths": {
+    "web": "apps/web",
+    "api": "apps/api",
+    "api_entry": "apps/api/app/main.py",
+    "persistence": "apps/api/app/persistence.py",
+    "owner_scope_contract": "tools/tests/test_api_owner_scoping_contract.py"
+  },
+  "runtime_paths": [
+    {
+      "id": "find-displacements",
+      "priority": "core-currently-proven",
+      "api_routes": [
+        "POST /api/displacement-jobs",
+        "GET /api/displacement-jobs/{job_id}",
+        "POST /api/displacement-jobs/{job_id}/callback",
+        "GET /api/displacement-jobs/{job_id}/dashboard"
+      ],
+      "api_adapter": "apps/api/app/displacements.py",
+      "dispatch_workflow": ".github/workflows/sarguardian-aoi-wkt-dashboard.yml",
+      "reusable_dependencies": [
+        ".github/workflows/sarguardian-aoi-dashboard-engine.yml",
+        ".github/workflows/sarguardian-aoi-product-worker.yml"
+      ],
+      "science_pin": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
+      "runtime_evidence": "Backend run 42097077601 completed successfully; one initial product download failed and was recovered by a retry of that product only; dashboard and terminal reporting succeeded.",
+      "migration_status": "promote-as-primary-runtime-path"
+    },
+    {
+      "id": "river-shift",
+      "priority": "connected-feature-positive-case-required",
+      "api_routes": [
+        "POST /api/river-shift/jobs",
+        "GET /api/river-shift/jobs",
+        "GET /api/river-shift/jobs/{job_id}",
+        "POST /api/river-shift/jobs/{job_id}/callback"
+      ],
+      "api_adapter": "apps/api/app/river_shift_jobs.py",
+      "dispatch_workflow": ".github/workflows/river-shift-gcov-process.yml",
+      "engine_root": "engines/river-shift",
+      "runtime_evidence": "Run 42089984247 reached catalogue matching (14/14) and failed closed at EVENT_WINDOW_NOT_BRACKETED before any product batch.",
+      "migration_status": "preserve-in-monorepo; keep-api-and-workflow-gates-disabled-until-positive-case-pilot"
+    },
+    {
+      "id": "known-place-generic",
+      "priority": "preserved-feature-not-recently-observed",
+      "api_routes": [
+        "POST /api/known-place-analysis",
+        "GET /api/known-place-analysis/requests/{request_id}"
+      ],
+      "api_adapter": "apps/api/app/known_place.py",
+      "dispatch_workflow": ".github/workflows/know-place-aoi-dispatcher.yml",
+      "reusable_dependencies": [
+        ".github/workflows/know-place-aoi-analysis.yml"
+      ],
+      "science_pin": "bfde7dde8ada92a03054cd8dbad8daa7a5c119f8",
+      "runtime_evidence": "No matching dispatch in the latest 100 Backend Actions runs observed on 2026-11-06.",
+      "migration_status": "preserve-feature; do-not-count-as-proven-production-path; require-separate-gated-pilot"
+    },
+    {
+      "id": "known-place-author-exact-p05023",
+      "priority": "preserved-research-feature-not-recently-observed",
+      "api_routes": [
+        "POST /api/known-place-paper-reproduction",
+        "GET /api/known-place-paper-reproduction/requests/{request_id}"
+      ],
+      "api_adapter": "apps/api/app/known_place.py",
+      "dispatch_workflow": ".github/workflows/know-place-paper-reproduction-dispatcher.yml",
+      "reusable_dependencies": [
+        ".github/workflows/know-place-author-exact-replay.yml"
+      ],
+      "backend_code_pin": "b825df798ea4cb9874aa10dd01174d2a8ef73cba",
+      "runtime_evidence": "No matching dispatch in the latest 100 Backend Actions runs observed on 2026-11-06.",
+      "migration_status": "preserve-separately; manual-consent-and-exact-pin; not-primary-runtime"
+    }
+  ],
+  "runtime_workflow_allowlist": [
+    ".github/workflows/sarguardian-aoi-wkt-dashboard.yml",
+    ".github/workflows/sarguardian-aoi-dashboard-engine.yml",
+    ".github/workflows/sarguardian-aoi-product-worker.yml",
+    ".github/workflows/river-shift-gcov-process.yml",
+    ".github/workflows/know-place-aoi-dispatcher.yml",
+    ".github/workflows/know-place-aoi-analysis.yml",
+    ".github/workflows/know-place-paper-reproduction-dispatcher.yml",
+    ".github/workflows/know-place-author-exact-replay.yml"
+  ],
+  "migration_ci_allowlist": [
+    ".github/workflows/snapshot-regression-tests.yml",
+    ".github/workflows/backend-source-regression-tests.yml",
+    ".github/workflows/migration-metadata.yml",
+    ".github/workflows/historical-secret-scan.yml",
+    ".github/workflows/retention-archive-tests.yml",
+    ".github/workflows/dashboard-assets-test.yml",
+    ".github/workflows/sarguardian-aoi-code-validation.yml"
+  ],
+  "cutover_gates": [
+    "All four API routes remain owner-authenticated and read paths owner-scoped.",
+    "Configure Monorepo-only server-side Firebase, Supabase service key, GitHub token, callback HMAC and Drive OAuth values; do not copy Production secrets into Preview.",
+    "Run authenticated Preview persistence and map/search smoke tests.",
+    "Run a positive-case RiverShift request with a genuinely bracketed event window, then verify processing, artifacts, Drive receipt and signed callback.",
+    "Run separate Known Place generic and author-exact consent-gated pilots only if those features are included in the release.",
+    "Reconcile the first eight Monorepo Supabase migration identities read-only before db push or history repair.",
+    "Complete npm advisory/bundle review, independent science review and rollback rehearsal.",
+    "Merge the migration PRs in sequence and switch Production only after explicit owner approval."
+  ],
+  "safety": {
+    "production_dispatch_targets_changed": false,
+    "production_vercel_aliases_changed": false,
+    "production_supabase_changed": false,
+    "monorepo_processing_gates_default_false": true,
+    "original_repositories_preserved": true
+  }
+}
