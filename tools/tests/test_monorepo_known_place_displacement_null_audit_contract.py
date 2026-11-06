@@ -28,7 +28,7 @@ def test_displacement_null_audit_is_manual_gated_hash_checked_and_caveated():
     assert "NOT_PRESENT_IN_REVIEWED_ZENODO_ARCHIVE" in text
     assert "ORIGINAL_GENERATOR_AND_DRAW_SEQUENCE_IDENTITY=UNVERIFIED" in text
     assert "HAZARD_DETECTION_STATUS=NOT_EVALUATED" in text
-    assert "raw_hdf5" not in text.lower()
+    assert "RAW_HDF5_READ_OR_DOWNLOADED=NO" in text
     assert "secrets." not in text
     assert "actions/checkout@v4" not in text
     assert "actions/setup-python@v5" not in text
