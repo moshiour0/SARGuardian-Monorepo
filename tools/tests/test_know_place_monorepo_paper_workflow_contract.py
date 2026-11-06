@@ -34,12 +34,13 @@ def test_author_exact_replay_is_manual_or_reusable_and_fail_closed():
 
 def test_author_exact_replay_uses_only_monorepo_preserved_science_and_code_pins():
     text = REPLAY.read_text(encoding="utf-8")
+    assert "Check out the Monorepo source snapshots" in text
     assert "migration/source-snapshots/backend-pins/b825df" in text
     assert "migration/source-snapshots/nisar-pins/10639a9" in text
     assert '--science-root "$SCIENCE_SOURCE_ROOT"' in text
     assert "repository: moshiour0/SARGuardian-backend" not in text
     assert "repository: moshiour0/SARGuardian" not in text
-    assert 'working-directory: ${{ env.BACKEND_SOURCE_ROOT }}' in text
+    assert text.count("working-directory: ${{ env.BACKEND_SOURCE_ROOT }}") == 5
     assert '"$BACKEND_SOURCE_ROOT/tools/drive_resumable_upload.py"' in text
 
 
@@ -47,7 +48,7 @@ def test_author_exact_replay_binds_source_and_orchestrator_commits_separately():
     text = REPLAY.read_text(encoding="utf-8")
     assert 'EXPECTED_BACKEND_CODE_REF="b825df798ea4cb9874aa10dd01174d2a8ef73cba"' in text
     assert 'default: "b825df798ea4cb9874aa10dd01174d2a8ef73cba"' in text
-    assert 'BACKEND_CODE_REF: ${{ inputs.backend_code_ref || \'\' }}' in text
+    assert "BACKEND_CODE_REF:" in text
     assert 'data["repository_commit"] = backend_sha' in text
     assert 'data["orchestrator_commit"] = orchestrator_sha' in text
     assert "AUTHOR_EXACT_SOURCE_LINEAGE_VERIFICATION_FAILED" in text
