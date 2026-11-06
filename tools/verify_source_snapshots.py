@@ -412,9 +412,10 @@ def main() -> int:
             "Supabase configuration and migration promotion",
             "migration/source-snapshots/dynamic/Backend/supabase/",
             "infrastructure/supabase/",
-            # This single post-import forward migration is tracked separately
-            # from the immutable Dynamic source snapshot.
-            ("migrations/20261105205909_catalog_preflight_retention.sql",),
+            # These Monorepo-only additions are not source snapshot files:
+            # - README.md documents the isolated target project and key setup.
+            # - the retention migration is a separately reviewed forward migration.
+            ("README.md", "migrations/20261105205909_catalog_preflight_retention.sql"),
         ),
     )
     for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:
