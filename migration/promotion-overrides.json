@@ -314,6 +314,40 @@
         "apps/api/tests/test_persistence_headers.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/plan_aoi_retries.py",
+      "destination_path": "engines/find-displacements/tools/plan_aoi_retries.py",
+      "source_blob_sha": "3d607faa81fac17970adbe627332afbbd674d2f7",
+      "destination_blob_sha": "c998b1bf94c9ef03997cd7dac10dc7a38444bbf3",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Retry only explicit transient Google Drive retention failures after download, AOI preflight, reader and structural validation have passed; preserve deterministic science/provenance failures as terminal and never rerun green products.",
+      "implementation_commits": [
+        "99dfa9189fe186dd7bf04f89a150e3bf979d7331",
+        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/tests/test_plan_aoi_retries.py",
+      "destination_path": "engines/find-displacements/tools/tests/test_plan_aoi_retries.py",
+      "source_blob_sha": "6ee6a74ed9344f1df3dad91954444bb8c3042c6f",
+      "destination_blob_sha": "9c6135f65113b2241b9acd6b01bc0903f32c1a70",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add regression tests proving transient Drive HTTP 502 after validated science retries only the failed product, permanent Drive 403 is terminal, successful products remain PASS, and workflow assertions inspect the active root workflow graph.",
+      "implementation_commits": [
+        "aef4b1076ae1315fd96a877f31711543e010fb50",
+        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
     }
   ]
 }
