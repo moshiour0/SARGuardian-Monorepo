@@ -274,7 +274,7 @@ jobs:
         if: steps.credentials.outputs.secrets_ready == 'true' && steps.author_archive.outputs.archive_ready == 'true'
         continue-on-error: true
         shell: bash
-        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
+        working-directory: migration/source-snapshots/backend-pins/b825df
         env:
           RUN_GEOMETRY_HEIGHT_M: ${{ inputs.geometry_height_m || '5151' }}
           RUN_CONTROL_DRAWS: ${{ inputs.control_draws || '1000' }}
@@ -338,7 +338,7 @@ jobs:
         if: always() && steps.credentials.outputs.secrets_ready == 'true' && steps.author_archive.outputs.archive_ready == 'true' && steps.footprint_inputs.outputs.present == 'true'
         continue-on-error: true
         shell: bash
-        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
+        working-directory: migration/source-snapshots/backend-pins/b825df
         run: |
           set -euo pipefail
           python -m tools.know_place.author_footprint_replay \
@@ -361,7 +361,7 @@ jobs:
         id: final_report
         if: steps.footprint.outcome == 'success'
         shell: bash
-        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
+        working-directory: migration/source-snapshots/backend-pins/b825df
         run: |
           set -euo pipefail
           python - "$DERIVED_ROOT/author-exact-analysis-status.json" "$DERIVED_ROOT/know-place-analysis-report.json" "$DERIVED_ROOT/author-raw-site-series-report.json" "$DERIVED_ROOT/footprint/author-footprint-replay-report.json" <<'PY'
@@ -413,7 +413,7 @@ jobs:
         id: dashboard
         if: always() && steps.analysis.outcome == 'success' && steps.credentials.outputs.secrets_ready == 'true'
         shell: bash
-        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
+        working-directory: migration/source-snapshots/backend-pins/b825df
         run: |
           set -euo pipefail
           python -m tools.know_place.author_dashboard --result-root "$DERIVED_ROOT" --output "$DERIVED_ROOT/dashboard.html"
@@ -495,7 +495,7 @@ jobs:
         id: raw_cleanup
         if: steps.drive_upload.outcome == 'success'
         shell: bash
-        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
+        working-directory: migration/source-snapshots/backend-pins/b825df
         run: |
           set -euo pipefail
           python -m tools.know_place.author_exact_retention \
