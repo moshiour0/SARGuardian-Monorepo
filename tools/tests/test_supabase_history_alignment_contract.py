@@ -19,7 +19,7 @@ def test_monorepo_local_migration_versions_match_remote_history_and_exact_sql_bl
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     assert manifest["project_ref"] == "qbmhpdprvxssqinnommz"
     records = manifest["records"]
-    assert len(records) == 10
+    assert len(records) == 11
 
     paths = set()
     versions = set()
