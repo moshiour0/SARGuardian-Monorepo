@@ -38,6 +38,10 @@ def test_retained_dashboard_smoke_is_manual_and_monorepo_run_scoped():
         assert required in text
 
     assert "sarguardian-aoi-dashboard-" in text
+    assert 'if run.get("path") != ".github/workflows/sarguardian-aoi-wkt-dashboard.yml":' in text
+    assert ".github/workflows/sarguardian-aoi-wkt-dispatcher.yml" not in text
+    assert 'output.write(f"run_id={run_id}\\n")' in text
+    assert 'output.write(f"run_attempt={attempt}\\n")' in text
     assert "steps.source.outputs.run_attempt" in text
     assert ".github/workflows/sarguardian-aoi-wkt-dispatcher.yml" not in text
     assert "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333" in text
