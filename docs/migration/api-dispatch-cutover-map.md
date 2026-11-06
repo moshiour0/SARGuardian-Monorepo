@@ -1,0 +1,69 @@
+# SARGuardian API → GitHub Actions dispatch cutover map
+
+**Status:** migration wiring reference only. No runtime destination, secret, feature flag or Production alias is changed by this document.
+
+## Separate API flows
+
+| API flow | Runtime destination settings | Monorepo root workflow | API-level switch | Root repository Variable |
+|---|---|---|---|---|
+| Find Displacements | `GITHUB_ACTIONS_REPOSITORY`, `GITHUB_ACTIONS_WORKFLOW`, `GITHUB_ACTIONS_REF`, `GITHUB_ACTIONS_TOKEN`, `DISPLACEMENT_CALLBACK_SECRET`, `PUBLIC_API_URL` | `sarguardian-aoi-wkt-dashboard.yml` | `DISPLACEMENT_ACTIONS_ENABLED=false` | `MONOREPO_DISPLACEMENT_ACTIONS_ENABLED=false` |
+| Known Place — generic two-polygon | `KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW`, `KNOWN_PLACE_GITHUB_ACTIONS_REF`, `GITHUB_ACTIONS_TOKEN` | `know-place-aoi-dispatcher.yml` | `DISPLACEMENT_ACTIONS_ENABLED=false` | `MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=false` |
+| Known Place — author-exact P05023 | `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW`, `KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF`, `GITHUB_ACTIONS_TOKEN` | `know-place-paper-reproduction-dispatcher.yml` | `DISPLACEMENT_ACTIONS_ENABLED=false` plus explicit `confirm_raw_downloads` | `MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=false` |
+| RiverShift — NISAR GCOV | `RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY`, `RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW`, `RIVERSHIFT_GITHUB_ACTIONS_REF`, `RIVERSHIFT_GITHUB_ACTIONS_TOKEN`, `RIVERSHIFT_CALLBACK_SECRET`, `RIVERSHIFT_PUBLIC_API_URL` | `river-shift-gcov-process.yml` | `RIVERSHIFT_ACTIONS_ENABLED=false` | `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED=false` |
+| Fixed P05023 live retention validation | manual `workflow_dispatch`, no API route | `sarguardian-live-validation.yml` | n/a | `MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED=false` |
+
+Known Place currently reuses the API's `DISPLACEMENT_ACTIONS_ENABLED` setting as its server-side master dispatch switch. The generic raw-download path additionally requires user consent and its workflow-side repository Variable; the author-exact paper route requires separate author-exact consent. RiverShift is independent and has its own API switch/token/callback. Do not unify their payloads or callback secrets.
+
+## Monorepo Preview destination values
+
+For an isolated Preview-only API project:
+
+```dotenv
+GITHUB_ACTIONS_REPOSITORY=moshiour0/SARGuardian-Monorepo
+GITHUB_ACTIONS_WORKFLOW=sarguardian-aoi-wkt-dashboard.yml
+GITHUB_ACTIONS_REF=migration/source-snapshot-import
+
+KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY=moshiour0/SARGuardian-Monorepo
+KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW=know-place-aoi-dispatcher.yml
+KNOWN_PLACE_GITHUB_ACTIONS_REF=migration/source-snapshot-import
+
+KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REPOSITORY=moshiour0/SARGuardian-Monorepo
+KNOWN_PLACE_PAPER_GITHUB_ACTIONS_WORKFLOW=know-place-paper-reproduction-dispatcher.yml
+KNOWN_PLACE_PAPER_GITHUB_ACTIONS_REF=migration/source-snapshot-import
+
+RIVERSHIFT_GITHUB_ACTIONS_REPOSITORY=moshiour0/SARGuardian-Monorepo
+RIVERSHIFT_GITHUB_ACTIONS_WORKFLOW=river-shift-gcov-process.yml
+RIVERSHIFT_GITHUB_ACTIONS_REF=migration/source-snapshot-import
+```
+
+Use the API Preview's public HTTPS origin for `PUBLIC_API_URL` and `RIVERSHIFT_PUBLIC_API_URL`. The GitHub PAT stays in the API project only. `GITHUB_ACTIONS_TOKEN` needs permission to dispatch workflows in the Monorepo; RiverShift may use a separately scoped `RIVERSHIFT_GITHUB_ACTIONS_TOKEN`. Never put tokens or callback secrets in Web/Vite variables.
+
+## Displacement schema — do not mix the wrappers
+
+The API deliberately supports two different workflow schemas:
+
+- `sarguardian-aoi-wkt-dashboard.yml` receives the Backend dashboard contract: `job_id`, `aoi_wkt`, `start_date`, `end_date`, `callback_url`, `request_fingerprint`, `date_filter_mode`, `run_profile`, `retention_profile`, and optional map/target context.
+- `sarguardian-displacement.yml` is the legacy Dynamic wrapper and receives `product_type`, `acquisition_window`, `retention_mode`, and `processing_profile` in addition to shared fields.
+
+The Monorepo root contains `sarguardian-aoi-wkt-dashboard.yml`; it does **not** contain `sarguardian-displacement.yml`. The Monorepo API Preview must target the former. Sending Dynamic-wrapper input names to the Backend dashboard workflow causes GitHub to reject the dispatch with HTTP 422.
+
+## Workflow-side Actions Secrets
+
+- Earthdata: `EARTHDATA_TOKEN` or `EARTHDATA_USERNAME` + `EARTHDATA_PASSWORD`.
+- Private Google Drive uploads: `GOOGLE_DRIVE_OAUTH_CLIENT_JSON`, `GOOGLE_DRIVE_REFRESH_TOKEN`, `GOOGLE_DRIVE_PARENT_FOLDER_ID`.
+- Find Displacements / Known Place signed worker callback: `DISPLACEMENT_CALLBACK_SECRET`.
+- RiverShift signed callback: `RIVERSHIFT_CALLBACK_SECRET`.
+
+The canonical Drive parent-folder variable is `GOOGLE_DRIVE_PARENT_FOLDER_ID`. The promoted API upload config rejects the legacy `GOOGLE_DRIVE_FOLDER_ID` name; do not add that variable to Vercel or Actions.
+
+## Safe staging and cutover sequence
+
+1. Verify the Monorepo repository is **Private** before importing filled secret values.
+2. Configure separate Vercel API/Web Preview projects. Only the API project receives Firebase Admin, Supabase service key, GitHub token and Drive result-read OAuth values.
+3. Add repository Actions Secrets and Variables to the Monorepo; keep every processing Variable false.
+4. Run API mock-dispatch/HTTP 422 tests, signed callback verification, request/run correlation, failure polling, private Drive receipt checks and duplicate-dispatch tests.
+5. Run catalogue-only or other non-destructive dry runs. Do not enable raw downloads or Drive writes merely because static CI passes.
+6. Rehearse one isolated product/job per engine with explicit consent and rollback, then request independent science review.
+7. Only after all acceptance gates and explicit owner approval: merge the Draft PR, deploy reviewed Vercel Production projects, set API repository/ref values to `main`, and update repository Variables. Do not retarget Production before that approval.
+
+All API and root workflow processing switches remain disabled. A CI PASS is not a live dispatch test or independent scientific validation.
