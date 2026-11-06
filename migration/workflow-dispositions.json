@@ -404,9 +404,9 @@
       "source_snapshot_path": "migration/source-snapshots/backend-main/.github/workflows/runner-test.yml",
       "source_blob_sha": "afba718f35d35a9bdd5d483e054434e5e2e9c8e5",
       "workflow_name": "runner-test.yml",
-      "disposition": "manual-benchmark-disposition-required",
+      "disposition": "archive-confirmed-inactive",
       "root_workflows": [],
-      "note": "Legacy benchmark writes a 5 GB file and allocates about 4 GB RAM. The root runner-allocation diagnostic is not equivalent. Decide whether to port behind a strict manual gate or retire with an explicit rationale; do not run as routine CI."
+      "note": "Preserved byte-for-byte in the immutable source snapshot but intentionally not activated at the Monorepo root. This manual diagnostic creates a 5-GB temporary disk file and allocates about 4 GB RAM; it is not called by the product API or another workflow. The root runner-allocation diagnostic provides a low-impact allocation/shell smoke check. Keep the heavy benchmark archived unless a separately reviewed operator need justifies an explicitly gated manual run."
     },
     {
       "source_id": "backend-main",
@@ -559,9 +559,9 @@
       "source_snapshot_path": "migration/source-snapshots/backend-main/.github/workflows/sarguardian-science-worker.yml",
       "source_blob_sha": "a096ecc12f27f46c43258e5684f2e01926009097",
       "workflow_name": "sarguardian-science-worker.yml",
-      "disposition": "legacy-callback-source-review-required",
+      "disposition": "archive-confirmed-inactive",
       "root_workflows": [],
-      "note": "Legacy worker checks out Sagormodak/SARGuardian@77cc9646..., uses WORKER_CALLBACK_SECRET and RENDER_CALLBACK_URL. Keep its exact snapshot; resolve whether its old callback/service is still required before porting or retiring. Never silently redirect it to current Vercel or moshiour0/SARGuardian."
+      "note": "Preserved byte-for-byte in the legacy-fork and Backend workflow snapshots but intentionally not activated at the Monorepo root. The workflow checks out the distinct Sagormodak/SARGuardian@77cc9646... source, uses WORKER_CALLBACK_SECRET and RENDER_CALLBACK_URL, and invokes an older GOFF-only worker. The current Vercel apps/api dispatch adapter accepts only sarguardian-aoi-wkt-dashboard.yml or sarguardian-displacement.yml, not this legacy worker. Do not retarget its old callback to Vercel or substitute the current NISAR source without a separately reviewed migration."
     },
     {
       "source_id": "backend-main",
@@ -916,9 +916,9 @@
       "source_snapshot_path": "migration/source-snapshots/backend-known-place-pr85/.github/workflows/runner-test.yml",
       "source_blob_sha": "afba718f35d35a9bdd5d483e054434e5e2e9c8e5",
       "workflow_name": "runner-test.yml",
-      "disposition": "manual-benchmark-disposition-required",
+      "disposition": "archive-confirmed-inactive",
       "root_workflows": [],
-      "note": "Legacy benchmark writes a 5 GB file and allocates about 4 GB RAM. The root runner-allocation diagnostic is not equivalent. Decide whether to port behind a strict manual gate or retire with an explicit rationale; do not run as routine CI."
+      "note": "Preserved byte-for-byte in the immutable source snapshot but intentionally not activated at the Monorepo root. This manual diagnostic creates a 5-GB temporary disk file and allocates about 4 GB RAM; it is not called by the product API or another workflow. The root runner-allocation diagnostic provides a low-impact allocation/shell smoke check. Keep the heavy benchmark archived unless a separately reviewed operator need justifies an explicitly gated manual run."
     },
     {
       "source_id": "backend-known-place-pr85",
@@ -1058,9 +1058,9 @@
       "source_snapshot_path": "migration/source-snapshots/backend-known-place-pr85/.github/workflows/sarguardian-science-worker.yml",
       "source_blob_sha": "a096ecc12f27f46c43258e5684f2e01926009097",
       "workflow_name": "sarguardian-science-worker.yml",
-      "disposition": "legacy-callback-source-review-required",
+      "disposition": "archive-confirmed-inactive",
       "root_workflows": [],
-      "note": "Legacy worker checks out Sagormodak/SARGuardian@77cc9646..., uses WORKER_CALLBACK_SECRET and RENDER_CALLBACK_URL. Keep its exact snapshot; resolve whether its old callback/service is still required before porting or retiring. Never silently redirect it to current Vercel or moshiour0/SARGuardian."
+      "note": "Preserved byte-for-byte in the legacy-fork and Backend workflow snapshots but intentionally not activated at the Monorepo root. The workflow checks out the distinct Sagormodak/SARGuardian@77cc9646... source, uses WORKER_CALLBACK_SECRET and RENDER_CALLBACK_URL, and invokes an older GOFF-only worker. The current Vercel apps/api dispatch adapter accepts only sarguardian-aoi-wkt-dashboard.yml or sarguardian-displacement.yml, not this legacy worker. Do not retarget its old callback to Vercel or substitute the current NISAR source without a separately reviewed migration."
     },
     {
       "source_id": "backend-known-place-pr85",
@@ -1084,8 +1084,7 @@
       "renamed-root-port-contract-review": 6,
       "root-present-contract-review-required": 33,
       "api-dispatch-replacement-contract-review": 1,
-      "manual-benchmark-disposition-required": 2,
-      "legacy-callback-source-review-required": 2,
+      "archive-confirmed-inactive": 4,
       "feature-variant-contract-review-required": 25,
       "manual-research-port-required": 3,
       "author-exact-research-disposition-required": 1,

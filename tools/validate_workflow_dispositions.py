@@ -27,6 +27,7 @@ ALLOWED_DISPOSITIONS = {
     "manual-renderer-port-required",
     "drive-retry-port-review-required",
     "api-dispatch-replacement-contract-review",
+    "archive-confirmed-inactive",
 }
 
 
@@ -100,6 +101,13 @@ def main() -> int:
 
     if seen_source_ids != {"dynamic-main", "backend-main", "backend-known-place-pr85"}:
         fail(f"unexpected source inventory groups: {sorted(seen_source_ids)}")
+
+    # These two source workflows are intentionally archival-only: no root
+    # workflow or live API route may activate their obsolete/high-impact paths.
+    for item in entries:
+        if item["workflow_name"] in {"runner-test.yml", "sarguardian-science-worker.yml"}:
+            if item["disposition"] != "archive-confirmed-inactive" or item.get("root_workflows"):
+                fail(f"legacy workflow must remain explicitly archived: {item['source_id']}/{item['workflow_name']}")
 
     root_dir = ROOT / ".github" / "workflows"
     root_count = sum(

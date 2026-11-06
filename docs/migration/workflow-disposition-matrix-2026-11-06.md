@@ -74,7 +74,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 | **sarguardian-reassemble-existing.yml** | f4cb4d515568 | .github/workflows/find-displacements-reassemble-existing.yml | Renamed root port — contract review open |
 | **sarguardian-retention-ci.yml** | 6e7e46fcbaa1 | .github/workflows/snapshot-regression-tests.yml | Consolidated CI — parity review open |
 | **sarguardian-retention-pilot.yml** | 1e6f1b0d3c83 | .github/workflows/find-displacements-retention-pilot.yml | Renamed root port — contract review open |
-| **sarguardian-science-worker.yml** | a096ecc12f27 | — | Legacy source/callback review required |
+| **sarguardian-science-worker.yml** | a096ecc12f27 | — | Archived from root — legacy API/fork contract |
 | **sarguardian-streaming-batch.yml** | 0215889d1447 | .github/workflows/sarguardian-streaming-batch.yml | Root exists — contract review open |
 
 - **dashboard-assets-test.yml:** Root CI file exists with adapted content; compare asset paths, generated-output checks and branch/path filters.
@@ -213,9 +213,9 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 ## First unresolved root items
 
 - retention-archive-tests.yml: a secret-free root CI port now runs the isolated historical archive fixture suite from the byte-verified Backend source snapshot; current-head CI must pass before closure.
-- runner-test.yml: its 5-GB disk and ~4-GB memory benchmark is not the same as the runner-allocation diagnostic; decide whether to port behind an explicit manual gate or retire.
+- runner-test.yml: intentionally archived; its 5-GB disk and ~4-GB memory benchmark has no product caller and is not routine migration CI. The root runner-allocation diagnostic retains a low-impact smoke check.
 - sarguardian-live-validation.yml: root port exists with manual consent and repository opt-in gates; keep live execution disabled until the current-head structural and dry-run tests pass.
-- sarguardian-science-worker.yml: legacy fork pin and WORKER_CALLBACK_SECRET / RENDER_CALLBACK_URL ownership need resolution.
+- sarguardian-science-worker.yml: intentionally archived; the old alternate-fork GOFF worker is not called by the current Vercel API's supported dispatch contracts. Its old callback is not silently redirected or adapted.
 - Known Place PR #85 has ten added workflow paths without a root counterpart; each remains explicitly dispositioned above (manual port, research, renderer, consent bridge, Drive retry or archive-only).
 - Workflow entries mapped to snapshot-regression-tests.yml still need parity evidence for every original test/fixture; a shared CI target is not proof of equivalence. Full Backend main and Known Place PR #85 source test suites now have a separate explicit matrix run.
 
@@ -230,3 +230,13 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 ## Backend source retention CI port
 
 The original `sarguardian-retention-ci.yml` runs the full repository `tests/` suite, not merely the isolated HDF5 archive fixtures. The Monorepo now has `.github/workflows/backend-source-regression-tests.yml`, which runs both immutable source trees (Backend main and Known Place PR #85) in isolated matrix jobs. It compiles all `tools/` and `tests/`, installs the source-specific runtime/test dependencies, runs the complete pytest suite, and validates retention-related source workflow YAML. It uses only read-only `contents` permissions, with no Earthdata, Drive, callback or Supabase secrets. The second source workflow job (pinned NISAR science) is exercised separately by the Monorepo Snapshot Regression NISAR science job against the imported 9fcb main tree.
+
+
+## Explicit archival decisions — no accidental workflow activation
+
+Two legacy workflow families are now closed as **archive-confirmed-inactive** (their exact bytes remain in source snapshots):
+
+- `runner-test.yml`: 5-GB disk + approximately 4-GB RAM manual stress benchmark. No product workflow or API dispatches it. The Monorepo retains the low-impact runner allocation diagnostic; the heavy benchmark stays archived unless an operator explicitly requires it later.
+- `sarguardian-science-worker.yml`: alternate-fork (`Sagormodak/SARGuardian@77cc964…`) GOFF worker using `WORKER_CALLBACK_SECRET` and `RENDER_CALLBACK_URL`. The current Vercel API's displacement dispatcher contract only supports `sarguardian-aoi-wkt-dashboard.yml` or `sarguardian-displacement.yml`; the archived worker is not an active caller. It is not safe to replace its old callback URL with the Vercel URL or swap its science fork without an independent contract/science review.
+
+The disposition validator now requires both workflow names to remain archived-only, with no declared Monorepo root workflow target.

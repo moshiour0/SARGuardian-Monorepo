@@ -306,3 +306,8 @@ The Backend main and Known Place PR #85 versions of `sarguardian-aoi-code-valida
 ## 2026-11-06 full Backend source test-suite port
 
 The source `sarguardian-retention-ci.yml` had two jobs: full Backend repository tests and the maintained NISAR science tests. The first now runs both Backend main and Known Place PR #85 immutable source snapshots through `.github/workflows/backend-source-regression-tests.yml`; the second remains covered by the promoted NISAR science job in Snapshot Regression Tests. The port performs compileall, the complete source pytest suite and a workflow YAML subset check with only read-only repository permissions and no secrets.
+
+
+## 2026-11-06 explicit archival-only workflow decisions
+
+The heavy `runner-test.yml` manual stress benchmark (5-GB disk + ~4-GB RAM) and the old `sarguardian-science-worker.yml` alternate-fork GOFF worker are retained in immutable snapshots but explicitly archived from the Monorepo root. The latter's WORKER_CALLBACK_SECRET/RENDER_CALLBACK_URL path is not a supported current Vercel API dispatch contract. `tools/validate_workflow_dispositions.py` enforces these two names as archive-only with no root targets.
