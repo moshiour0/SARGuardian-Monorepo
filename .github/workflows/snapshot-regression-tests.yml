@@ -209,6 +209,8 @@ jobs:
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_source_aoi_streaming_contract.py"
       - name: Run one-granule retention pilot workflow contract test
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_find_displacements_retention_pilot_contract.py"
+      - name: Run Earthdata authentication and token probe workflow contract tests
+        run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_earthdata_diagnostics_contract.py"
 
   promoted-known-place:
     name: Promoted Known Place engine regression tests
