@@ -7,6 +7,8 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "migration/workflow-dispositions.json"
+      - "migration/active-runtime-scope.json"
+      - "tools/validate_active_runtime_scope.py"
       - "tools/validate_workflow_dispositions.py"
       - "tools/validate_sarguardian_live_validation_workflow.py"
       - ".github/workflows/sarguardian-live-validation.yml"
@@ -35,6 +37,8 @@ on:
     paths:
       - "migration/source-snapshots/**"
       - "migration/workflow-dispositions.json"
+      - "migration/active-runtime-scope.json"
+      - "tools/validate_active_runtime_scope.py"
       - "tools/validate_workflow_dispositions.py"
       - "tools/validate_sarguardian_live_validation_workflow.py"
       - "migration/source-branch-snapshots/**"
@@ -85,6 +89,8 @@ jobs:
         run: python tools/validate_workflow_dispositions.py
       - name: Validate fixed P05023 live-retention workflow contract
         run: python tools/validate_sarguardian_live_validation_workflow.py
+      - name: Validate evidence-based active runtime call graph
+        run: python tools/validate_active_runtime_scope.py
       - name: Validate inactive RiverShift Monorepo workflow candidate
         run: python tools/validate_workflow_candidates.py
       - name: Validate Known Place API, manual dispatcher and reusable workflow contract
