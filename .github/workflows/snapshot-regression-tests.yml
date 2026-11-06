@@ -522,6 +522,10 @@ jobs:
           python -m pytest -q tools/tests/test_know_place_*.py
       - name: Validate Monorepo synthetic map browser workflow contract
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_known_place_synthetic_map_browser_contract.py"
+      - name: Validate Monorepo DEM source acquisition workflow contract
+        run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_known_place_dem_acquisition_contract.py"
+      - name: Validate Monorepo displacement-null audit workflow contract
+        run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_known_place_displacement_null_audit_contract.py"
 
   river-shift:
     name: RiverShift GCOV worker regression tests
