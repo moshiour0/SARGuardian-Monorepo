@@ -159,6 +159,11 @@ def load_promotion_overrides() -> dict[str, dict[str, str]]:
             "destination": "apps/web/",
             "verification": "apps/web/src/",
         },
+        "Find Displacements tools promotion": {
+            "source": "migration/source-snapshots/backend-main/tools/",
+            "destination": "engines/find-displacements/tools/",
+            "verification": "engines/find-displacements/tools/tests/",
+        },
     }
     approved: dict[str, dict[str, str]] = {}
     for row in rows:
@@ -528,7 +533,11 @@ def main() -> int:
                 f"missing={missing[:10]}; extra={extra[:10]}; "
                 f"unapproved_changed={unapproved_changed[:10]}"
             )
-        if changed and label not in {"Dynamic active API promotion", "Dynamic frontend promotion"}:
+        if changed and label not in {
+            "Dynamic active API promotion",
+            "Dynamic frontend promotion",
+            "Find Displacements tools promotion",
+        }:
             raise RuntimeError(f"{label}: promotion overrides are not permitted for this source.")
         print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")
 
