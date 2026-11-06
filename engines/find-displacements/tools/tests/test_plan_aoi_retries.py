@@ -196,6 +196,98 @@ def test_missing_processing_receipt_after_successful_download_is_not_redownloade
 
 
 
+
+
+def _add_drive_failure_product(
+    manifest: dict,
+    product_root: Path,
+    *,
+    product_id: str,
+    drive_retryable: bool,
+    drive_error_code: str,
+) -> None:
+    product = {
+        "id": product_id,
+        "granule_name": f"NISAR_L2_PR_GUNW_{product_id}_TEST_PRODUCT",
+        "product_type": "GUNW",
+        "maturity": "PROVISIONAL",
+        "expected_source_bytes": 200,
+    }
+    manifest["products"].append(product)
+    artifact = product_root / f"sarguardian-granule-{product_id}"
+    artifact.mkdir(parents=True)
+    (artifact / "product-processing.json").write_text(json.dumps({
+        "id": product_id,
+        "product_type": "GUNW",
+        "granule_name": product["granule_name"],
+        "aoi": manifest["aoi_name"],
+        "science_commit": manifest["science_commit"],
+        "orchestration_sha": manifest["orchestration_sha"],
+        "orchestration_branch": manifest["orchestration_branch"],
+        "retention_profile": manifest["retention_profile"],
+        "derived_output_validation_status": "PASS",
+        "drive_remote_verification": "PENDING",
+    }), encoding="utf-8")
+    (artifact / "derived-output-validation.json").write_text(
+        json.dumps({"status": "PASS"}), encoding="utf-8"
+    )
+    (artifact / "download-manifest.json").write_text(
+        json.dumps({"source_sha256": "b" * 64}), encoding="utf-8"
+    )
+    (artifact / "product-run-diagnostics.json").write_text(json.dumps({
+        "step_outcomes": {
+            "download": "success",
+            "aoi_preflight": "success",
+            "reader": "success",
+            "drive": "failure",
+        },
+        "drive_error_code": drive_error_code,
+        "drive_retryable": drive_retryable,
+    }), encoding="utf-8")
+
+
+def test_transient_drive_failure_retries_only_failed_product_after_science_pass(tmp_path):
+    manifest, product_root, cleanup_root = _write_valid_checkpoint(tmp_path, branch_name="main")
+    _add_drive_failure_product(
+        manifest,
+        product_root,
+        product_id="GUNW-006",
+        drive_retryable=True,
+        drive_error_code="DRIVE_CHUNK_UPLOAD_HTTP_502_RETRIES_EXHAUSTED",
+    )
+
+    result = planner.plan(manifest, product_root, cleanup_root)
+
+    assert result["products_expected"] == 2
+    assert result["products_complete"] == 1
+    assert result["retry_count"] == 1
+    assert result["terminal_failure_count"] == 0
+    assert [product["id"] for product in result["retry_matrix"]] == ["GUNW-006"]
+    decisions = {row["product_id"]: row for row in result["decisions"]}
+    assert decisions["GOFF-001"]["status"] == "PASS"
+    assert decisions["GUNW-006"]["status"] == "RETRY"
+    assert "TRANSIENT_DRIVE_RETENTION_FAILURE_AFTER_VALIDATED_SCIENCE" in decisions["GUNW-006"]["reasons"]
+
+
+def test_permanent_drive_failure_after_science_pass_is_not_retried(tmp_path):
+    manifest, product_root, cleanup_root = _write_valid_checkpoint(tmp_path, branch_name="main")
+    _add_drive_failure_product(
+        manifest,
+        product_root,
+        product_id="GUNW-006",
+        drive_retryable=False,
+        drive_error_code="DRIVE_API_HTTP_403",
+    )
+
+    result = planner.plan(manifest, product_root, cleanup_root)
+
+    assert result["retry_count"] == 0
+    assert result["terminal_failure_count"] == 1
+    decisions = {row["product_id"]: row for row in result["decisions"]}
+    assert decisions["GOFF-001"]["status"] == "PASS"
+    assert decisions["GUNW-006"]["status"] == "TERMINAL_FAILURE"
+    assert decisions["GUNW-006"]["terminal_reason"] == "NON_RETRYABLE_POST_DOWNLOAD_CHECKPOINT_FAILURE"
+
 def test_mixed_baseline_retries_only_the_product_with_a_missing_checkpoint(tmp_path):
     manifest, product_root, cleanup_root = _write_valid_checkpoint(tmp_path, branch_name="main")
     failed_product = {
@@ -229,6 +321,9 @@ def test_workflow_retries_failed_product_matrix_before_dashboard_assembly() -> N
     assert "  retry-plan:\n" in workflow
     assert "  retry-products:\n" in workflow
     assert "execution_label: retry-1" in workflow
+    assert "DRIVE_LOG:" in worker
+    assert '"drive_retryable": drive_retryable' in worker
+    assert 'DRIVE_CHUNK_UPLOAD_HTTP_' in worker
     assert "needs: [manifest, process-products, retry-plan, retry-products]" in workflow
     assert "needs: [report-running, manifest, process-products, retry-plan, retry-products, dashboard]" in workflow
     assert workflow.index("  retry-products:\n") < workflow.index("  dashboard:\n")
