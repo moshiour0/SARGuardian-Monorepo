@@ -193,6 +193,8 @@ jobs:
           print("DEM_SOURCE_ACQUISITION=PASS")
           print("DEM_TILE_COUNT=16")
           print("RAW_NISAR_GOFF_DOWNLOADS=0")
+          print("HAZARD_DETECTION_STATUS=NOT_EVALUATED")
+          print("AUTHOR_TILE_BYTE_IDENTITY=UNVERIFIED")
           PY
           {
             echo "## Copernicus GLO-90 source acquisition"
