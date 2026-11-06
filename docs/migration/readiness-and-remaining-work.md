@@ -4,6 +4,10 @@
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
+## Production job data — migration still outstanding
+
+The source Supabase Production project currently contains 80 job/preflight metadata rows; the Monorepo target is empty. Read [the data migration plan](supabase-production-data-migration-plan.md) before any future cutover. The four table schemas/columns/RLS/FK contracts match, but no Production data rows have been transferred. Preserve row ownership and historical Drive/GitHub references; do not re-dispatch queued metadata.
+
 ## Prior complete migration verification before current Known Place pin overlay — 2026-11-06
 
 - Previous code/workflow head `8454a15fe2e014afa1297e2c03faff132734e998`: [Snapshot Regression Tests 42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19** before the latest active Known Place source-pin correction. The current correction has its own new CI runs and must pass separately before this branch is marked green.
