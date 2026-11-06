@@ -298,6 +298,22 @@
         "apps/api/tests/test_main.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_persistence_headers.py",
+      "destination_path": "apps/api/tests/test_persistence_headers.py",
+      "source_blob_sha": "410d64d9e71549cd859d58ddba0b5d3381d3833b",
+      "destination_blob_sha": "f90ef1d12cf6fc5a61b934def2f7e06cec7c30d8",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Extend the Supabase secret-header regression test to assert the zero-row service-role access probe checks both displacement_jobs and known_place_requests.",
+      "implementation_commits": [
+        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_persistence_headers.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
     }
   ]
 }
