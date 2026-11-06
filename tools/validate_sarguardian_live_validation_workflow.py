@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,6 +15,17 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "sarguardian-live-validation.yml"
 EXPECTED_SCIENCE_COMMIT = "ab547ecc82bcc4d6ccef545a59852536c2beacc6"
+EXPECTED_TOOL_BLOBS = {
+    "download_nisar_product.py": "307d84c874d480b76a77070abae9390a7b6546b6",
+    "drive_resumable_upload.py": "84a6b32c39d456644fe6af1a6d803b26de12b27b",
+    "validate_product_aoi.py": "97b9be365df3a5876f8a2499a955f340782a3f15",
+    "sarguardian_hdf5_archive.py": "d056aa86c3341eed92a6f39b515d418d610efc00",
+    "verify_reader_equivalence.py": "56fc6b98b4b3cdb83225ae6239cfbf008c17d26a",
+    "aggregate_streamed_outputs.py": "6211b0565323ff4d044658162654ce629ab2b29b",
+    "time_window.py": "e8473d0ed03aeba9ba53679d8648df60723e6d46",
+    "requirements-retention.txt": "f86daa08bb8ea461b9746260df8e025b83f553bf",
+}
+
 EXPECTED_GRANULES = {
     ("GUNW", "NISAR_L2_PR_GUNW_026_048_D_074_028_4000_SH_20260723T125813_20260723T125848_20260816T125812_20260816T125846_P05023_N_F_J_001"),
     ("GOFF", "NISAR_L2_PR_GOFF_026_048_D_074_028_4000_SH_20260723T125813_20260723T125848_20260816T125812_20260816T125846_P05023_N_F_J_001"),
@@ -87,10 +100,41 @@ def main() -> int:
     encoded = json.dumps(processing, sort_keys=True)
     if EXPECTED_SCIENCE_COMMIT not in encoded:
         fail("exact ab547 science pin is missing")
-    if "git worktree add --detach" not in encoded or "fetch-depth" not in encoded:
+    checkout_steps = [
+        step for step in processing.get("steps", [])
+        if isinstance(step, dict) and str(step.get("uses", "")).startswith("actions/checkout@")
+    ]
+    if not any(step.get("with", {}).get("fetch-depth") == 0 for step in checkout_steps):
+        fail("the root checkout must fetch full Git history before materializing the historical science commit")
+    if "git worktree add --detach" not in encoded:
         fail("historical source must be materialized from the Monorepo's full Git history")
     if "engines/find-displacements/tools" not in encoded:
         fail("retention worker must use the promoted Monorepo tool package")
+
+    source_tools = ROOT / "migration" / "source-snapshots" / "backend-main" / "tools"
+    promoted_tools = ROOT / "engines" / "find-displacements" / "tools"
+    for name, expected_blob in EXPECTED_TOOL_BLOBS.items():
+        source_path = source_tools / name
+        promoted_path = promoted_tools / name
+        if not source_path.is_file() or not promoted_path.is_file():
+            fail(f"retention tool source/promoted path is missing: {name}")
+        for label, path in (("source", source_path), ("promoted", promoted_path)):
+            data = path.read_bytes()
+            actual_blob = hashlib.sha1(
+                b"blob " + str(len(data)).encode("ascii") + bytes([0]) + data
+            ).hexdigest()
+            if actual_blob != expected_blob:
+                fail(f"{label} retention tool Git blob changed: {name}; expected {expected_blob}, got {actual_blob}")
+
+    history_check = subprocess.run(
+        ["git", "cat-file", "-e", f"{EXPECTED_SCIENCE_COMMIT}^{{commit}}"],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if history_check.returncode != 0:
+        fail(f"exact pinned science commit is unavailable in Monorepo Git history: {EXPECTED_SCIENCE_COMMIT}")
     if "DRIVE_ARCHIVE_VERIFICATION=PASS" not in encoded:
         fail("remote Drive archive receipt verification is missing")
     if "AUTOMATIC_RAW_DELETION=DISABLED" not in encoded:
@@ -110,7 +154,9 @@ def main() -> int:
         "products=GUNW,GOFF "
         f"science_commit={EXPECTED_SCIENCE_COMMIT} "
         "manual_only=true repository_gate=true per_run_consent=true "
-        "drive_receipts=true automatic_raw_deletion=false"
+        "drive_receipts=true automatic_raw_deletion=false "
+        f"exact_tool_blobs={len(EXPECTED_TOOL_BLOBS)}/{len(EXPECTED_TOOL_BLOBS)} "
+        "historical_git_object=PASS"
     )
     return 0
 
