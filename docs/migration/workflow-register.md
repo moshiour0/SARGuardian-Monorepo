@@ -178,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (21 files total)
+### Root workflow entrypoints currently promoted (23 files total)
 
 - Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
   workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
@@ -222,8 +222,9 @@ in the Monorepo root workflow system. Remaining families include:
 
 1. Find Displacements and legacy streaming: the catalogue-only diagnostic,
    retained-artifact reassembly, source-AOI streaming batch/product worker and
-   one-granule non-destructive retention pilot, and two gated Earthdata
-   authentication diagnostics are promoted as manual-only root workflows.
+   one-granule non-destructive retention pilot, two gated Earthdata
+   authentication diagnostics, and two gated GCOV/GUNW catalogue-only
+   discovery diagnostics are promoted as manual-only root workflows.
    Manual source-AOI science validation still needs a reviewed root
    implementation or explicit archive/retirement disposition. Keep GOFF and
    GUNW evidence separate.
