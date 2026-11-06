@@ -111,10 +111,7 @@ jobs:
               raise SystemExit("SOURCE_RUN_NOT_FROM_EXPECTED_PREVIEW_BRANCH")
           if run.get("status") != "completed" or run.get("conclusion") != "success":
               raise SystemExit("SOURCE_RUN_NOT_SUCCESSFUL")
-          if run.get("path") not in {
-              ".github/workflows/sarguardian-aoi-wkt-dashboard.yml",
-              ".github/workflows/sarguardian-aoi-wkt-dispatcher.yml",
-          }:
+          if run.get("path") != ".github/workflows/sarguardian-aoi-wkt-dashboard.yml":
               raise SystemExit("SOURCE_RUN_WORKFLOW_NOT_AN_APPROVED_AOI_ENTRYPOINT")
           attempt = run.get("run_attempt")
           if not isinstance(attempt, int) or attempt < 1:
