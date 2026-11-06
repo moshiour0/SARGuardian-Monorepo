@@ -6,12 +6,19 @@
 > Later verified state in that checkpoint supersedes older sections below.
 >
 **Last updated:** 2026-11-06  
-**Working branch:** `migration/source-snapshot-import`  
+**Working branch:** `security/private-actions-artifact-guard` (Draft PR #3; not merged)  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
-## Production job data — migration still outstanding
+## Production job data — non-destructive metadata mirror completed
 
-The source Supabase Production project currently contains 80 job/preflight metadata rows; the Monorepo target is empty. Read [the data migration plan](supabase-production-data-migration-plan.md) before any future cutover. The four table schemas/columns/RLS/FK contracts match, but no Production data rows have been transferred. Preserve row ownership and historical Drive/GitHub references; do not re-dispatch queued metadata.
+The isolated Tokyo Monorepo target contains an 80-row metadata-only mirror of the
+original Production inventory (3 preflights, 2 processing jobs, 51 Displacement
+jobs, 24 RiverShift jobs). The original source rows were not updated or deleted;
+no raw NISAR binaries were copied. The new `known_place_requests` owner-mapping
+table is separate from that mirror and currently has 0 rows. Two historical
+`processing_jobs` remain queued with expired linked preflights and must never be
+re-dispatched. See [the target schema and history](supabase-target.md) and
+[the data migration plan](supabase-production-data-migration-plan.md).
 
 ## Prior complete migration verification before current Known Place pin overlay — 2026-11-06
 
