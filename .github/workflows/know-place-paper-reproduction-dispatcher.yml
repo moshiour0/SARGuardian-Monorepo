@@ -2,8 +2,7 @@ name: SARGuardian · Known Place Author-Exact Paper Reproduction dispatcher (Mon
 
 run-name: Known Place Paper Reproduction ${{ inputs.request_id }}
 
-# Backend-repository entry point: uses the same repository-scoped Actions token
-# as Generic Known Place and Find Displacements. It does not require Dynamic-repo access.
+# Monorepo entry point for the separately pinned author-exact P05023 reproduction.
 on:
   workflow_dispatch:
     inputs:
