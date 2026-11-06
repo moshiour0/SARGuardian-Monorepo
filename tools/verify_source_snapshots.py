@@ -212,7 +212,7 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
         raise RuntimeError(f"Cannot read RiverShift source-branch pin manifest: {exc}") from exc
     if not isinstance(manifest, dict) or manifest.get("schema_version") != "1.0":
         raise RuntimeError("RiverShift source-branch pin manifest has an unsupported schema.")
-    if manifest.get("policy") != "ARCHIVAL_ONLY_NOT_ACTIVE_WORKFLOWS":
+    if manifest.get("policy") != "ARCHIVAL_SNAPSHOTS_WITH_SEPARATE_REVIEWED_ROOT_PORTS":
         raise RuntimeError("RiverShift source-branch snapshots must remain explicitly archival-only.")
 
     sources = manifest.get("sources")
@@ -270,8 +270,25 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
                     / Path(source_path).name
                 )
                 if active_copy.exists():
-                    raise RuntimeError(
-                        f"Archived RiverShift workflow was copied into active root workflows: {active_copy}"
+                    active_relative = f".github/workflows/{Path(source_path).name}"
+                    active_entry = target_entries.get(active_relative)
+                    if active_entry is None or active_entry[2] == source_blob:
+                        raise RuntimeError(
+                            f"Active RiverShift root workflow must be a distinct promoted port, not an identical archive copy: {active_copy}"
+                        )
+                    active_text = active_copy.read_text(encoding="utf-8")
+                    if (
+                        "workflow_dispatch:" not in active_text
+                        or re.search(r"(?m)^\\s*push\\s*:", active_text)
+                        or not re.search(r"MONOREPO_RIVERSHIFT_[A-Z0-9_]+", active_text)
+                        or '!= "true"' not in active_text
+                    ):
+                        raise RuntimeError(
+                            f"Promoted RiverShift root workflow is not manual-only and fail-closed: {active_copy}"
+                        )
+                    print(
+                        f"SOURCE_BRANCH_ROOT_PORT_PASS {active_relative}: "
+                        "distinct_blob manual_only fail_closed"
                     )
             actual = target_entries.get(destination_path)
             expected = ("100644", "blob", source_blob)
@@ -298,7 +315,7 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
         )
     print(
         f"SOURCE_BRANCH_ARCHIVE_MANIFEST_PASS files={verified} sources={len(sources)}; "
-        "root_workflow_activation=none"
+        "separate_root_ports=manual_only_fail_closed"
     )
     return verified
 
