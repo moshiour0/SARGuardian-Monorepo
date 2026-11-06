@@ -85,6 +85,14 @@
       "blob_sha": "94b175759d9e5205208af905a4468952849f55bc",
       "source_path": null,
       "kind": "monorepo-forward-migration"
+    },
+    {
+      "remote_version": "20261106134132",
+      "remote_name": "optimize_owner_read_rls_initplan",
+      "destination_path": "infrastructure/supabase/migrations/20261106134132_optimize_owner_read_rls_initplan.sql",
+      "blob_sha": "c856e3e9aa88bd31d63f1e03ee83c5e6f3fa7b31",
+      "source_path": null,
+      "kind": "monorepo-forward-migration"
     }
   ]
 }
