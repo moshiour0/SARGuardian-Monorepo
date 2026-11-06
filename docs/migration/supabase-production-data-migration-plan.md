@@ -59,7 +59,8 @@ All four table names, all column names/counts, RLS enablement and the FK contrac
 - The FK check found zero orphan processing jobs.
 - All four target tables retain RLS. The owner-read policies remain restricted to `authenticated` and compare JWT subject to `owner_uid`. All six user-defined integrity/immutability/lifecycle triggers were rechecked enabled after import.
 - The target's transition triggers were not disabled. Historical terminal job states were recreated through the allowed lifecycle path; no workflow dispatch was made.
-- A new forward migration adds `processing_jobs_preflight_id_idx` for the `preflight_id` foreign key. It is recorded as remote migration `20261106133548_processing_jobs_preflight_id_index` and in `migration/supabase-history-alignment.json`.
+- A forward migration adds `processing_jobs_preflight_id_idx` for the `preflight_id` foreign key; the unindexed-FK Advisor finding cleared. It is recorded as remote migration `20261106133548_processing_jobs_preflight_id_index`.
+- A second forward migration rewrites all four owner-read policies to use `((select auth.jwt()) ->> 'sub') = owner_uid`; the RLS initplan Advisor warnings cleared without changing the `authenticated`-only ownership rule. It is recorded as remote migration `20261106134132_optimize_owner_read_rls_initplan`. Security Advisor: zero findings. Remaining `unused_index` notices are informational on a new/just-migrated database; no index was removed.
 - The separate Production backup requirement was not retroactively satisfied by this copy. Keep the source project available and make an independent backup before any future cutover or destructive operation.
 
 ## Remaining cutover gates and safety boundary
