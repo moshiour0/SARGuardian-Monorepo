@@ -16,6 +16,10 @@ on:
       - ".github/workflows/know-place-aoi-analysis.yml"
       - ".github/workflows/know-place-aoi-dispatcher.yml"
       - "migration/promotion-overrides.json"
+      - "migration/supabase-history-alignment.json"
+      - "infrastructure/supabase/**"
+      - "tools/tests/test_supabase_default_privileges_contract.py"
+      - "tools/tests/test_supabase_history_alignment_contract.py"
       - "docs/migration/**"
       - "migration/workflow-candidates/**"
       - "apps/**"
@@ -210,6 +214,8 @@ jobs:
         run: python -m pytest ../../tools/tests/test_api_owner_scoping_contract.py -q
       - name: Validate Supabase future-object privilege migration
         run: python -m pytest ../../tools/tests/test_supabase_default_privileges_contract.py -q
+      - name: Validate Monorepo Supabase migration-history filename alignment
+        run: python -m pytest ../../tools/tests/test_supabase_history_alignment_contract.py -q
       - name: Run active API regression suite
         run: python -m pytest -q
 

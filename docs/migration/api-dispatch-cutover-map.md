@@ -58,7 +58,7 @@ The canonical Drive parent-folder variable is `GOOGLE_DRIVE_PARENT_FOLDER_ID`. T
 
 ## Safe staging and cutover sequence
 
-1. Verify the Monorepo repository is **Private** before importing filled secret values.
+1. The Monorepo repository is intentionally **Public** by owner approval. This is not a migration blocker; keep every secret value outside Git history and in server-side Vercel/Actions secret stores only.
 2. Configure separate Vercel API/Web Preview projects. Only the API project receives Firebase Admin, Supabase service key, GitHub token and Drive result-read OAuth values.
 3. Add repository Actions Secrets and Variables to the Monorepo; keep every processing Variable false.
 4. Run API mock-dispatch/HTTP 422 tests, signed callback verification, request/run correlation, failure polling, private Drive receipt checks and duplicate-dispatch tests.

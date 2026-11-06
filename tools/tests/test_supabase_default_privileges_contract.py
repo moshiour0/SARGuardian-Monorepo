@@ -5,7 +5,7 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MIGRATION = ROOT / "infrastructure/supabase/migrations/20261106064055_public_default_privileges_hardening.sql"
+MIGRATION = ROOT / "infrastructure/supabase/migrations/20261106064055_20261106100000_public_default_privileges_hardening.sql"
 
 
 def test_default_privilege_migration_is_narrow_and_service_role_preserving() -> None:

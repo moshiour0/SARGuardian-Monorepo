@@ -436,8 +436,10 @@ def main() -> int:
             # - the retention migration is a separately reviewed forward migration.
             (
                 "README.md",
-                "migrations/20261105205909_catalog_preflight_retention.sql",
-                "migrations/20261106064055_public_default_privileges_hardening.sql",
+                # SQL filenames are aligned to the target project's actual remote
+                # migration timestamps; their unchanged source blobs are verified
+                # against migration/supabase-history-alignment.json below.
+                "migrations/",
             ),
         ),
     )
@@ -596,6 +598,77 @@ def main() -> int:
         if target_entries[source_path] != target_entries[destination_path]:
             raise RuntimeError(f"{label}: source and destination Git objects differ")
         print(f"PROMOTED_FILE_BLOB_INTEGRITY_PASS {label}")
+
+    alignment_path = Path(__file__).resolve().parents[1] / "migration" / "supabase-history-alignment.json"
+    alignment = json.loads(alignment_path.read_text(encoding="utf-8"))
+    if alignment.get("schema_version") != 1:
+        raise RuntimeError("Supabase history alignment manifest has an unsupported schema.")
+    if alignment.get("project_ref") != "qbmhpdprvxssqinnommz":
+        raise RuntimeError("Supabase history alignment manifest targets the wrong project.")
+    migration_records = alignment.get("records")
+    if not isinstance(migration_records, list) or len(migration_records) != 9:
+        raise RuntimeError("Supabase history alignment must contain exactly nine remote migrations.")
+
+    expected_sql_paths: set[str] = set()
+    seen_versions: set[str] = set()
+    seen_names: set[str] = set()
+    for record in migration_records:
+        version = str(record.get("remote_version", ""))
+        name = str(record.get("remote_name", ""))
+        destination_path = str(record.get("destination_path", ""))
+        blob_sha = str(record.get("blob_sha", ""))
+        if not re.fullmatch(r"\\d{14}", version):
+            raise RuntimeError(f"Supabase migration has an invalid remote version: {version}")
+        if not name or "/" in name or not re.fullmatch(r"[a-zA-Z0-9_]+", name):
+            raise RuntimeError(f"Supabase migration has an invalid remote name: {name}")
+        if version in seen_versions or name in seen_names:
+            raise RuntimeError(f"Supabase migration version/name is duplicated: {version} / {name}")
+        seen_versions.add(version)
+        seen_names.add(name)
+        expected_path = f"infrastructure/supabase/migrations/{version}_{name}.sql"
+        if destination_path != expected_path:
+            raise RuntimeError(
+                f"Supabase migration filename does not match its remote history: {destination_path}; "
+                f"expected={expected_path}"
+            )
+        expected_sql_paths.add(destination_path)
+        destination_entry = target_entries.get(destination_path)
+        if destination_entry != ("100644", "blob", blob_sha):
+            raise RuntimeError(
+                f"Supabase migration destination blob mismatch: {destination_path}; "
+                f"expected={blob_sha}; actual={destination_entry}"
+            )
+
+        source_path = record.get("source_path")
+        if source_path:
+            source_entry = target_entries.get(str(source_path))
+            if source_entry != destination_entry:
+                raise RuntimeError(
+                    f"Supabase source SQL blob changed while aligning remote filename: "
+                    f"{source_path} -> {destination_path}"
+                )
+        elif record.get("kind") != "monorepo-forward-migration":
+            raise RuntimeError(f"Supabase migration lacks source provenance or forward-migration label: {destination_path}")
+
+        print(
+            f"SUPABASE_MIGRATION_HISTORY_ALIGNMENT_PASS version={version} "
+            f"name={name} blob={blob_sha}"
+        )
+
+    actual_sql_paths = {
+        path for path in target_entries
+        if path.startswith("infrastructure/supabase/migrations/") and path.endswith(".sql")
+    }
+    if actual_sql_paths != expected_sql_paths:
+        raise RuntimeError(
+            "Supabase migration directory differs from the nine-record remote alignment manifest: "
+            f"missing={sorted(expected_sql_paths - actual_sql_paths)}; "
+            f"extra={sorted(actual_sql_paths - expected_sql_paths)}"
+        )
+    print(
+        f"SUPABASE_REMOTE_HISTORY_FILENAME_ALIGNMENT_PASS "
+        f"project={alignment['project_ref']} migrations={len(expected_sql_paths)}"
+    )
 
     for label, ancestor, descendant in ANCESTOR_CHECKS:
         check_ancestor(label, ancestor, descendant)

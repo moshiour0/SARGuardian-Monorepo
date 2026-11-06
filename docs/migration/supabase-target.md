@@ -46,7 +46,7 @@ FK index if query plans or expected delete/update volume justify it.
 ## Default privileges for future public objects — hardened
 
 Forward migration
-`infrastructure/supabase/migrations/20261106064055_public_default_privileges_hardening.sql`
+`infrastructure/supabase/migrations/20261106064055_20261106100000_public_default_privileges_hardening.sql`
 was applied successfully to this Monorepo Preview database and its effects
 were verified with a transactional create/check/rollback probe.
 
@@ -75,15 +75,7 @@ requires. The current app tables still have no direct `anon` or
 
 ## Migration history reconciliation
 
-The project reports nine remote migration records. Their names map to the
-nine canonical SQL files under infrastructure/supabase/migrations. The first
-eight remote version values still differ from the timestamp prefixes of their
-local source filenames. The ninth forward migration has remote version
-20261106064055 matching the local filename prefix; its recorded remote name is
-20261106100000_public_default_privileges_hardening. Keep the eight historical
-identities under review and perform a read-only Supabase CLI v3 reconciliation
-before any future db push. Do not replay the imported migrations, repair old
-history or reset the database merely because the final schema matches.
+The project reports nine remote migration records. The local deployment filenames have now been aligned to the exact remote version prefixes and recorded names in `migration/supabase-history-alignment.json`. The seven imported SQL blobs remain byte-identical to their immutable source-snapshot originals; the retention and default-privilege forward migrations retain their reviewed hashes. Only local filenames changed. No remote history row was repaired and no old DDL was replayed. Confirm the local/remote timestamp comparison with `supabase migration list --remote=qbmhpdprvxssqinnommz` after authenticated CLI access; do not run `db push` until the read-only list reports all nine matched.
 
 See docs/migration/supabase-migration-lineage.md for the complete migration
 version/name table and verification details.

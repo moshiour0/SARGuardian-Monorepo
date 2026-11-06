@@ -9,15 +9,15 @@
 | Destination file | Source blob SHA |
 |---|---|
 | `config.toml` | `3292dc6443b23652e9077c13cd0c61284abd226f` |
-| `migrations/20261017143644_processing_jobs.sql` | `0c62c69b8eecf674f65af5022e81e09d65fbecef` |
-| `migrations/20261022203034_displacement_jobs.sql` | `a894b4d28d5fcda3df143629b9e70d613d3b727d` |
-| `migrations/20261023141449_displacement_active_request_guard.sql` | `536d8c473f3d19de29b532d42127550262c33104` |
-| `migrations/20261024111404_scientific_request_contract.sql` | `65c64d04c179bf4c1228a5d7edbd73510ad2b6fd` |
-| `migrations/20261027003643_place_target_contract.sql` | `f588c72bcd064779a5790f979db709b86b23dff2` |
-| `migrations/20261103100000_river_shift_jobs.sql` | `4d2fce5612c84baf2e8b06a9df02f05b2e0b0204` |
-| `migrations/20261104120000_river_shift_analysis_modes.sql` | `895cade15db273e233433c228a7e20e85118f043` |
+| `migrations/20261106000844_20261017143644_processing_jobs.sql` | `0c62c69b8eecf674f65af5022e81e09d65fbecef` |
+| `migrations/20261106000850_20261022203034_displacement_jobs.sql` | `a894b4d28d5fcda3df143629b9e70d613d3b727d` |
+| `migrations/20261106000856_20261023141449_displacement_active_request_guard.sql` | `536d8c473f3d19de29b532d42127550262c33104` |
+| `migrations/20261106000901_20261024111404_scientific_request_contract.sql` | `65c64d04c179bf4c1228a5d7edbd73510ad2b6fd` |
+| `migrations/20261106000905_20261027003643_place_target_contract.sql` | `f588c72bcd064779a5790f979db709b86b23dff2` |
+| `migrations/20261106000909_20261103100000_river_shift_jobs.sql` | `4d2fce5612c84baf2e8b06a9df02f05b2e0b0204` |
+| `migrations/20261106000923_20261104120000_river_shift_analysis_modes.sql` | `895cade15db273e233433c228a7e20e85118f043` |
 
-Every file is promoted without content rewriting. The exact-copy verifier compares source path, destination path, file mode, Git object type, and blob SHA.
+All seven imported SQL blobs are promoted without content rewriting. To align the Monorepo target's live history, their destination filenames use the remote 14-digit version followed by the original migration name; the immutable source snapshot retains the original source filenames. The exact source/destination blob, file mode and Git object identity are verified by `migration/supabase-history-alignment.json` and `tools/verify_source_snapshots.py`.
 
 ## Live remote migration-history mapping
 
@@ -134,7 +134,7 @@ These are performance observations, not Security Advisor findings. The forward m
 
 The canonical forward migration is maintained at the infrastructure source-of-truth path:
 
-- `infrastructure/supabase/migrations/20261105205909_catalog_preflight_retention.sql`
+- `infrastructure/supabase/migrations/20261106000928_20261105205909_catalog_preflight_retention.sql`
 
 Its Git blob is `d37e18839e4b143dd3cc8dbbab17f8d2289f17a1`. The imported `apps/api/supabase/` tree remains byte-identical to the Dynamic source snapshot and was intentionally not modified. The migration was applied successfully to live project `ufwjmhivvnoewjsbteey` (API response `success: true`) and verified. It implements a narrowly scoped policy derived from the API's existing default preflight TTL (24 hours):
 
@@ -153,7 +153,7 @@ The seven pre-existing remote migration records remain version/name-mismatched w
 
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
 
-Before any future CLI call, inspect and pin the CLI version. A migration-history read should explicitly target the intended remote project with the v3 `--remote` form; do not copy a legacy `--linked` or `--project-ref` command into a new v3 workflow without checking the migration guide. Never add `--yes` to a hosted DDL command until the project ref, change set and approval are verified. The new forward migration was applied through the connected Supabase project tool, not through the CLI; no CLI migration repair or old migration replay was executed. The next `supabase migration list --remote` should show `20261105205909` aligned with the local canonical filename.
+Before any future CLI call, inspect and pin the CLI version. A migration-history read should explicitly target the intended remote project with the v3 `--remote` form; do not copy a legacy `--linked` or `--project-ref` command into a new v3 workflow without checking the migration guide. Never add `--yes` to a hosted DDL command until the project ref, change set and approval are verified. The new forward migration was applied through the connected Supabase project tool, not through the CLI; no CLI migration repair or old migration replay was executed. The Monorepo target has its own filename/version map in `migration/supabase-history-alignment.json`; do not use that manifest to manage the separate Dynamic Production project.
 
 ## Dedicated SARGuardian-Monorepo Supabase project — verified 2026-11-06
 
@@ -180,22 +180,17 @@ The target reports nine remote migration records:
 
 | Remote version | Remote name | Local canonical file |
 |---|---|---|
-| 20261106000844 | 20261017143644_processing_jobs | 20261017143644_processing_jobs.sql |
-| 20261106000850 | 20261022203034_displacement_jobs | 20261022203034_displacement_jobs.sql |
-| 20261106000856 | 20261023141449_displacement_active_request_guard | 20261023141449_displacement_active_request_guard.sql |
-| 20261106000901 | 20261024111404_scientific_request_contract | 20261024111404_scientific_request_contract.sql |
-| 20261106000905 | 20261027003643_place_target_contract | 20261027003643_place_target_contract.sql |
-| 20261106000909 | 20261103100000_river_shift_jobs | 20261103100000_river_shift_jobs.sql |
-| 20261106000923 | 20261104120000_river_shift_analysis_modes | 20261104120000_river_shift_analysis_modes.sql |
-| 20261106000928 | 20261105205909_catalog_preflight_retention | 20261105205909_catalog_preflight_retention.sql |
-| 20261106064055 | 20261106100000_public_default_privileges_hardening | 20261106064055_public_default_privileges_hardening.sql |
+| 20261106000844 | 20261017143644_processing_jobs | 20261106000844_20261017143644_processing_jobs.sql |
+| 20261106000850 | 20261022203034_displacement_jobs | 20261106000850_20261022203034_displacement_jobs.sql |
+| 20261106000856 | 20261023141449_displacement_active_request_guard | 20261106000856_20261023141449_displacement_active_request_guard.sql |
+| 20261106000901 | 20261024111404_scientific_request_contract | 20261106000901_20261024111404_scientific_request_contract.sql |
+| 20261106000905 | 20261027003643_place_target_contract | 20261106000905_20261027003643_place_target_contract.sql |
+| 20261106000909 | 20261103100000_river_shift_jobs | 20261106000909_20261103100000_river_shift_jobs.sql |
+| 20261106000923 | 20261104120000_river_shift_analysis_modes | 20261106000923_20261104120000_river_shift_analysis_modes.sql |
+| 20261106000928 | 20261105205909_catalog_preflight_retention | 20261106000928_20261105205909_catalog_preflight_retention.sql |
+| 20261106064055 | 20261106100000_public_default_privileges_hardening | 20261106064055_20261106100000_public_default_privileges_hardening.sql |
 
-The first eight remote version identities do not match their local filename
-prefixes and remain an explicit read-only CLI v3 reconciliation task. The new
-ninth migration's version **does** match its local filename prefix; its
-recorded remote name is the original label passed to the Supabase migration
-tool. Do not rename or repair the first eight records, reapply old DDL, run
-`db push` or `db reset` until the history has been reconciled deliberately.
+The local Monorepo deployment filenames have now been aligned to all nine observed remote version IDs and recorded names. For each of the seven imported source SQL files, the SQL blob remains byte-identical to its immutable source snapshot; the two forward migrations retain their exact reviewed blob hashes. Only local filenames changed—no remote migration record was repaired, no SQL was replayed, and no database DDL was run during this alignment. Supabase CLI compares migration timestamps only, so the 14-digit filename prefixes now match the nine remote versions. Confirm with `supabase migration list --remote=qbmhpdprvxssqinnommz` after authenticated CLI access; do not run `db push` until that read-only command confirms all nine as matched.
 
 ### Live access and performance notes
 
@@ -214,7 +209,7 @@ tool. Do not rename or repair the first eight records, reapply old DDL, run
 ### Future-object default ACL hardening
 
 Migration
-`20261106064055_public_default_privileges_hardening.sql` was applied
+`20261106064055_20261106100000_public_default_privileges_hardening.sql` was applied
 successfully to this Free Tokyo target. It hardens defaults for **future
 objects created by `postgres`**:
 - revoke table and sequence defaults from `anon` and `authenticated` in
