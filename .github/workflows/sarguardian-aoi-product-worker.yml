@@ -104,20 +104,18 @@ jobs:
           test "$actual" = "$AOI_ORCHESTRATION_SHA"
           echo "AOI_ORCHESTRATION_REVISION_VERIFIED=$actual"
 
-      - name: Checkout the pinned dynamic-AOI scientific engine
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: moshiour0/SARGuardian-Monorepo
-          ref: 006d4cd1485cf80e509eaf8717c12e9c6390ac09
-          path: science-source
-
-      - name: Verify pinned science revision
+      - name: Verify immutable NISAR source snapshot
         shell: bash
         run: |
           set -euo pipefail
-          actual="$(git -C science-source rev-parse HEAD)"
-          test "$actual" = "$SCIENCE_COMMIT"
-          echo "SCIENCE_REVISION_VERIFIED=$actual"
+          SCIENCE_ROOT="$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd"
+          test -s "$SCIENCE_ROOT/README.md"
+          test -s "$SCIENCE_ROOT/requirements.txt"
+          test -s "$SCIENCE_ROOT/src/gunw_reader.py"
+          test -s "$SCIENCE_ROOT/src/goff_reader.py"
+          test -s "$SCIENCE_ROOT/src/local_floor.py"
+          echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -128,7 +126,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r science-source/requirements.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r engines/find-displacements/tools/requirements-retention.txt
 
       - name: Download first-attempt evidence for retry identity checks
@@ -173,7 +171,7 @@ jobs:
             if python engines/find-displacements/tools/download_nisar_product.py \
               --product-type "$PRODUCT_TYPE" --maturity "$MATURITY" \
               --granule-name "$GRANULE_NAME" \
-              --science-root "$PWD/science-source" --aoi "$AOI_NAME" \
+              --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" --aoi "$AOI_NAME" \
               --expected-source-bytes "$EXPECTED_SOURCE_BYTES" \
               --out-dir "$RAW_DIR" 2>&1 | tee "$attempt_log"; then
               cat "$attempt_log" >> "$log"
@@ -260,7 +258,7 @@ jobs:
           set -euo pipefail
           python engines/find-displacements/tools/validate_product_aoi.py \
             --input "$RAW_PATH" --product-type "$PRODUCT_TYPE" --aoi "$AOI_NAME" \
-            --science-root "$PWD/science-source" --science-commit "$SCIENCE_COMMIT" \
+            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" --science-commit "$SCIENCE_COMMIT" \
             --out "$CURATED_DIR/preflight-report.json"
 
       - name: Inventory source datasets and metadata
@@ -306,7 +304,7 @@ jobs:
           set -euo pipefail
           python engines/find-displacements/tools/verify_reader_equivalence.py \
             --product-type "$PRODUCT_TYPE" --source "$RAW_PATH" --archive "$ARCHIVE_PATH" \
-            --science-root "$PWD/science-source" --science-commit "$SCIENCE_COMMIT" \
+            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" --science-commit "$SCIENCE_COMMIT" \
             --aoi "$AOI_NAME" --preflight-report "$CURATED_DIR/preflight-report.json" \
             --out "$CURATED_DIR/reader-equivalence.json"
           python - <<'PY'
@@ -332,14 +330,14 @@ jobs:
             stats="$CURATED_DIR/derived/gunw_stats_custom.csv"
             export_dir="$CURATED_DIR/derived/export_custom"
             mkdir -p "$export_dir"
-            python science-source/src/gunw_reader.py \
+            python "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/src/gunw_reader.py" \
               --read "$RAW_PATH" --aoi "$AOI_NAME" --auto-ref --csv "$stats" --export "$export_dir" \
               2>&1 | tee "$reader_log"
           else
             stats="$CURATED_DIR/derived/goff_stats_custom.csv"
             export_dir="$CURATED_DIR/derived/export_goff_custom"
             mkdir -p "$export_dir"
-            python science-source/src/goff_reader.py \
+            python "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/src/goff_reader.py" \
               --read "$RAW_PATH" --aoi "$AOI_NAME" --layer layer2 --csv "$stats" --export "$export_dir" \
               2>&1 | tee "$reader_log"
           fi
@@ -389,7 +387,7 @@ jobs:
             exit 0
           fi
           set +e
-          python science-source/src/local_floor.py \
+          python "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/src/local_floor.py" \
             --dir "$export_dir" --aoi custom --lat "$TARGET_LATITUDE" --lon "$TARGET_LONGITUDE" \
             "${match_args[@]}" --band 1 --sweep 3 6 12 --csv "$output" \
             > "$root/local_floor.log" 2>&1
