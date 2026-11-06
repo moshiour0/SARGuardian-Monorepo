@@ -147,7 +147,7 @@ The machine-readable structural audit is documented in [workflow-contract-audit.
 - Three retained RiverShift replay workflows have `push` triggers in addition to manual dispatch. These must not be promoted unchanged into the monorepo because unrelated source pushes could cause replay activity.
 - Multiple worker/test workflows still check out `Sagormodak/SARGuardian`. Do not silently redirect these to `moshiour0/SARGuardian` until source identity and expected historical revision are verified.
 - Dynamic and backend each contain copies of similarly named AOI worker/dashboard workflows. Their role must be decided from actual callers and payload contracts, not filename similarity.
-- The Monorepo root now contains 32 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
+- The Monorepo root now contains 35 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
 - The API-facing Find Displacements workflow remains named `sarguardian-aoi-wkt-dashboard.yml` because its `workflow_dispatch.inputs` carries the account-job and callback contract consumed by `apps/api/app/displacements.py`. `sarguardian-aoi-wkt-dispatcher.yml` is a separate manual entrypoint, not an interchangeable API target.
 - Author-exact P05023 resolves its historical `b825df…` backend code and `10639a9…` NISAR science from local immutable Monorepo snapshots, with no push trigger and explicit author consent. The generic two-polygon Known Place flow remains separate.
 - API Preview destinations now point to Monorepo workflow names on `migration/source-snapshot-import`; all processing flags remain false. Production API dispatch and original Backend workflows remain authoritative until end-to-end acceptance and explicit cutover. OPERA/Run #36 replay evidence remains archived under `migration/source-branch-snapshots/`.
@@ -203,10 +203,18 @@ workflow promotion.
 - RiverShift: independent NISAR GCOV dispatcher/worker with the original 20-job
   processing graph wrapped by a fail-closed gate. Four sequential first-pass
   batches retain max-parallel 15, failed-only retry waves, artifact receipt
-  reconciliation and final failure propagation. A separate manual-only
-  Independent Reference Validation workflow now calls the promoted local
-  validator, requires an explicit Monorepo API URL and uses its own fail-closed
-  gate; it cannot trigger the GCOV processor.
+  reconciliation and final failure propagation. Independent Reference
+  Validation remains separate. Three more manual retained-reference replays
+  are now promoted: OPERA DSWx-S1, Run #36 historical area benchmark, and
+  Sentinel-2 cross-sensor screening. Each validates the source run as a
+  successful same-branch Monorepo GCOV workflow-dispatch run and binds the
+  prepared artifact to the supplied job UUID. Sentinel-2 downloads all retained
+  GCOV product batches and creates a separate source-run binding copy without
+  mutating the original manifest. Run #36 uses a Monorepo-only wrapper around
+  the byte-identical canonical replay module, restricts the replay to six
+  checksum-verified COGs, and records the original Run #36 metrics as a
+  historical reference baseline rather than claiming the new run is the
+  original worker artifact. Each replay has its own disabled opt-in gate.
 - Dashboard artifact maintenance: the retained-artifact smoke workflow accepts
   only a successful AOI run from this Monorepo Preview branch, verifies
   repository/workflow provenance, downloads the exact run-attempt artifact,
