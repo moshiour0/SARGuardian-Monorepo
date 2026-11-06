@@ -8,8 +8,6 @@ on:
       - "migration/source-snapshots/**"
       - "migration/workflow-dispositions.json"
       - "tools/validate_workflow_dispositions.py"
-      - "migration/workflow-dispositions.json"
-      - "tools/validate_workflow_dispositions.py"
       - "migration/source-branch-snapshots/**"
       - ".github/workflows/know-place-aoi-analysis.yml"
       - ".github/workflows/know-place-aoi-dispatcher.yml"
@@ -34,6 +32,8 @@ on:
   pull_request:
     paths:
       - "migration/source-snapshots/**"
+      - "migration/workflow-dispositions.json"
+      - "tools/validate_workflow_dispositions.py"
       - "migration/source-branch-snapshots/**"
       - ".github/workflows/know-place-aoi-analysis.yml"
       - ".github/workflows/know-place-aoi-dispatcher.yml"
