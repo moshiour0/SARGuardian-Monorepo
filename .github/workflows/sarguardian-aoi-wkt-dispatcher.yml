@@ -1,5 +1,5 @@
 name: SARGuardian AOI WKT E2E (Monorepo dispatcher)
-run-name: SARGuardian AOI \${{ inputs.start_date }}..\${{ inputs.end_date }}
+run-name: SARGuardian AOI ${{ inputs.start_date }}..${{ inputs.end_date }}
 
 # Central Monorepo entry point. Never dispatches to the old Backend repository.
 on:
@@ -50,7 +50,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: monorepo-aoi-manual-\${{ github.run_id }}
+  group: monorepo-aoi-manual-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Fail closed before worker checkout or data access
         env:
-          MONOREPO_DISPLACEMENT_ENABLED: \${{ vars.MONOREPO_DISPLACEMENT_ACTIONS_ENABLED }}
+          MONOREPO_DISPLACEMENT_ENABLED: ${{ vars.MONOREPO_DISPLACEMENT_ACTIONS_ENABLED }}
         shell: bash
         run: |
           set -euo pipefail
@@ -76,17 +76,17 @@ jobs:
     needs: preflight
     uses: ./.github/workflows/sarguardian-aoi-dashboard-engine.yml
     with:
-      aoi_wkt: \${{ inputs.aoi_wkt }}
-      start_date: \${{ inputs.start_date }}
-      end_date: \${{ inputs.end_date }}
-      date_filter_mode: \${{ inputs.date_filter_mode }}
-      run_profile: \${{ inputs.run_profile }}
-      retention_profile: \${{ inputs.retention_profile }}
+      aoi_wkt: ${{ inputs.aoi_wkt }}
+      start_date: ${{ inputs.start_date }}
+      end_date: ${{ inputs.end_date }}
+      date_filter_mode: ${{ inputs.date_filter_mode }}
+      run_profile: ${{ inputs.run_profile }}
+      retention_profile: ${{ inputs.retention_profile }}
     secrets:
-      DISPLACEMENT_CALLBACK_SECRET: \${{ secrets.DISPLACEMENT_CALLBACK_SECRET }}
-      EARTHDATA_TOKEN: \${{ secrets.EARTHDATA_TOKEN }}
-      EARTHDATA_USERNAME: \${{ secrets.EARTHDATA_USERNAME }}
-      EARTHDATA_PASSWORD: \${{ secrets.EARTHDATA_PASSWORD }}
-      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: \${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
-      GOOGLE_DRIVE_REFRESH_TOKEN: \${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
-      GOOGLE_DRIVE_PARENT_FOLDER_ID: \${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
+      DISPLACEMENT_CALLBACK_SECRET: ${{ secrets.DISPLACEMENT_CALLBACK_SECRET }}
+      EARTHDATA_TOKEN: ${{ secrets.EARTHDATA_TOKEN }}
+      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+      GOOGLE_DRIVE_OAUTH_CLIENT_JSON: ${{ secrets.GOOGLE_DRIVE_OAUTH_CLIENT_JSON }}
+      GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
+      GOOGLE_DRIVE_PARENT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID }}
