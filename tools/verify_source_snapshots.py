@@ -617,7 +617,7 @@ def main() -> int:
         name = str(record.get("remote_name", ""))
         destination_path = str(record.get("destination_path", ""))
         blob_sha = str(record.get("blob_sha", ""))
-        if not re.fullmatch(r"\\d{14}", version):
+        if not re.fullmatch(r"[0-9]{14}", version):
             raise RuntimeError(f"Supabase migration has an invalid remote version: {version}")
         if not name or "/" in name or not re.fullmatch(r"[a-zA-Z0-9_]+", name):
             raise RuntimeError(f"Supabase migration has an invalid remote name: {name}")
