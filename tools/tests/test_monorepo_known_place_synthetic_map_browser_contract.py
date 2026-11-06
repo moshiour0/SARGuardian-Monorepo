@@ -29,6 +29,7 @@ def test_generic_map_browser_smoke_is_manual_and_synthetic_only():
     assert "NOT_EVALUATED" in text
     assert "raw_hdf5_read_or_downloaded:false" in text
     assert "RAW_HDF5_MEMBERS=0" in text
+    assert "engines/known-place/artifacts/generic-aoi-browser/**" in text
     assert "GOOGLE_DRIVE" not in text
     assert "EARTHDATA" not in text
     assert "secrets." not in text
