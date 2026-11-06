@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
 import { Hero } from '../components/Hero';
 import { HomeSections } from './HomeSections';
+import { apiConnectionNotice } from '../authGating';
 
 import type { User } from 'firebase/auth';
 
@@ -44,9 +45,7 @@ export function Home({ user, authState, authError, apiConnectionStatus, apiConne
             role={apiConnectionStatus === 'error' ? 'alert' : 'status'}
             aria-live="polite"
           >
-            {apiConnectionStatus === 'checking' && 'Google sign-in is active. Verifying Firebase ID token and the Monorepo Supabase job store…'}
-            {apiConnectionStatus === 'ready' && 'Backend connection verified: Firebase ID token accepted and the Monorepo Supabase job store responded. No science workflow was started.'}
-            {apiConnectionStatus === 'error' && `Google sign-in succeeded, but the authenticated API/Supabase check failed: ${apiConnectionError || 'Unknown backend error.'} The session remains signed in; processing must remain disabled until this is resolved.`}
+            {apiConnectionNotice(apiConnectionStatus, apiConnectionError)}
           </section>
         )}
         <Hero onStartExploring={onOpenWorkspace} />
