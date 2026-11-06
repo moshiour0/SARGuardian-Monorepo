@@ -23,7 +23,8 @@ def test_single_download_is_manual_gated_and_cleans_raw_product():
     assert '!= "true"' in text
     assert "earthaccess.download(" in text
     assert "shutil.rmtree(temp_dir)" in text
-    assert "raw directory remains" in text
+    assert "Cleanup verification failed safely." in text
+    assert "NISAR_DOWNLOAD_CLEANUP_SUCCESS" in text
     assert "GOOGLE_DRIVE_PARENT_FOLDER_ID" not in text
     assert "drive_resumable_upload.py" not in text
     assert "actions/setup-python@v5" not in text
@@ -40,6 +41,7 @@ def test_multi_granule_storage_is_separately_gated_at_15_gb_and_cleans_raw_data(
     assert "MAX_GRANULES = 8" in text
     assert "earthaccess.download(" in text
     assert "shutil.rmtree(temp_dir)" in text
+    assert "NISAR_MULTI_GRANULE_CLEANUP_SUCCESS" in text
     assert "GOOGLE_DRIVE_PARENT_FOLDER_ID" not in text
     assert "drive_resumable_upload.py" not in text
     assert "actions/setup-python@v5" not in text
