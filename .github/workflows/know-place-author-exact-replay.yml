@@ -1,7 +1,6 @@
 name: Know Place Analysis - exact author P05023 replay
 
-# Push events register the isolated workflow but never authorize raw work.
-# Manual dispatch and reusable calls require the exact [run-know-place] marker.
+# No push trigger: raw source acquisition is manual/reusable and consent-gated only.
 on:
   # Manual or reusable invocation only. No push-triggered raw acquisitions.
   workflow_dispatch:
@@ -268,11 +267,50 @@ jobs:
         if: steps.credentials.outputs.secrets_ready == 'true' && steps.author_archive.outputs.archive_ready == 'true'
         continue-on-error: true
         shell: bash
+        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
         env:
           RUN_GEOMETRY_HEIGHT_M: ${{ inputs.geometry_height_m || '5151' }}
           RUN_CONTROL_DRAWS: ${{ inputs.control_draws || '1000' }}
           RUN_SEED: ${{ inputs.seed || '260826' }}
         run: python -m tools.know_place.author_exact_acquisition --operation download-and-analyze --out-root "$RUN_ROOT" --science-root "$SCIENCE_SOURCE_ROOT" --terrain-root "$AUTHOR_TERRAIN_ROOT" --consent-marker "[run-know-place]" --geometry-height-m "$RUN_GEOMETRY_HEIGHT_M" --control-draws "$RUN_CONTROL_DRAWS" --seed "$RUN_SEED"
+
+      - name: Bind immutable backend and science source pins into provenance
+        if: steps.analysis.outcome == 'success'
+        shell: bash
+        env:
+          BACKEND_CODE_REF: ${{ inputs.backend_code_ref || '' }}
+        run: |
+          set -euo pipefail
+          MANIFEST="$RUN_ROOT/source-run/author-exact-source-manifest.json"
+          test -s "$MANIFEST"
+          python - "$MANIFEST" "$BACKEND_CODE_REF" "$GITHUB_SHA" "$GITHUB_REF" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          manifest_path, backend_sha, orchestrator_sha, orchestrator_ref = sys.argv[1:]
+          if not re.fullmatch(r"[0-9a-f]{40}", backend_sha):
+              raise SystemExit("ERROR=AUTHOR_EXACT_BACKEND_SOURCE_PIN_INVALID")
+          if backend_sha != "b825df798ea4cb9874aa10dd01174d2a8ef73cba":
+              raise SystemExit("ERROR=AUTHOR_EXACT_BACKEND_SOURCE_PIN_MISMATCH")
+          path = Path(manifest_path)
+          data = json.loads(path.read_text(encoding="utf-8"))
+          data["orchestrator_repository"] = "moshiour0/SARGuardian-Monorepo"
+          data["orchestrator_ref"] = orchestrator_ref
+          data["orchestrator_commit"] = orchestrator_sha
+          data["analysis_code_repository"] = "moshiour0/SARGuardian-backend"
+          data["repository_branch"] = "immutable-source-pin"
+          data["repository_commit"] = backend_sha
+          data["analysis_code_snapshot_path"] = "migration/source-snapshots/backend-pins/b825df"
+          data["science_repository"] = "moshiour0/SARGuardian"
+          data["science_commit"] = "10639a916c9829850775410b3ed7de62e527770d"
+          data["science_snapshot_path"] = "migration/source-snapshots/nisar-pins/10639a9"
+          path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+          check = json.loads(path.read_text(encoding="utf-8"))
+          if check.get("repository_commit") != backend_sha or check.get("science_commit") != "10639a916c9829850775410b3ed7de62e527770d":
+              raise SystemExit("ERROR=AUTHOR_EXACT_SOURCE_LINEAGE_VERIFICATION_FAILED")
+          print("AUTHOR_EXACT_BACKEND_SOURCE_PIN=PASS")
+          print("AUTHOR_EXACT_NISAR_SOURCE_PIN=PASS")
+          print("MONOREPO_ORCHESTRATOR_REVISION_RETAINED=PASS")
+          PY
 
       - name: Check source inputs exist for independent footprint audit
         id: footprint_inputs
@@ -293,6 +331,7 @@ jobs:
         if: always() && steps.credentials.outputs.secrets_ready == 'true' && steps.author_archive.outputs.archive_ready == 'true' && steps.footprint_inputs.outputs.present == 'true'
         continue-on-error: true
         shell: bash
+        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
         run: |
           set -euo pipefail
           python -m tools.know_place.author_footprint_replay \
@@ -315,6 +354,7 @@ jobs:
         id: final_report
         if: steps.footprint.outcome == 'success'
         shell: bash
+        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
         run: |
           set -euo pipefail
           python - "$DERIVED_ROOT/author-exact-analysis-status.json" "$DERIVED_ROOT/know-place-analysis-report.json" "$DERIVED_ROOT/author-raw-site-series-report.json" "$DERIVED_ROOT/footprint/author-footprint-replay-report.json" <<'PY'
@@ -366,6 +406,7 @@ jobs:
         id: dashboard
         if: always() && steps.analysis.outcome == 'success' && steps.credentials.outputs.secrets_ready == 'true'
         shell: bash
+        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
         run: |
           set -euo pipefail
           python -m tools.know_place.author_dashboard --result-root "$DERIVED_ROOT" --output "$DERIVED_ROOT/dashboard.html"
@@ -447,6 +488,7 @@ jobs:
         id: raw_cleanup
         if: steps.drive_upload.outcome == 'success'
         shell: bash
+        working-directory: ${{ env.BACKEND_SOURCE_ROOT }}
         run: |
           set -euo pipefail
           python -m tools.know_place.author_exact_retention \
