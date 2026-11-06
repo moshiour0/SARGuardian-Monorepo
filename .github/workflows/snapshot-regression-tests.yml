@@ -260,12 +260,13 @@ jobs:
         run: |
           python --version
           python -m compileall -q tools/river_shift
+          python -m py_compile tools/river_shift/verify_monorepo_source_run.py tools/river_shift/replay_retained_run36_monorepo.py
           echo "PROMOTED_RIVERSHIFT_COMPILE_PASS"
       - name: Run RiverShift unit and workflow-contract tests
         shell: micromamba-shell {0}
         env:
           PYTHONPATH: ${{ github.workspace }}/engines/river-shift/tools/river_shift
-        run: python -m pytest -q tools/river_shift/tests "$GITHUB_WORKSPACE/tools/tests/test_monorepo_rivershift_workflow_contract.py"
+        run: python -m pytest -q tools/river_shift/tests "$GITHUB_WORKSPACE/tools/tests/test_monorepo_rivershift_workflow_contract.py" "$GITHUB_WORKSPACE/tools/tests/test_monorepo_rivershift_retained_replay_contract.py"
       - name: Run archived OPERA DSWx-S1 and RTC-S1 regression suite against promoted engine
         shell: micromamba-shell {0}
         env:
