@@ -47,17 +47,18 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/known_place.py",
       "destination_path": "apps/api/app/known_place.py",
       "source_blob_sha": "4b5a36a0a88a7e46c27ba0b2f52b5925279de7fc",
-      "destination_blob_sha": "f23926eaa481688adbee6b5f43b5c9cf758889bf",
+      "destination_blob_sha": "fca6e3324d5d9dd94a43f2bc929b0f05ee273be0",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Route generic two-polygon and author-exact P05023 dispatch, status, result and artifact retrieval through separate validated RuntimeSettings destinations while preserving legacy backend defaults.",
+      "reason": "Route generic two-polygon and author-exact P05023 dispatch, status and result retrieval through separate destinations; let the API supply a UUID already persisted to the Firebase owner ledger while preserving direct-call behavior.",
       "implementation_commits": [
         "097243026e42fe9e09573046380be5c0d8c232d9",
         "62a8cec36a5bf4c30d5dccb17ffe2c0108e925a0",
-        "796f978b9a80a96db92fb2e4ec3f359593bae0b4"
+        "796f978b9a80a96db92fb2e4ec3f359593bae0b4",
+        "dbdba91e266493ab094279595d7eee6ea4fb1355"
       ],
       "verification_paths": [
-        "apps/api/tests/test_known_place.py"
+        "apps/api/tests/test_main.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -248,6 +249,105 @@
       ],
       "verification_paths": [
         "apps/web/src/authGating.test.ts"
+      ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/main.py",
+      "destination_path": "apps/api/app/main.py",
+      "source_blob_sha": "27316589dbfd4213f16c0de9ebd22beb8434ccae",
+      "destination_blob_sha": "7e3d2a392c9bb63184c58656d007ac2415ad7696",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Persist Firebase owner-to-request mappings before Known Place dispatch and require matching owner UID plus workflow kind on generic status, result, bundle and author-exact status reads.",
+      "implementation_commits": [
+        "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_main.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/persistence.py",
+      "destination_path": "apps/api/app/persistence.py",
+      "source_blob_sha": "a5828d031927e4ae7d7d998c3dddea1a99c87098",
+      "destination_blob_sha": "4012c6bcfb450e848bec2d3d046cce7a90d8a430",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add service-role-only Supabase methods for Known Place request ownership and fail API server-role preflight when the owner-mapping migration has not been applied.",
+      "implementation_commits": [
+        "7b6e6be2d5d00f88146f966610f0bf07b97b5eae"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_main.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_main.py",
+      "destination_path": "apps/api/tests/test_main.py",
+      "source_blob_sha": "2bc956c3a4a5c2a347677b38772955283da70ea2",
+      "destination_blob_sha": "6dbaef1bf220ce252b7ebf2302703a4d48247508",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Test owner-only Known Place status, result and bundle retrieval, workflow-kind separation, authentication and durable owner mapping before the GitHub dispatch call.",
+      "implementation_commits": [
+        "b5a7bc85eb7d8c7a3895ce589ae37ea0697b4702"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_main.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_persistence_headers.py",
+      "destination_path": "apps/api/tests/test_persistence_headers.py",
+      "source_blob_sha": "410d64d9e71549cd859d58ddba0b5d3381d3833b",
+      "destination_blob_sha": "f90ef1d12cf6fc5a61b934def2f7e06cec7c30d8",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Extend the Supabase secret-header regression test to assert the zero-row service-role access probe checks both displacement_jobs and known_place_requests.",
+      "implementation_commits": [
+        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_persistence_headers.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/plan_aoi_retries.py",
+      "destination_path": "engines/find-displacements/tools/plan_aoi_retries.py",
+      "source_blob_sha": "3d607faa81fac17970adbe627332afbbd674d2f7",
+      "destination_blob_sha": "c998b1bf94c9ef03997cd7dac10dc7a38444bbf3",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Retry only explicit transient Google Drive retention failures after download, AOI preflight, reader and structural validation have passed; preserve deterministic science/provenance failures as terminal and never rerun green products.",
+      "implementation_commits": [
+        "99dfa9189fe186dd7bf04f89a150e3bf979d7331",
+        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/tests/test_plan_aoi_retries.py",
+      "destination_path": "engines/find-displacements/tools/tests/test_plan_aoi_retries.py",
+      "source_blob_sha": "6ee6a74ed9344f1df3dad91954444bb8c3042c6f",
+      "destination_blob_sha": "6ec279261e623d43ca5901b8d21d6b4fcd3009d1",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add regression tests proving transient Drive HTTP 502 after validated science retries only the failed product, permanent Drive 403 is terminal, successful products remain PASS, and workflow assertions inspect the active root workflow graph.",
+      "implementation_commits": [
+        "aef4b1076ae1315fd96a877f31711543e010fb50",
+        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89",
+        "cde8671ba6a1f56846c34e10b36af834ba9f4cc4"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
       ]
     }
   ]

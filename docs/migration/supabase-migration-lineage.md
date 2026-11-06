@@ -2,7 +2,7 @@
 
 **Source:** `moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6`  
 **Promoted destination:** `infrastructure/supabase/`  
-**Status:** exact source SQL provenance is preserved; the two Monorepo forward migrations are applied and verified on the dedicated Free Tokyo target. Monorepo local filenames now match its nine observed remote version prefixes. The existing Dynamic Production database is a separate target whose legacy history remains unrepaired.
+**Current status (supersedes earlier nine-row checkpoint):** the dedicated Free Tokyo Monorepo target reports 11 remote migration rows, and all 11 version/name pairs match the canonical filenames in `infrastructure/supabase/migrations/`. Four Monorepo forward migrations are present and verified: catalogue-preflight retention, public default-privilege hardening, the processing-jobs preflight FK index, and owner-read RLS initplan optimization. The earlier nine-row tables below are preserved as historical checkpoints; the current 11-row table is at the end of this document. The existing Dynamic Production database is a separate target whose legacy history remains unrepaired.
 
 ## Files imported
 
@@ -38,7 +38,7 @@ The first four records have a remote `version` that differs from the timestamp e
 
 ## Required before any `supabase db push`
 
-This section applies only to the existing Dynamic Production project `SARGuardian_Dynamic` (`ufwjmhivvnoewjsbteey`). Do not apply its legacy version/name observations to the Monorepo target. Matching SQL content or table structure does not make migration-history records interchangeable. The old project's first four local filenames have UTC-style source-commit prefixes while its remote history contains deployment timestamps; the RiverShift names/timestamps also differ. The Monorepo target has a separate nine-row alignment manifest and CI contract.
+This section applies only to the existing Dynamic Production project `SARGuardian_Dynamic` (`ufwjmhivvnoewjsbteey`). Do not apply its legacy version/name observations to the Monorepo target. Matching SQL content or table structure does not make migration-history records interchangeable. The old project's first four local filenames have UTC-style source-commit prefixes while its remote history contains deployment timestamps; the RiverShift names/timestamps also differ. The Monorepo target has a separate twelve-row alignment manifest and CI contract.
 
 Before any future database write:
 1. run read-only `supabase migration list --remote` (CLI v3) against the **Dynamic Production project** and compare it with that project's exact original local migration directory;
@@ -153,7 +153,7 @@ For the existing Dynamic Production project `ufwjmhivvnoewjsbteey`, the seven pr
 
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
 
-Before any future CLI call, inspect and pin the CLI version. For the Monorepo target, use the aligned nine-file manifest and run a read-only v3 migration list against `qbmhpdprvxssqinnommz` after CLI authentication. For Dynamic Production, use its own original local Supabase migration directory and separate project ref; never reuse the Monorepo manifest. Do not copy legacy `--linked`/`--project-ref` syntax into a v3 workflow without checking current documentation. Never add `--yes` to a hosted DDL command until project ref, change set and approval are verified. No CLI migration repair or old migration replay was executed.
+Before any future CLI call, inspect and pin the CLI version. For the Monorepo target, use the aligned twelve-file manifest and run a read-only v3 migration list against `qbmhpdprvxssqinnommz` after CLI authentication. For Dynamic Production, use its own original local Supabase migration directory and separate project ref; never reuse the Monorepo manifest. Do not copy legacy `--linked`/`--project-ref` syntax into a v3 workflow without checking current documentation. Never add `--yes` to a hosted DDL command until project ref, change set and approval are verified. No CLI migration repair or old migration replay was executed.
 
 ## Dedicated SARGuardian-Monorepo Supabase project — verified 2026-11-06
 
@@ -167,16 +167,23 @@ The Monorepo database target is live and healthy:
 - PostgreSQL: 17.11.0.018
 - Project status: ACTIVE_HEALTHY
 
-The four expected public job tables exist: `catalog_preflights`,
-`processing_jobs`, `displacement_jobs`, and `river_shift_jobs`. At the
-last read-only check they were all empty and RLS-enabled. Each has an
-authenticated owner-read policy bound to the JWT `sub` claim; none of these
-tables grants direct access to `anon` or `authenticated`. Security Advisor
-returned no findings.
+The four historical public job tables exist and are RLS-enabled:
+`catalog_preflights`, `processing_jobs`, `displacement_jobs`, and
+`river_shift_jobs`. They contain the 80-row metadata-only mirror
+(3/2/51/24); four authenticated owner-read policies bind JWT `sub` to
+`owner_uid`, and browser roles have no direct table grants.
+
+A fifth table, `known_place_requests`, has RLS enabled and 0 rows. It stores
+only request UUID, Firebase owner UID, workflow kind, dispatch state and
+creation timestamp—no AOI or science payload. It intentionally has no browser
+policy or browser grants; `service_role` alone has SELECT/INSERT/UPDATE and
+has `BYPASSRLS=true`. `anon` and `authenticated` have neither table grants
+nor RLS bypass. Security Advisor's only new notice is the expected INFO-level
+`rls_enabled_no_policy` for this private server-only table.
 
 ### Monorepo remote migration records
 
-The target reports nine remote migration records:
+The initial Monorepo checkpoint reported nine remote migration records (the two later performance migrations and owner-mapping migration are recorded in the superseding inventory below):
 
 | Remote version | Remote name | Local canonical file |
 |---|---|---|
@@ -190,18 +197,18 @@ The target reports nine remote migration records:
 | 20261106000928 | 20261105205909_catalog_preflight_retention | 20261106000928_20261105205909_catalog_preflight_retention.sql |
 | 20261106064055 | 20261106100000_public_default_privileges_hardening | 20261106064055_20261106100000_public_default_privileges_hardening.sql |
 
-The local Monorepo deployment filenames have now been aligned to all nine observed remote version IDs and recorded names. For each of the seven imported source SQL files, the SQL blob remains byte-identical to its immutable source snapshot; the two forward migrations retain their exact reviewed blob hashes. Only local filenames changed—no remote migration record was repaired, no SQL was replayed, and no database DDL was run during this alignment. Supabase CLI compares migration timestamps only, so the 14-digit filename prefixes now match the nine remote versions. Confirm with `supabase migration list --remote=qbmhpdprvxssqinnommz` after authenticated CLI access; do not run `db push` until that read-only command confirms all nine as matched.
+At that nine-record checkpoint, the local Monorepo deployment filenames matched every observed remote version/name pair. The seven imported SQL blobs remained byte-identical to their immutable source snapshots; the two forward migrations retained their reviewed blob hashes. Later additions are recorded in the superseding twelve-record inventory below. No remote migration record was repaired, no SQL was replayed, and no database DDL was run during that filename-alignment operation.
 
 ### Live access and performance notes
 
-- Security Advisor: zero lints after the default-privilege migration.
+- Security Advisor: no security findings on the four historical tables; one expected INFO-level `rls_enabled_no_policy` notice on `known_place_requests`.
 - Performance Advisor: one unindexed FK on `processing_jobs.preflight_id`,
   four policy-evaluation warnings, and eight unused-index INFO findings on a
   newly provisioned, low-volume database. Do not drop indexes or change owner
   policies without query-plan evidence.
 - Current table grants remain limited to `postgres` and `service_role`;
-  `anon` and `authenticated` have no direct table grants. All four tables
-  have RLS enabled.
+  `anon` and `authenticated` have no direct table grants. All five tables
+  have RLS enabled. The new owner map grants only service-role SELECT/INSERT/UPDATE.
 - The daily `sarguardian-expired-preflight-cleanup` job is active at 03:20
   UTC. Its owner-only SECURITY DEFINER purge function retains an empty
   `search_path` and is executable only by `postgres`.
@@ -234,16 +241,48 @@ tables and grant only the roles each object requires.
 ### Secret key handling and API integration
 
 The API persistence module accepts a modern opaque `sb_secret_` key or a
-legacy `service_role` JWT. The API Preview environment contains the target
-`SUPABASE_URL`, but not `SUPABASE_SERVICE_ROLE_KEY`; it also lacks Firebase
-Admin JSON, GitHub Actions token, HMAC callback secrets and Drive OAuth
-values. Create a dedicated named secret `sarguardian-monorepo-api` in
-Supabase Dashboard → Settings → API Keys and add it only to the Monorepo
-Vercel API Preview environment. Never put it in Web/`VITE_*` variables,
-GitHub source, workflow logs or chat. Do not reuse the Dynamic Production
-key.
+legacy `service_role` JWT. The Preview environment variables are branch-scoped to
+`migration/source-snapshot-import`; that branch has the expected API/Web
+Preview variable sets. The security PR branch has no branch-specific Preview
+variables, so its READY Vercel API Preview build verifies import/route startup
+only—not Firebase Admin, Supabase server-role access, GitHub dispatch or Drive
+retrieval. The API Production project has the server-only credentials, but
+authenticated Firebase-to-Supabase use remains unverified. Never put a
+Supabase service key in Web/`VITE_*` variables, GitHub source, workflow logs
+or chat. Do not reuse the Dynamic Production key.
 
 The Dynamic Production Supabase project remains separate and unchanged. The
 Monorepo database is for isolated Preview integration and eventual reviewed
 cutover; workflow credential setup and API dispatch cutover remain separate
 acceptance gates.
+
+
+## Superseding Monorepo target inventory — 2026-11-06
+
+The nine-row Monorepo checkpoint recorded above predates three later additive
+migrations. The current Tokyo project `qbmhpdprvxssqinnommz` now reports **12 remote
+migration records**, with 12 matching canonical Git filenames under
+`infrastructure/supabase/migrations/`. The three later additions are:
+
+| Remote version | Recorded name | Canonical local filename |
+|---|---|---|
+| `20261106133548` | `processing_jobs_preflight_id_index` | `20261106133548_processing_jobs_preflight_id_index.sql` |
+| `20261106134132` | `optimize_owner_read_rls_initplan` | `20261106134132_optimize_owner_read_rls_initplan.sql` |
+| `20261106171458` | `known_place_request_ownership` | `20261106171458_known_place_request_ownership.sql` |
+
+These are additive performance migrations: the first adds the
+`processing_jobs.preflight_id` index; the second changes owner-read policy
+expressions to an initplan-friendly scalar `(select auth.jwt())` form. The
+current Performance Advisor reports six INFO-level unused-index notices only;
+the earlier unindexed-FK and four RLS initplan warnings are no longer present.
+The new `known_place_requests` migration adds the service-role-only owner
+ledger; its RLS-enabled/no-browser-policy INFO notice is expected, with no
+anon/authenticated grants. The owner table remains empty until an accepted
+Known Place request is submitted.
+
+The canonical migration root remains `infrastructure/supabase/`. The
+`apps/api/supabase/` directory remains the unchanged source-snapshot import and
+must not be used as the Monorepo target's migration root. See
+`supabase-target.md` for the current schema, 80-row metadata mirror, empty
+Known Place owner mapping and 12/12 migration alignment. The matching
+`migration/supabase-history-alignment.json` records the exact local blob SHA.

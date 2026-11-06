@@ -185,24 +185,89 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "sarguardian-catalogue-api"}
 
 
+def _owned_known_place_request(
+    user: dict,
+    request_id: str,
+    request_kind: str,
+    invalid_detail: str = "Invalid Known Place request ID.",
+) -> dict:
+    try:
+        normalized_id = UUID(request_id)
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=422, detail=invalid_detail) from None
+    try:
+        record = _require_store().get_known_place_request(
+            _required_owner_uid(user), normalized_id, request_kind,
+        )
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not verify Known Place request ownership.") from None
+    if not record:
+        # Same response for unknown IDs and another account's IDs; do not create an IDOR oracle.
+        raise HTTPException(status_code=404, detail="Known Place request was not found for this user.")
+    if record.get("dispatch_state") == "dispatch_failed":
+        raise HTTPException(status_code=409, detail="This Known Place request was not accepted by GitHub Actions.")
+    return record
+
+
+def _dispatch_owned_known_place_request(
+    user: dict,
+    request: KnownPlaceAnalysisRequest | KnownPlacePaperReproductionRequest,
+    request_kind: str,
+) -> KnownPlaceAnalysisSubmission:
+    settings = get_settings()
+    if not settings.displacement_actions_enabled:
+        raise HTTPException(status_code=503, detail="Known Place processing is disabled by server configuration.")
+    owner_uid = _required_owner_uid(user)
+    store = _require_store()
+    request_id = uuid4()
+    values = {
+        "request_id": str(request_id),
+        "owner_uid": owner_uid,
+        "request_kind": request_kind,
+        "dispatch_state": "dispatching",
+    }
+    try:
+        store.create_known_place_request(values)
+    except PersistenceError:
+        # Never dispatch a user-supplied AOI unless its owner mapping is durable first.
+        raise HTTPException(status_code=503, detail="Could not persist Known Place request ownership; no workflow was dispatched.") from None
+    try:
+        if request_kind == "generic":
+            submission = dispatch_known_place_analysis(settings, request, request_id=str(request_id))
+        elif request_kind == "paper_reproduction":
+            submission = dispatch_known_place_paper_reproduction(settings, request, request_id=str(request_id))
+        else:
+            raise HTTPException(status_code=500, detail="Unsupported Known Place request kind.")
+    except KnownPlaceWorkflowError as exc:
+        try:
+            store.update_known_place_request(owner_uid, request_id, request_kind, "dispatch_failed")
+        except PersistenceError:
+            logger.error("Known Place dispatch failed and its owner mapping could not be marked terminal.")
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    try:
+        store.update_known_place_request(owner_uid, request_id, request_kind, "dispatched")
+    except PersistenceError:
+        # The pre-dispatch ownership row remains valid; status polling can still resolve the accepted run.
+        logger.warning("Known Place dispatch succeeded but the owner mapping state update failed.")
+    return submission
+
+
 @app.post("/api/known-place-analysis", response_model=KnownPlaceAnalysisSubmission)
 def submit_known_place_analysis(
     request: KnownPlaceAnalysisRequest,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> KnownPlaceAnalysisSubmission:
-    """Dispatch the isolated GOFF Know Place engine, independent of Find Displacements."""
-    try:
-        return dispatch_known_place_analysis(get_settings(), request)
-    except KnownPlaceWorkflowError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from None
+    """Persist request ownership before dispatching the independent GOFF Known Place engine."""
+    return _dispatch_owned_known_place_request(user, request, "generic")
 
 
 @app.get("/api/known-place-analysis/requests/{request_id}", response_model=KnownPlaceAnalysisSubmission)
 def read_known_place_analysis_status(
     request_id: str,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> KnownPlaceAnalysisSubmission:
-    """Read the requested GitHub run without exposing the server-side Actions token."""
+    """Read a generic Known Place run only for the Firebase owner recorded at dispatch."""
+    _owned_known_place_request(user, request_id, "generic")
     try:
         return get_known_place_analysis_status(get_settings(), request_id)
     except KnownPlaceWorkflowError as exc:
@@ -213,9 +278,10 @@ def read_known_place_analysis_status(
 @app.get("/api/known-place-analysis/requests/{request_id}/results")
 def read_known_place_analysis_results(
     request_id: str,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> dict:
-    """Return the validated generic Known Place artifact for its opaque request ID."""
+    """Return the generic Known Place result only to the account that submitted it."""
+    _owned_known_place_request(user, request_id, "generic")
     try:
         return get_known_place_analysis_results(get_settings(), request_id)
     except KnownPlaceWorkflowError as exc:
@@ -227,9 +293,10 @@ def read_known_place_analysis_results(
 @app.get("/api/known-place-analysis/requests/{request_id}/bundle")
 def download_known_place_analysis_bundle_route(
     request_id: str,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> Response:
-    """Download the original bounded Actions result archive through Firebase auth."""
+    """Download the generic Known Place archive only for its recorded Firebase owner."""
+    _owned_known_place_request(user, request_id, "generic")
     try:
         filename, archive_bytes = download_known_place_analysis_bundle(get_settings(), request_id)
     except KnownPlaceWorkflowError as exc:
@@ -249,21 +316,22 @@ def download_known_place_analysis_bundle_route(
 @app.post("/api/known-place-paper-reproduction", response_model=KnownPlaceAnalysisSubmission)
 def submit_known_place_paper_reproduction(
     request: KnownPlacePaperReproductionRequest,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> KnownPlaceAnalysisSubmission:
-    """Dispatch the fixed author-exact Bhote Koshi P05023 paper workflow."""
-    try:
-        return dispatch_known_place_paper_reproduction(get_settings(), request)
-    except KnownPlaceWorkflowError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from None
+    """Persist ownership before author-exact P05023 dispatch."""
+    return _dispatch_owned_known_place_request(user, request, "paper_reproduction")
 
 
 @app.get("/api/known-place-paper-reproduction/requests/{request_id}", response_model=KnownPlaceAnalysisSubmission)
 def read_known_place_paper_reproduction_status(
     request_id: str,
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> KnownPlaceAnalysisSubmission:
-    """Read the author-exact GitHub run without exposing the server-side Actions token."""
+    """Read the author-exact run only for the Firebase owner recorded at dispatch."""
+    _owned_known_place_request(
+        user, request_id, "paper_reproduction",
+        "Invalid Known Place paper-reproduction request ID.",
+    )
     try:
         return get_known_place_paper_reproduction_status(get_settings(), request_id)
     except KnownPlaceWorkflowError as exc:

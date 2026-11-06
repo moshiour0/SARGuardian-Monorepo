@@ -1170,32 +1170,155 @@ def test_dashboard_presentation_builds_three_audience_views_without_replacing_sc
     assert ">70% confidence" not in rendered
 
 
-def test_known_place_result_endpoints_require_firebase_authentication() -> None:
+def test_known_place_endpoints_require_firebase_authentication() -> None:
     request_id = str(uuid4())
+    assert client.get(f"/api/known-place-analysis/requests/{request_id}").status_code == 401
     assert client.get(f"/api/known-place-analysis/requests/{request_id}/results").status_code == 401
     assert client.get(f"/api/known-place-analysis/requests/{request_id}/bundle").status_code == 401
+    assert client.get(f"/api/known-place-paper-reproduction/requests/{request_id}").status_code == 401
 
 
-def test_known_place_result_endpoint_returns_only_authenticated_result_payload(monkeypatch: pytest.MonkeyPatch) -> None:
+class _KnownPlaceOwnerStore:
+    def __init__(self, owner_uid: str = "test-user", request_id: str | None = None, request_kind: str = "generic"):
+        self.owner_uid = owner_uid
+        self.request_id = request_id
+        self.request_kind = request_kind
+        self.rows: dict[str, dict] = {}
+
+    def create_known_place_request(self, values: dict) -> dict:
+        self.rows[values["request_id"]] = dict(values)
+        return dict(values)
+
+    def get_known_place_request(self, owner_uid: str, request_id, request_kind: str):
+        row = self.rows.get(str(request_id))
+        if row and row["owner_uid"] == owner_uid and row["request_kind"] == request_kind:
+            return dict(row)
+        if self.request_id == str(request_id) and self.owner_uid == owner_uid and self.request_kind == request_kind:
+            return {"request_id": str(request_id), "owner_uid": owner_uid, "request_kind": request_kind, "dispatch_state": "dispatched"}
+        return None
+
+    def update_known_place_request(self, owner_uid: str, request_id, request_kind: str, dispatch_state: str):
+        row = self.rows[str(request_id)]
+        assert row["owner_uid"] == owner_uid
+        assert row["request_kind"] == request_kind
+        row["dispatch_state"] = dispatch_state
+        return dict(row)
+
+
+def test_known_place_result_endpoint_requires_matching_owner_and_workflow_kind(monkeypatch: pytest.MonkeyPatch) -> None:
     request_id = str(uuid4())
+    store = _KnownPlaceOwnerStore(owner_uid="test-user", request_id=request_id, request_kind="generic")
+    monkeypatch.setattr(main_module, "_require_store", lambda: store)
     expected = {"request_id": request_id, "result": {"hazard_detection_status": "NOT_EVALUATED"}}
-    monkeypatch.setattr(main_module, "get_known_place_analysis_results", lambda _settings, value: expected if value == request_id else {})
+    called: list[str] = []
+    monkeypatch.setattr(
+        main_module, "get_known_place_analysis_results",
+        lambda _settings, value: called.append(value) or expected,
+    )
     response = authenticated_client().get(f"/api/known-place-analysis/requests/{request_id}/results")
     assert response.status_code == 200
     assert response.json() == expected
+    assert called == [request_id]
+
+    app.dependency_overrides[get_current_user] = lambda: {"uid": "another-firebase-user"}
+    denied = client.get(f"/api/known-place-analysis/requests/{request_id}/results")
+    assert denied.status_code == 404
+    assert called == [request_id]
 
 
-def test_known_place_bundle_endpoint_sets_private_download_headers(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_known_place_status_bundle_and_paper_status_are_owner_scoped(monkeypatch: pytest.MonkeyPatch) -> None:
     request_id = str(uuid4())
+    store = _KnownPlaceOwnerStore(owner_uid="test-user", request_id=request_id, request_kind="generic")
+    monkeypatch.setattr(main_module, "_require_store", lambda: store)
+    status_calls: list[str] = []
+    result_calls: list[str] = []
     archive = b"PK\\x03\\x04test-known-place-result"
-    monkeypatch.setattr(
-        main_module,
-        "download_known_place_analysis_bundle",
-        lambda _settings, value: (f"SARGuardian-known-place-{value}.zip", archive),
+    submission = main_module.KnownPlaceAnalysisSubmission(
+        request_id=request_id,
+        status="completed",
+        github_run_id="123",
+        github_run_url="https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/123",
+        notice="test",
     )
-    response = authenticated_client().get(f"/api/known-place-analysis/requests/{request_id}/bundle")
+    monkeypatch.setattr(main_module, "get_known_place_analysis_status", lambda _settings, value: status_calls.append(value) or submission)
+    monkeypatch.setattr(main_module, "download_known_place_analysis_bundle", lambda _settings, value: result_calls.append(value) or (f"SARGuardian-known-place-{value}.zip", archive))
+    authenticated_client()
+    assert client.get(f"/api/known-place-analysis/requests/{request_id}").status_code == 200
+    bundle = client.get(f"/api/known-place-analysis/requests/{request_id}/bundle")
+    assert bundle.status_code == 200
+    assert bundle.content == archive
+    assert bundle.headers["content-type"].startswith("application/zip")
+    assert bundle.headers["content-disposition"] == f'attachment; filename="SARGuardian-known-place-{request_id}.zip"'
+    assert bundle.headers["cache-control"] == "private, no-store"
+    assert status_calls == [request_id]
+    assert result_calls == [request_id]
+
+    paper_id = str(uuid4())
+    paper_store = _KnownPlaceOwnerStore(owner_uid="test-user", request_id=paper_id, request_kind="paper_reproduction")
+    monkeypatch.setattr(main_module, "_require_store", lambda: paper_store)
+    paper_calls: list[str] = []
+    monkeypatch.setattr(main_module, "get_known_place_paper_reproduction_status", lambda _settings, value: paper_calls.append(value) or submission.model_copy(update={"request_id": value}))
+    assert client.get(f"/api/known-place-paper-reproduction/requests/{paper_id}").status_code == 200
+    assert paper_calls == [paper_id]
+
+    app.dependency_overrides[get_current_user] = lambda: {"uid": "intruder"}
+    assert client.get(f"/api/known-place-analysis/requests/{request_id}").status_code == 404
+    assert client.get(f"/api/known-place-analysis/requests/{request_id}/bundle").status_code == 404
+    assert client.get(f"/api/known-place-paper-reproduction/requests/{paper_id}").status_code == 404
+    assert status_calls == [request_id]
+    assert result_calls == [request_id]
+    assert paper_calls == [paper_id]
+
+
+def test_known_place_dispatch_persists_owner_mapping_before_github_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    events: list[tuple] = []
+    store = _KnownPlaceOwnerStore()
+    original_create = store.create_known_place_request
+    original_update = store.update_known_place_request
+
+    def create(values: dict):
+        result = original_create(values)
+        events.append(("persist", values["owner_uid"], values["request_kind"], values["dispatch_state"]))
+        return result
+
+    def update(owner_uid, request_id, request_kind, state):
+        result = original_update(owner_uid, request_id, request_kind, state)
+        events.append(("update", owner_uid, request_kind, state))
+        return result
+
+    store.create_known_place_request = create
+    store.update_known_place_request = update
+    monkeypatch.setattr(main_module, "_require_store", lambda: store)
+    monkeypatch.setattr(main_module, "get_settings", lambda: type("Settings", (), {"displacement_actions_enabled": True})())
+
+    def dispatch(_settings, _request, *, request_id: str):
+        assert request_id in store.rows
+        assert store.rows[request_id]["owner_uid"] == "test-user"
+        events.append(("dispatch", request_id))
+        return main_module.KnownPlaceAnalysisSubmission(
+            request_id=request_id,
+            status="dispatching",
+            github_run_id=None,
+            github_run_url="https://github.com/moshiour0/SARGuardian-Monorepo/actions",
+            notice="test",
+        )
+
+    monkeypatch.setattr(main_module, "dispatch_known_place_analysis", dispatch)
+    payload = {
+        "aoi_wkt": "POLYGON ((85.50 28.25, 85.54 28.25, 85.54 28.29, 85.50 28.29, 85.50 28.25))",
+        "start_date": "2026-07-01",
+        "end_date": "2026-07-20",
+        "hazard_mode": "ice_rock_avalanche",
+        "analysis_mode": "exploratory",
+        "polarization": "HH",
+        "track": "ANY",
+        "direction": "A",
+        "coherence_neighbours": "5",
+        "execute_downloads": False,
+    }
+    response = authenticated_client().post("/api/known-place-analysis", json=payload)
     assert response.status_code == 200
-    assert response.content == archive
-    assert response.headers["content-type"].startswith("application/zip")
-    assert response.headers["content-disposition"] == f'attachment; filename="SARGuardian-known-place-{request_id}.zip"'
-    assert response.headers["cache-control"] == "private, no-store"
+    request_id = response.json()["request_id"]
+    assert events[0] == ("persist", "test-user", "generic", "dispatching")
+    assert events[1] == ("dispatch", request_id)
+    assert events[2] == ("update", "test-user", "generic", "dispatched")

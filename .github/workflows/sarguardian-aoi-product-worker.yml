@@ -211,7 +211,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, os
+          import json, os, re
           from pathlib import Path
 
           prior_root = Path(os.environ["PRIOR_ROOT"])
@@ -613,7 +613,7 @@ jobs:
           python engines/find-displacements/tools/drive_resumable_upload.py "${retry_upload_flags[@]}" \
             --root "$CURATED_DIR" --product-type "$PRODUCT_TYPE" --maturity "$MATURITY" \
             --granule-name "$GRANULE_NAME" --version-tag "$DRIVE_VERSION_TAG" --files "${files[@]}" \
-            --out "$CURATED_DIR/drive-retention-receipt.json"
+            --out "$CURATED_DIR/drive-retention-receipt.json" 2>&1 | tee -a "$CURATED_DIR/drive-upload.log"
           python - <<'PY'
           import json, os
           from pathlib import Path
@@ -651,7 +651,7 @@ jobs:
             --root "$CURATED_DIR" --product-type "$PRODUCT_TYPE" --maturity "$MATURITY" \
             --granule-name "$GRANULE_NAME" --version-tag "$DRIVE_VERSION_TAG" \
             --files "$CURATED_DIR/product-processing.json" "$CURATED_DIR/drive-retention-receipt.json" \
-            --out "$CURATED_DIR/drive-metadata-upload-receipt.json"
+            --out "$CURATED_DIR/drive-metadata-upload-receipt.json" 2>&1 | tee -a "$CURATED_DIR/drive-upload.log"
           python - <<'PY'
           import json, os
           from pathlib import Path
@@ -670,6 +670,7 @@ jobs:
         env:
           RUN_ROOT: ${{ runner.temp }}/sarguardian-stream/${{ inputs.product_id }}
           DOWNLOAD_LOG: ${{ runner.temp }}/sarguardian-download-${{ inputs.product_id }}.log
+          DRIVE_LOG: ${{ runner.temp }}/sarguardian-stream/${{ inputs.product_id }}/curated/drive-upload.log
           DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}
           AOI_PREFLIGHT_OUTCOME: ${{ steps.aoi_preflight.outcome }}
           ARCHIVE_OUTCOME: ${{ steps.archive.outcome }}
@@ -706,6 +707,31 @@ jobs:
               (line for line in download_diagnostics if line.startswith("ERROR=")),
               None,
           ) if os.environ.get("DOWNLOAD_OUTCOME") == "failure" else None
+
+          drive_log = Path(os.environ["DRIVE_LOG"])
+          drive_diagnostics = []
+          if drive_log.is_file():
+              for raw_line in drive_log.read_text(encoding="utf-8", errors="replace").splitlines():
+                  line = raw_line.strip()
+                  if line.startswith(("ERROR=", "DRIVE_RETRY ")):
+                      drive_diagnostics.append(line[:420])
+          drive_diagnostics = drive_diagnostics[:24]
+          drive_error_code = next(
+              (line.removeprefix("ERROR=") for line in drive_diagnostics if line.startswith("ERROR=")),
+              None,
+          ) if os.environ.get("DRIVE_OUTCOME") == "failure" else None
+          # Keep this aligned with drive_resumable_upload.py's RETRYABLE_HTTP_STATUSES
+          # and _transient_drive_error(). Authentication, permission, missing-env,
+          # folder-conflict and other permanent failures must never enter retry.
+          drive_retryable = bool(
+              os.environ.get("DRIVE_OUTCOME") == "failure"
+              and re.fullmatch(
+                  r"DRIVE_(?:TOKEN_REFRESH|API|RESUMABLE_STATUS|CHUNK_UPLOAD)_(?:"
+                  r"HTTP_(?:408|425|429|500|502|503|504)(?:_RETRIES_EXHAUSTED)?|"
+                  r"NETWORK_ERROR(?:_RETRIES_EXHAUSTED)?)|DRIVE_RESUMABLE_NO_PROGRESS",
+                  drive_error_code or "",
+              )
+          )
           record = {
               "schema_version": "sarguardian-product-run-diagnostic/1.0",
               "product_id": os.environ.get("PRODUCT_ID"),
@@ -723,6 +749,9 @@ jobs:
               },
               "download_error_code": download_error_code,
               "download_diagnostics": download_diagnostics,
+              "drive_error_code": drive_error_code,
+              "drive_retryable": drive_retryable,
+              "drive_diagnostics": drive_diagnostics,
               "download_manifest_created": (curated / "download-manifest.json").is_file(),
               "raw_hdf5_present_at_diagnostic_time": any(root.glob("raw/**/*.h5")),
               "retained_archive_created": any((curated / "archive").glob("*.science.h5")),

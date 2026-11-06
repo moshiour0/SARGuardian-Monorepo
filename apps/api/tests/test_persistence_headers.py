@@ -50,7 +50,7 @@ def test_modern_supabase_key_is_only_an_apikey_header() -> None:
 
 def test_secret_client_initialization_suppresses_sdk_bearer_fallback(monkeypatch, caplog) -> None:
     secret = "sb_secret_test_only"
-    captured: dict[str, object] = {}
+    captured: dict[str, object] = {"probe_tables": []}
 
     class FakeOptions:
         def __init__(self, **kwargs: object) -> None:
@@ -74,6 +74,9 @@ def test_secret_client_initialization_suppresses_sdk_bearer_fallback(monkeypatch
             self.options = SimpleNamespace(headers=headers)
 
         def table(self, table_name: str) -> FakeQuery:
+            tables = captured["probe_tables"]
+            assert isinstance(tables, list)
+            tables.append(table_name)
             captured["probe_table"] = table_name
             return FakeQuery()
 
@@ -99,8 +102,9 @@ def test_secret_client_initialization_suppresses_sdk_bearer_fallback(monkeypatch
     assert store.client.options.headers == {"apikey": secret}
     assert "Authorization" not in store.client.options.headers
     assert "Bearer" not in repr(store.client.options.headers)
-    assert captured["probe_table"] == "displacement_jobs"
-    assert captured["probe_column"] == "id"
+    assert captured["probe_tables"] == ["displacement_jobs", "known_place_requests"]
+    assert captured["probe_table"] == "known_place_requests"
+    assert captured["probe_column"] == "request_id"
     assert captured["probe_limit"] == 0
     assert captured["probe_executed"] is True
     assert secret not in caplog.text
