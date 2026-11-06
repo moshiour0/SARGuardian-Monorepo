@@ -159,16 +159,16 @@ def test_google_drive_and_callback_credentials_are_least_scoped():
 def test_independent_reference_validation_is_manual_local_and_separately_gated():
     workflow_path = REPOSITORY_ROOT / ".github" / "workflows" / "river-shift-independent-reference-validation.yml"
     workflow = workflow_path.read_text(encoding="utf-8")
-    trigger_section = workflow.split("\\njobs:\\n", 1)[0]
+    trigger_section = workflow.split("\njobs:\n", 1)[0]
 
     assert "workflow_dispatch:" in trigger_section
-    assert "\\n  push:" not in trigger_section
+    assert "\n  push:" not in trigger_section
     assert "MONOREPO_RIVERSHIFT_REFERENCE_VALIDATION_ENABLED" in workflow
     assert '!= "true"' in workflow
     assert "engines/river-shift/tools/river_shift/validate_independent_reference.py" in workflow
     assert "repository: moshiour0/SARGuardian-backend" not in workflow
     assert "sarguardian-backend-api.vercel.app" not in workflow
-    assert "RIVERSHIFT_VALIDATION_API_BASE_URL: \${{ inputs.api_base_url }}" in workflow
+    assert "RIVERSHIFT_VALIDATION_API_BASE_URL: ${{ inputs.api_base_url }}" in workflow
     assert "secrets.RIVERSHIFT_CALLBACK_SECRET" in workflow
     assert "secrets.GOOGLE_DRIVE_PARENT_FOLDER_ID" in workflow
     assert "MONOREPO_RIVERSHIFT_PROCESSING_ENABLED" not in workflow
