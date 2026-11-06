@@ -1,10 +1,12 @@
 # Production Supabase data migration plan — 2026-11-06
 
-## Decision
+## Decision and current migration status
 
-The application schema is migrated and aligned, but **Production job data has not been copied**. The active source project is `SARGuardian_Dynamic` (`ufwjmhivvnoewjsbteey`, Osaka) and the isolated target is `SARGuardian-Monorepo` (`qbmhpdprvxssqinnommz`, Tokyo). The source contains 80 records in the four job tables; the target contains zero. Both projects remain active and separate.
+The schema/history migration and a copy-only Production metadata transfer have both been executed. On 2026-11-06, 80 rows were copied from the active source project `SARGuardian_Dynamic` (`ufwjmhivvnoewjsbteey`) into the isolated target `SARGuardian-Monorepo` (`qbmhpdprvxssqinnommz`, Tokyo / `ap-northeast-1`). The source remains the live Production database. It was not updated, deleted from, reset, or used to dispatch any new workflow.
 
-This is an intentional hold. The source is the running Production database, and its rows contain account ownership, AOI/request metadata, job state and private Drive artifact receipts. No Production rows were exported, modified, deleted or copied during this audit.
+Final source/target counts match exactly: 3 `catalog_preflights`, 2 `processing_jobs`, 51 `displacement_jobs`, and 24 `river_shift_jobs`. The two queued `processing_jobs` rows were copied as metadata only and were not dispatched. All 75 Displacement/RiverShift jobs were terminal in the observed source snapshot; state histograms, primary IDs, callback sequences, accepted request data, result/manifest metadata, GitHub run references, and Drive artifact references were preserved. Because the target's lifecycle triggers set `updated_at = now()` on permitted state transitions, the 51 Displacement and 24 RiverShift target rows have a new `updated_at` timestamp reflecting the copy operation. Their source timestamps were not changed. `created_at` and all other compared fields match.
+
+This is **not a Production cutover**. The old Production project remains authoritative and active. The target copy is isolated; no live traffic, custom domain, Production environment, Action dispatch, or old Supabase project was switched.
 
 ## Aggregate-only source inventory
 
@@ -50,6 +52,23 @@ All four table names, all column names/counts, RLS enablement and the FK contrac
 - Successful Displacement dashboard/artifact routes use stored Drive artifact IDs and checksums. RiverShift artifact retrieval uses the stored `artifact_manifest` Drive IDs, byte count and SHA-256. The Monorepo API therefore needs an authorized Drive reader that can still access the existing result folder.
 - Generic/author-exact Known Place history lives in GitHub Actions runs/artifacts, not in these four Supabase tables. Keep Backend run URLs/artifacts available as historical evidence; new Monorepo Known Place requests create new Monorepo runs.
 
-## Remaining blocker and safety boundary
+## Completed copy-only transfer evidence
 
-The target service-role key is not yet provisioned, source DB credentials are not available through the current connected tools, and a secure row-transfer executor is not configured. The target currently has four empty RLS-enabled tables. Therefore this document defines the safe procedure; **no row transfer has been executed**. The current Production project remains untouched. Data migration must be performed in a controlled cutover window after backup, credential setup, owner approval and a tested rollback plan—not by an ad-hoc SQL read/copy.
+- Source and target row counts were re-read after import. Both sides report 3 / 2 / 51 / 24 rows respectively (80 total).
+- Per-row comparisons matched all fields for the 3 preflight and 2 processing rows. For the 51 Displacement and 24 RiverShift rows, every compared field except `updated_at` matched; `created_at`, state and callback sequence were exact.
+- The FK check found zero orphan processing jobs.
+- All four target tables retain RLS. The owner-read policies remain restricted to `authenticated` and compare JWT subject to `owner_uid`. All six user-defined integrity/immutability/lifecycle triggers were rechecked enabled after import.
+- The target's transition triggers were not disabled. Historical terminal job states were recreated through the allowed lifecycle path; no workflow dispatch was made.
+- A new forward migration adds `processing_jobs_preflight_id_idx` for the `preflight_id` foreign key. It is recorded as remote migration `20261106133548_processing_jobs_preflight_id_index` and in `migration/supabase-history-alignment.json`.
+- The separate Production backup requirement was not retroactively satisfied by this copy. Keep the source project available and make an independent backup before any future cutover or destructive operation.
+
+## Remaining cutover gates and safety boundary
+
+1. Recheck source counts, owner/state aggregates and active rows immediately before cutover; this copy is a snapshot and the source remains writable.
+2. Create and verify an independent source backup. Do not use the target copy as the only rollback point.
+3. Validate the Monorepo API's real Firebase Admin verification and Supabase service-role connectivity with a signed-in browser session. The public `/health` route alone is not proof.
+4. Verify read access to existing successful Displacement and RiverShift Google Drive artifacts with the Monorepo API's configured Drive identity. Metadata references were copied; the external binaries were not.
+5. Validate GitHub Actions token scope, workflow files/refs and callback secrets without starting science workflows. Keep `DISPLACEMENT_ACTIONS_ENABLED=false` and `RIVERSHIFT_ACTIONS_ENABLED=false` until explicit positive pilots are authorized.
+6. Test rollback and result retrieval, recheck any queued/active work, and obtain an explicit cutover decision before changing production routing.
+
+The copy-only data milestone is complete; the migration as a whole is **not production-ready and not cut over**. The original Production Supabase project remains untouched and authoritative.
