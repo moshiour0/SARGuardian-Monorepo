@@ -6,7 +6,7 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/.env.example",
       "destination_path": "apps/api/.env.example",
       "source_blob_sha": "767a78697c484b572612a5807d1fc98d4de69460",
-      "destination_blob_sha": "f938410ca3a6fbc8e51c39aa4814b8f05c18ee77",
+      "destination_blob_sha": "93bfdcd633d1ae800ed413d191d1161c66c1d0c8",
       "mode": "100644",
       "object_type": "blob",
       "reason": "Retain legacy-compatible defaults while documenting the exact Monorepo Preview-only displacement, generic Known Place, author-exact P05023 and RiverShift workflow destinations. All API processing flags remain false by default.",
@@ -15,7 +15,8 @@
         "3e8c6ff40fffca44447e7f98fef8383b5f638360",
         "f336dc770d03c94560c41b4880fccbdff1c8c350",
         "be0df97974ff199ef1d247e49099964025789624",
-        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67"
+        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67",
+        "017642df1e121c5b82f57dcfe7be165195d96431"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py",
@@ -142,12 +143,13 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/README.md",
       "destination_path": "apps/api/README.md",
       "source_blob_sha": "eaf0f888f6a22619be68743700d9b9322f33a113",
-      "destination_blob_sha": "e047547270279a2ec52e9b9d1fa0963a103bbff3",
+      "destination_blob_sha": "e6a177df1347ab75c870e068fabb78b478919ab6",
       "mode": "100644",
       "object_type": "blob",
       "reason": "Rewrite the promoted API documentation for apps/api and Vercel, remove obsolete Render/old directory instructions and document the canonical Drive parent ID plus exact Monorepo dispatch targets.",
       "implementation_commits": [
-        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67"
+        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67",
+        "017642df1e121c5b82f57dcfe7be165195d96431"
       ],
       "verification_paths": [
         "apps/api/tests/test_drive_upload.py",

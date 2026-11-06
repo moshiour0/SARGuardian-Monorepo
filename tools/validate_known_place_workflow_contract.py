@@ -115,7 +115,9 @@ def validate_author_exact_reproduction_gate() -> None:
     processing = mapping(jobs["acquire-analyze-retain"], "author-exact processing job")
     if processing.get("needs") != "trigger-gate":
         fail("Author-exact acquisition must depend on the repository/consent gate.")
-    if processing.get("if") != expression("needs.trigger-gate.outputs.run_author_exact == 'true'"):
+    processing_condition = str(processing.get("if", "")).strip()
+    expected_condition = "needs.trigger-gate.outputs.run_author_exact == 'true'"
+    if processing_condition not in {expected_condition, expression(expected_condition)}:
         fail("Author-exact acquisition must require successful gate output.")
     if not mapping(processing.get("env"), "author-exact processing env").get("EARTHDATA_TOKEN"):
         fail("Author-exact worker must keep Earthdata credentials in the gated processing job.")

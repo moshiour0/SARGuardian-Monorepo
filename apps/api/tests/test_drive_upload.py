@@ -183,8 +183,8 @@ def test_legacy_drive_folder_id_is_rejected_for_upload_configuration() -> None:
                 "token_uri": "https://oauth2.googleapis.com/token",
             }}),
             "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
-            "GOOGLE_DRIVE_PARENT_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
-        })
+            "GOOGLE_DRIVE_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
+        }, require_parent_folder=True)
 
 
 def test_upload_configuration_still_requires_the_parent_folder_id() -> None:
@@ -204,7 +204,7 @@ def test_rejects_incomplete_or_untrusted_google_oauth_configuration() -> None:
         drive.load_drive_config({
             "GOOGLE_DRIVE_OAUTH_CLIENT_JSON": json.dumps({"installed": {}}),
             "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
-            "GOOGLE_DRIVE_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
+            "GOOGLE_DRIVE_PARENT_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
         })
     with pytest.raises(drive.DriveUploadError, match="unsupported token endpoint"):
         drive.load_drive_config({
@@ -212,7 +212,7 @@ def test_rejects_incomplete_or_untrusted_google_oauth_configuration() -> None:
                 "client_id": "client", "client_secret": "secret", "token_uri": "https://invalid.example/token",
             }}),
             "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
-            "GOOGLE_DRIVE_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
+            "GOOGLE_DRIVE_PARENT_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
         })
 
 
