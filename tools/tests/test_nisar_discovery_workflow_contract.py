@@ -35,8 +35,8 @@ def test_gunw_discovery_uses_exact_legacy_pin_without_download():
     assert "MONOREPO_NISAR_DIAGNOSTICS_ENABLED" in text
     assert '!= "true"' in text
     assert "77cc9646cfa46d3aff3669d351912f984cf67aa3" in text
-    assert 'git archive "$SCIENCE_COMMIT"' in text
-    assert 'git cat-file -e "$SCIENCE_COMMIT^{commit}"' in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive "$SCIENCE_COMMIT"' in text
+    assert 'git -C "$GITHUB_WORKSPACE" cat-file -e "$SCIENCE_COMMIT^{commit}"' in text
     assert 'gunw_reader.AOIS["source"]' in text
     assert 'short_name="NISAR_L2_GUNW_PROVISIONAL_V1"' in text
     assert "earthaccess.search_data(" in text
