@@ -255,10 +255,12 @@ in the Monorepo root workflow system. Remaining families include:
    analysis reanalysis and explicit author-exact acquisition/replay. Preserve
    author consent; remove unintended push triggers; keep author-exact P05023
    separate from generic two-polygon analysis.
-3. RiverShift: independent-reference validation is now promoted separately
-   from GCOV. Retained OPERA DSWx-S1, Run #36 and Sentinel-2 replays still need
-   root manual-only ports or explicit archived dispositions. Preserve source
-   evidence and do not allow unrelated pushes to trigger replay.
+3. RiverShift: independent-reference validation remains separate from
+   GCOV. OPERA DSWx-S1, Run #36 and Sentinel-2 retained-reference replays are
+   now separate manual-only, independently gated root ports. Their original
+   source-branch files remain immutable under the archival snapshot manifest;
+   the active root ports are distinct blobs and cannot run on unrelated pushes.
+   Preserve source evidence and keep each replay's scientific limitations clear.
 4. Shared platform validation: dashboard asset builder tests and retained-
    artifact smoke are now promoted separately; the eight Backend-main NISAR
    diagnostic/storage workflows are also ported as manual/gated root entries.
