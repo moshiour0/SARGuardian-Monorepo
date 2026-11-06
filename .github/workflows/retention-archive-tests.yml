@@ -66,6 +66,7 @@ jobs:
             "$source_root/tools/validate_product_aoi.py" \
             "$source_root/tools/time_window.py" \
             "$source_root/tools/aggregate_streamed_outputs.py" \
+            "$source_root/tools/run_pinned_science_suite.py" \
             "$fixture_root/tools/"
 
           cp "$source_root/tests/test_hdf5_archive.py" \
