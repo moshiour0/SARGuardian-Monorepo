@@ -4,7 +4,7 @@
   "monorepo_repository": "moshiour0/SARGuardian-Monorepo",
   "monorepo_branch": "migration/source-snapshot-import",
   "monorepo_base_head": "3420eaea6b3d97175c075d4eb4da00423d89c176",
-  "expected_root_workflow_count": 39,
+  "expected_root_workflow_count": 40,
   "sources": [
     {
       "id": "dynamic-main",
@@ -493,9 +493,11 @@
       "source_snapshot_path": "migration/source-snapshots/backend-main/.github/workflows/sarguardian-live-validation.yml",
       "source_blob_sha": "e5d73c5b7301ab3496bd99658a6914258c695a68",
       "workflow_name": "sarguardian-live-validation.yml",
-      "disposition": "manual-live-workflow-port-required",
-      "root_workflows": [],
-      "note": "Two-product GUNW/GOFF Earthdata download plus engine-ready Drive retention. Needs a distinct manual root port, exact science pin ab547ecc82bcc4d6ccef545a59852536c2beacc6, independent secret scope, receipt checks and a false-by-default gate."
+      "disposition": "root-present-contract-review-required",
+      "root_workflows": [
+        ".github/workflows/sarguardian-live-validation.yml"
+      ],
+      "note": "A separate Monorepo root workflow now retains the source workflow's two fixed P05023 products (one GUNW, one GOFF) as sequential matrix entries. It is manual-only and requires both MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED=true and confirm_live_retention=true. It materializes the exact ab547 science commit from Monorepo Git history with git worktree, uses promoted Find Displacements retention tools, uploads engine-ready archive/provenance to Drive with receipt verification, and has no automatic raw-file deletion. Validate its structural contract and CI before considering the live gate."
     },
     {
       "source_id": "backend-main",
@@ -989,9 +991,11 @@
       "source_snapshot_path": "migration/source-snapshots/backend-known-place-pr85/.github/workflows/sarguardian-live-validation.yml",
       "source_blob_sha": "e5d73c5b7301ab3496bd99658a6914258c695a68",
       "workflow_name": "sarguardian-live-validation.yml",
-      "disposition": "manual-live-workflow-port-required",
-      "root_workflows": [],
-      "note": "Two-product GUNW/GOFF Earthdata download plus engine-ready Drive retention. Needs a distinct manual root port, exact science pin ab547ecc82bcc4d6ccef545a59852536c2beacc6, independent secret scope, receipt checks and a false-by-default gate."
+      "disposition": "root-present-contract-review-required",
+      "root_workflows": [
+        ".github/workflows/sarguardian-live-validation.yml"
+      ],
+      "note": "This PR #85 workflow is byte-identical to Backend main and uses the same reviewed root port. A separate Monorepo root workflow now retains the source workflow's two fixed P05023 products (one GUNW, one GOFF) as sequential matrix entries. It is manual-only and requires both MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED=true and confirm_live_retention=true. It materializes the exact ab547 science commit from Monorepo Git history with git worktree, uses promoted Find Displacements retention tools, uploads engine-ready archive/provenance to Drive with receipt verification, and has no automatic raw-file deletion. Validate its structural contract and CI before considering the live gate."
     },
     {
       "source_id": "backend-known-place-pr85",
@@ -1072,14 +1076,13 @@
   ],
   "summary": {
     "source_workflow_instances": 82,
-    "root_workflow_files": 39,
+    "root_workflow_files": 40,
     "disposition_counts": {
       "ci-consolidated-parity-review": 5,
       "renamed-root-port-contract-review": 6,
-      "root-present-contract-review-required": 28,
+      "root-present-contract-review-required": 30,
       "api-dispatch-replacement-contract-review": 1,
       "manual-benchmark-disposition-required": 2,
-      "manual-live-workflow-port-required": 2,
       "legacy-callback-source-review-required": 2,
       "feature-variant-contract-review-required": 26,
       "manual-research-port-required": 3,

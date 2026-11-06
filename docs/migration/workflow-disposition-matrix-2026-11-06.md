@@ -15,7 +15,7 @@ The Backend main and Known Place PR #85 inventories are separate source lineages
 
 ## Current Monorepo root inventory
 
-At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contains **38 workflow files**. After adding the dedicated retention-archive port in commit to follow, the expected inventory is **39 root workflow files**. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
+At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contained 38 files. The retention-archive port added one root workflow, and commit 1245412807200702460aaf30fec056a0976e588b records 39. The current live-validation port in this change raises the expected root inventory to 40. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
 
 ## Dynamic main source workflows (7)
 
@@ -69,7 +69,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 | **sarguardian-aoi-wkt-dashboard.yml** | eabdc43e0e0b | .github/workflows/sarguardian-aoi-wkt-dashboard.yml | Root exists — contract review open |
 | **sarguardian-aoi-wkt-dispatcher.yml** | 54298d915902 | .github/workflows/sarguardian-aoi-wkt-dispatcher.yml | Root exists — contract review open |
 | **sarguardian-extended-science.yml** | c615376a2b73 | .github/workflows/sarguardian-extended-science.yml | Root exists — contract review open |
-| **sarguardian-live-validation.yml** | e5d73c5b7301 | — | Live manual workflow — root port required |
+| **sarguardian-live-validation.yml** | e5d73c5b7301 | .github/workflows/sarguardian-live-validation.yml | Root exists — contract review open |
 | **sarguardian-product-worker.yml** | 8220ed86db68 | .github/workflows/sarguardian-product-worker.yml | Root exists — contract review open |
 | **sarguardian-reassemble-existing.yml** | f4cb4d515568 | .github/workflows/find-displacements-reassemble-existing.yml | Renamed root port — contract review open |
 | **sarguardian-retention-ci.yml** | 6e7e46fcbaa1 | .github/workflows/snapshot-regression-tests.yml | Consolidated CI — parity review open |
@@ -150,7 +150,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 | **sarguardian-aoi-product-worker.yml** | eb2baa483366 | .github/workflows/sarguardian-aoi-product-worker.yml | PR #85 variant — canonical selection open |
 | **sarguardian-aoi-wkt-dashboard.yml** | 595dff2527b0 | .github/workflows/sarguardian-aoi-wkt-dashboard.yml | PR #85 variant — canonical selection open |
 | **sarguardian-aoi-wkt-dispatcher.yml** | 4b2549dbccf5 | .github/workflows/sarguardian-aoi-wkt-dispatcher.yml | PR #85 variant — canonical selection open |
-| **sarguardian-live-validation.yml** | e5d73c5b7301 | — | Live manual workflow — root port required |
+| **sarguardian-live-validation.yml** | e5d73c5b7301 | .github/workflows/sarguardian-live-validation.yml | Root exists — contract review open |
 | **sarguardian-product-worker.yml** | 5dbc8259f292 | .github/workflows/sarguardian-product-worker.yml | PR #85 variant — canonical selection open |
 | **sarguardian-reassemble-existing.yml** | f4cb4d515568 | .github/workflows/find-displacements-reassemble-existing.yml | PR #85 variant — canonical selection open |
 | **sarguardian-retention-ci.yml** | e02ca99b48a6 | .github/workflows/snapshot-regression-tests.yml | PR #85 variant — canonical selection open |
@@ -213,7 +213,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 
 - retention-archive-tests.yml: a secret-free root CI port now runs the isolated historical archive fixture suite from the byte-verified Backend source snapshot; current-head CI must pass before closure.
 - runner-test.yml: its 5-GB disk and ~4-GB memory benchmark is not the same as the runner-allocation diagnostic; decide whether to port behind an explicit manual gate or retire.
-- sarguardian-live-validation.yml: credentialed GUNW/GOFF download plus Drive retention path needs a distinct fail-closed manual port.
+- sarguardian-live-validation.yml: the fixed P05023 GUNW/GOFF path now has a manual-only, double-gated root port using the exact ab547 science commit from Monorepo history. No live execution has been dispatched; the new contract validator and current-head CI must pass.
 - sarguardian-science-worker.yml: legacy fork pin and WORKER_CALLBACK_SECRET / RENDER_CALLBACK_URL ownership need resolution.
 - Known Place PR #85 has ten added workflow paths without a root counterpart; each remains explicitly dispositioned above (manual port, research, renderer, consent bridge, Drive retry or archive-only).
 - Workflow entries mapped to snapshot-regression-tests.yml still need parity evidence for every original test/fixture; a shared CI target is not proof of equivalence.
