@@ -85,17 +85,44 @@ def plan(manifest: dict[str, Any], product_root: Path, cleanup_root: Path) -> di
         )
         acquisition_succeeded = outcomes.get("download") == "success" or valid_source_sha or valid_metadata_sha
 
+        # A successfully downloaded and scientifically validated granule may still
+        # fail only while publishing its curated outputs to Drive. The worker marks
+        # this true only for the uploader's explicit retryable HTTP/network classes.
+        # Retry that one product in a fresh runner; never rerun green products or
+        # deterministic reader/AOI/structural failures.
+        drive_retry_reasons = {
+            "META_DRIVE_REMOTE_VERIFICATION_INVALID",
+            "REMOTE_RETENTION_NOT_VERIFIED",
+            "POST_CLEANUP_RECEIPT_MISSING_OR_FAIL",
+            "CLEANUP_RECEIPT_REMOTE_UPLOAD_NOT_VERIFIED",
+        }
+        drive_retryable_failure = (
+            acquisition_succeeded
+            and outcomes.get("download") == "success"
+            and outcomes.get("aoi_preflight") == "success"
+            and outcomes.get("reader") == "success"
+            and outcomes.get("drive") == "failure"
+            and (diagnostics or {}).get("drive_retryable") is True
+            and validation is not None
+            and validation.get("status") == "PASS"
+            and meta is not None
+            and set(reasons).issubset(drive_retry_reasons)
+        )
+
         complete=not reasons and terminal_reason is None
         if complete:
             status="PASS"
         elif terminal_reason:
             status="TERMINAL_FAILURE"
             reasons.append(terminal_reason)
+        elif drive_retryable_failure:
+            status="RETRY"
+            reasons.append("TRANSIENT_DRIVE_RETENTION_FAILURE_AFTER_VALIDATED_SCIENCE")
         elif acquisition_succeeded:
             # Do not re-download a multi-GB granule merely because a later
-            # provenance, Drive-retention, cleanup, or artifact checkpoint is
-            # incomplete. A successful acquisition is not retryable by replaying
-            # the whole product; preserve the exact post-download failure instead.
+            # provenance, cleanup, or non-transient retention checkpoint is
+            # incomplete. Only the explicit transient Drive case above is safe
+            # to retry after successful acquisition and scientific validation.
             status="TERMINAL_FAILURE"
             terminal_reason="NON_RETRYABLE_POST_DOWNLOAD_CHECKPOINT_FAILURE"
             reasons.append(terminal_reason)
