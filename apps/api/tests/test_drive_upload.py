@@ -97,7 +97,7 @@ def test_accepts_installed_google_oauth_configuration() -> None:
             "token_uri": "https://oauth2.googleapis.com/token",
         }}),
         "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
-        "GOOGLE_DRIVE_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
+        "GOOGLE_DRIVE_PARENT_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
     })
 
     assert config.client_id == "client"
@@ -174,19 +174,17 @@ def test_private_download_sends_normalized_worker_refresh_token(
     assert destination.read_bytes() == payload
     assert receipt == {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
 
-def test_prefers_parent_folder_id_when_both_drive_folder_names_are_present() -> None:
-    config = drive.load_drive_config({
-        "GOOGLE_DRIVE_OAUTH_CLIENT_JSON": json.dumps({"web": {
-            "client_id": "client",
-            "client_secret": "secret",
-            "token_uri": "https://oauth2.googleapis.com/token",
-        }}),
-        "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
-        "GOOGLE_DRIVE_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
-        "GOOGLE_DRIVE_PARENT_FOLDER_ID": "14BIAepPGLlYYmscUlNPeMCdtepYshjT4",
-    })
-
-    assert config.parent_folder_id == "14BIAepPGLlYYmscUlNPeMCdtepYshjT4"
+def test_legacy_drive_folder_id_is_rejected_for_upload_configuration() -> None:
+    with pytest.raises(drive.DriveUploadError, match="GOOGLE_DRIVE_PARENT_FOLDER_ID"):
+        drive.load_drive_config({
+            "GOOGLE_DRIVE_OAUTH_CLIENT_JSON": json.dumps({"web": {
+                "client_id": "client",
+                "client_secret": "secret",
+                "token_uri": "https://oauth2.googleapis.com/token",
+            }}),
+            "GOOGLE_DRIVE_REFRESH_TOKEN": "refresh",
+            "GOOGLE_DRIVE_PARENT_FOLDER_ID": "13BIAepPGLlYYmscUlNPeMCdtepYshjT4",
+        })
 
 
 def test_upload_configuration_still_requires_the_parent_folder_id() -> None:

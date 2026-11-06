@@ -102,12 +102,9 @@ def load_drive_config(
     values = environ if environ is not None else os.environ
     raw_client = values.get("GOOGLE_DRIVE_OAUTH_CLIENT_JSON", "").strip()
     raw_refresh_token = values.get("GOOGLE_DRIVE_REFRESH_TOKEN", "").strip()
-    # The parent-folder name is canonical. Keep the old name only as a
-    # compatibility fallback for existing non-RiverShift upload integrations.
-    parent_folder_id = (
-        values.get("GOOGLE_DRIVE_PARENT_FOLDER_ID", "").strip()
-        or values.get("GOOGLE_DRIVE_FOLDER_ID", "").strip()
-    )
+    # The canonical parent-folder setting is required for folder creation/upload.
+    # Legacy GOOGLE_DRIVE_FOLDER_ID is intentionally not accepted.
+    parent_folder_id = values.get("GOOGLE_DRIVE_PARENT_FOLDER_ID", "").strip()
     if not raw_client or not raw_refresh_token or (require_parent_folder and not parent_folder_id):
         raise DriveUploadError(
             "Google Drive result storage is not fully configured; check "
