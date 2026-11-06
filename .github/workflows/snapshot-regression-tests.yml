@@ -6,6 +6,10 @@ on:
       - "migration/source-snapshot-import"
     paths:
       - "migration/source-snapshots/**"
+      - "migration/workflow-dispositions.json"
+      - "tools/validate_workflow_dispositions.py"
+      - "migration/workflow-dispositions.json"
+      - "tools/validate_workflow_dispositions.py"
       - "migration/source-branch-snapshots/**"
       - ".github/workflows/know-place-aoi-analysis.yml"
       - ".github/workflows/know-place-aoi-dispatcher.yml"
@@ -74,6 +78,8 @@ jobs:
         run: |
           python tools/audit_workflow_contracts.py "$RUNNER_TEMP/workflow-contract-audit.json"
           test -s "$RUNNER_TEMP/workflow-contract-audit.json"
+      - name: Validate every source workflow has an explicit Monorepo disposition
+        run: python tools/validate_workflow_dispositions.py
       - name: Validate inactive RiverShift Monorepo workflow candidate
         run: python tools/validate_workflow_candidates.py
       - name: Validate Known Place API, manual dispatcher and reusable workflow contract

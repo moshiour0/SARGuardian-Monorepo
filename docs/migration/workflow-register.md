@@ -147,7 +147,7 @@ The machine-readable structural audit is documented in [workflow-contract-audit.
 - Three retained RiverShift replay workflows have `push` triggers in addition to manual dispatch. These must not be promoted unchanged into the monorepo because unrelated source pushes could cause replay activity.
 - Multiple worker/test workflows still check out `Sagormodak/SARGuardian`. Do not silently redirect these to `moshiour0/SARGuardian` until source identity and expected historical revision are verified.
 - Dynamic and backend each contain copies of similarly named AOI worker/dashboard workflows. Their role must be decided from actual callers and payload contracts, not filename similarity.
-- The Monorepo root now contains 35 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
+- The Monorepo root now contains 38 workflow files (live inventory at base head 3420eaea6b3d97175c075d4eb4da00423d89c176). Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
 - The API-facing Find Displacements workflow remains named `sarguardian-aoi-wkt-dashboard.yml` because its `workflow_dispatch.inputs` carries the account-job and callback contract consumed by `apps/api/app/displacements.py`. `sarguardian-aoi-wkt-dispatcher.yml` is a separate manual entrypoint, not an interchangeable API target.
 - Author-exact P05023 resolves its historical `b825df…` backend code and `10639a9…` NISAR science from local immutable Monorepo snapshots, with no push trigger and explicit author consent. The generic two-polygon Known Place flow remains separate.
 - API Preview destinations now point to Monorepo workflow names on `migration/source-snapshot-import`; all processing flags remain false. Production API dispatch and original Backend workflows remain authoritative until end-to-end acceptance and explicit cutover. OPERA/Run #36 replay evidence remains archived under `migration/source-branch-snapshots/`.
@@ -286,3 +286,8 @@ local to this repository, its trigger and caller graph are reviewed, its
 input/output and secret contract is tested, source-data and Drive side effects
 are controlled, and an isolated dry-run proves failure propagation. Otherwise
 it remains preserved as an inactive source snapshot with a named disposition.
+
+
+## 2026-11-06 full workflow disposition enforcement
+
+The live source trees were re-read at the audited refs and contain 7 Dynamic main, 35 Backend main and 40 Known Place PR #85 workflow instances. All 82 source workflow paths and Git blob SHAs are recorded in docs/migration/workflow-disposition-matrix-2026-11-06.md and migration/workflow-dispositions.json. The new validator checks complete source-directory coverage, source blob identity, root target existence and root workflow inventory count. A root path or consolidated CI target is deliberately marked review-required until semantic parity is proven; the validator does not claim runtime/production completion.
