@@ -44,7 +44,7 @@ def test_source_aoi_streaming_batch_is_local_manual_and_fail_closed():
         }
 
     assert "ab547ecc82bcc4d6ccef545a59852536c2beacc6" in text
-    assert "git archive" in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive' in text
     assert "repository: moshiour0/SARGuardian" not in text
     assert "repository: moshiour0/SARGuardian-backend" not in text
     assert "secrets: inherit" not in text
@@ -77,7 +77,7 @@ def test_source_aoi_product_worker_uses_exact_local_sources_and_narrow_secrets()
     assert "continue-on-error" in text
     assert "AOI_NAME: source" in text
     assert "SCIENCE_COMMIT: ab547ecc82bcc4d6ccef545a59852536c2beacc6" in text
-    assert "git archive" in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive' in text
     assert "repository: moshiour0/SARGuardian" not in text
     assert "repository: moshiour0/SARGuardian-backend" not in text
     assert "actions/checkout@v4" not in text
