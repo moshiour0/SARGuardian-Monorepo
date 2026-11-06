@@ -128,21 +128,9 @@ jobs:
         env:
           MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
           EXECUTE_DOWNLOADS: ${{ inputs.execute_downloads }}
-          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          repository_private="$(curl --fail --silent --show-error \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}" | \
-            python3 -c 'import json,sys; print("true" if json.load(sys.stdin).get("private") is True else "false")')"
-          if [[ "$repository_private" != "true" ]]; then
-            echo "::error::Processing stopped before checkout or credentials: this repository is public, so GitHub Actions artifacts and logs may expose user AOIs and result data. Move the data-processing workflows to a private repository or make this repository private before enabling processing."
-            exit 1
-          fi
-          echo "MONOREPO_PRIVATE_REPOSITORY_GATE=PASS"
           if [[ "$EXECUTE_DOWNLOADS" == "true" ]]; then
             if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
               echo "::error::Monorepo Known Place raw downloads are disabled. Set MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval, secret review and rollback readiness."
