@@ -32,12 +32,14 @@ def test_retained_dashboard_smoke_is_manual_and_monorepo_run_scoped():
         "SOURCE_RUN_NOT_FROM_EXPECTED_PREVIEW_BRANCH",
         "SOURCE_RUN_NOT_SUCCESSFUL",
         "SOURCE_RUN_WORKFLOW_NOT_AN_APPROVED_AOI_ENTRYPOINT",
+        'if run.get("path") != ".github/workflows/sarguardian-aoi-wkt-dashboard.yml":',
         "run_attempt",
     ):
         assert required in text
 
     assert "sarguardian-aoi-dashboard-" in text
     assert "steps.source.outputs.run_attempt" in text
+    assert ".github/workflows/sarguardian-aoi-wkt-dispatcher.yml" not in text
     assert "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333" in text
     assert "006d4cd1485cf80e509eaf8717c12e9c6390ac09" in text
     assert 'git -C "$GITHUB_WORKSPACE" archive "$SCIENCE_COMMIT"' in text
