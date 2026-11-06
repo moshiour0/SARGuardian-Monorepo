@@ -22,12 +22,14 @@ fully accepted.
   four user-data entry workflows: Find Displacements, generic Known Place,
   author-exact P05023 and RiverShift.
 - Current PR #3 head:
-  `25b0a3d31fc4e3807e1458ca18c762cef5ddc458`. Snapshot Regression Tests
-  [42260872725](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42260872725)
-  completed **19/19** successfully. AOI dual-pin static/parser validation
-  [42260872622](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42260872622)
+  `250d1cf9fac1878fda0a4be142aeaf39afcfe85c`. Snapshot Regression Tests
+  [42261168133](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42261168133)
+  completed **19/19** successfully, including the promoted API regression
+  tests and exact source-history/promotion-override integrity. AOI dual-pin
+  static/parser validation
+  [42261168157](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42261168157)
   and Historical Secret Scan
-  [42260872613](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42260872613)
+  [42261168198](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42261168198)
   also completed successfully on this head.
 - PR #3 includes a fail-closed repository-privacy preflight for all four
   user-data entry workflows and the Known Place owner-mapping API changes,
