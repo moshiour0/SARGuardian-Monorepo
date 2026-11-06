@@ -128,12 +128,13 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_drive_upload.py",
       "destination_path": "apps/api/tests/test_drive_upload.py",
       "source_blob_sha": "34746fc94a9459e351e6068860fa6ce7bff28ad7",
-      "destination_blob_sha": "63dd39ec590da918c928fb50f5fb2863d3920bba",
+      "destination_blob_sha": "6c71e83bf8f1333e539735dd7f499cdf315442cc",
       "mode": "100644",
       "object_type": "blob",
       "reason": "Update promoted API Drive tests to require GOOGLE_DRIVE_PARENT_FOLDER_ID and assert that legacy GOOGLE_DRIVE_FOLDER_ID alone is rejected.",
       "implementation_commits": [
-        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67"
+        "6b814c23c2b93aa2fda9ee1b99ec84582f061a67",
+        "3683abf7b086c25013ae9f92d1d376f63b1a791c"
       ],
       "verification_paths": [
         "apps/api/tests/test_drive_upload.py"
