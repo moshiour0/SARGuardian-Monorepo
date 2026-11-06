@@ -4,6 +4,16 @@
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
+## Latest migration verification — 2026-11-06
+
+- Code/workflow head `8454a15fe2e014afa1297e2c03faff132734e998`: [Snapshot Regression Tests 42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19**. This includes the three-workflow primary Find Displacements chain, RiverShift gated workflow contract, four preserved Known Place routes, promoted app/engine tests, exact source snapshot integrity, active-runtime-scope validation, Supabase migration filename/blob alignment, default-privilege SQL contract and frontend build/lint/unit tests.
+- Additional same-head checks: Backend source snapshot suites 2/2 passed, Migration Metadata Validation passed, Historical Secret Scan passed, Runner Allocation Diagnostic passed, Retention Archive Regression passed, Dashboard asset tests passed, and dual-pin AOI validation passed.
+- Docs/readiness-only head `16d1ac1866d2df66443badb40b645cb844afd018` follows that code head and is running its own final PR checks. Do not call the docs-only head fully green until its own Snapshot Regression finishes.
+- Monorepo Supabase local migration directory now contains nine files whose 14-digit filename prefixes and suffix names match the nine live migration records returned by the Monorepo project inventory. Seven imported SQL blobs are still byte-identical to their immutable Dynamic source-snapshot files; the two forward migration blobs are unchanged. CI checks every path and blob SHA. No remote migration record, schema, table or data was changed by this filename alignment.
+- The existing Dynamic Production Supabase project has a separate lineage and is not covered by the Monorepo nine-record alignment manifest. Keep its reconciliation separate.
+- PR #2 remains Draft/unmerged. Existing Dynamic/Backend Production routing, Vercel Production aliases and Production Supabase are unchanged.
+
+
 ## 2026-11-06 active migration scope decision — supersedes broad 82-workflow promotion wording
 
 The migration scope is intentionally **not** “activate every workflow copied from the source repositories.” The 82 source workflow instances are retained for immutable provenance and audit only. Current API-linked cutover scope has three operational tiers:
