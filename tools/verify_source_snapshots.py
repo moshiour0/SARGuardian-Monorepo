@@ -279,7 +279,7 @@ def verify_source_branch_archives(target_entries: dict[str, tuple[str, str, str]
                     active_text = active_copy.read_text(encoding="utf-8")
                     if (
                         "workflow_dispatch:" not in active_text
-                        or re.search(r"(?m)^\\s*push\\s*:", active_text)
+                        or re.search(r"(?m)^\s*push\s*:", active_text)
                         or not re.search(r"MONOREPO_RIVERSHIFT_[A-Z0-9_]+", active_text)
                         or '!= "true"' not in active_text
                     ):
