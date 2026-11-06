@@ -109,9 +109,8 @@ def main() -> int:
         "MONOREPO_RIVERSHIFT_PROCESSING_ENABLED",
         "max-parallel: 15",
         "retry_status:",
-        "EVENT_WINDOW_NOT_BRACKETED",
     )
-    require_file("engines/river-shift/tools/river_shift/batched_gcov_job.py")
+    require_contains("engines/river-shift/tools/river_shift/batched_gcov_job.py", "EVENT_WINDOW_NOT_BRACKETED")
 
     # Preserve both Known Place paths, their separate gates and exact pins.
     require_contains(
@@ -154,7 +153,7 @@ def main() -> int:
         fd.get("conclusion") == "success"
         and fd.get("jobs_total") == 20
         and fd.get("jobs_success") == 19
-        and fd.get("failed_initial_attempt") == 1
+        and fd.get("jobs_failed_initial_attempt") == 1
         and fd.get("retry_conclusion") == "success"
     ):
         # A future audit should update this evidence explicitly, rather than
