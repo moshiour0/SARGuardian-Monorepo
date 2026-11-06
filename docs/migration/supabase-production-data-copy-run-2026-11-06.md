@@ -43,4 +43,9 @@ The target database's state-transition functions intentionally set `updated_at =
 
 ## Follow-on schema optimization
 
-An additive migration `20261106133548_processing_jobs_preflight_id_index` adds `processing_jobs_preflight_id_idx` to support the `preflight_id` foreign key. The migration is recorded in `migration/supabase-history-alignment.json`. No existing index, RLS policy, or security trigger was removed.
+Two additive forward migrations were applied and recorded in `migration/supabase-history-alignment.json`:
+
+- `20261106133548_processing_jobs_preflight_id_index` adds `processing_jobs_preflight_id_idx` to support the `preflight_id` foreign key. The unindexed-FK advisor finding cleared.
+- `20261106134132_optimize_owner_read_rls_initplan` rewrites all four owner-read predicates as `((select auth.jwt()) ->> 'sub') = owner_uid`. The RLS initplan advisor warnings cleared; the Security Advisor remains at zero findings.
+
+The remaining `unused_index` notices are informational on a new/just-migrated database and do not justify dropping operational indexes. No owner scope, integrity trigger, or existing index was removed.
