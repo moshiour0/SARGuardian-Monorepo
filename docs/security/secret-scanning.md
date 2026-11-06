@@ -41,9 +41,13 @@ The allowlist is checked by [Migration Metadata Validation](../.github/workflows
 
 ## Latest result
 
-- Prior complete scan [run 41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586) passed before the Known Place scope documentation was added.
-- A subsequent scan identified one generic-api-key heuristic match on a documentation-only checklist line in commit c246f3b; the line was inspected, did not contain a secret value, and was reworded in the current tree.
-- The exact historical fingerprint is now narrowly allowlisted, with the validator accepting only that one documentation exception plus the 20 previously reviewed test fixtures. A fresh full-history scan is required to confirm the corrected allowlist.
+- Latest full-history scan: [run 42187445962](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445962).
+- Scanned commit: `9bd6858b7ea4e2500a531634e4a96f2d2288bf09` on `migration/source-snapshot-import`.
+- Result: **PASS**; Gitleaks reported zero unreviewed findings after the exact 21-entry allowlist validator passed.
+- The scan includes all reachable Git history (`fetch-depth: 0`), including preserved source histories and the latest documentation-only false-positive correction.
+- Matching metadata validation: [run 42187445630](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42187445630), **success**.
+- This establishes that no unreviewed finding was detected in the scanned reachable history; it does not prove a credential was never exposed outside this repository or in external systems.
+
 
 A passing Gitleaks scan means no unreviewed finding was detected in the scanned Git history. It does not prove that a provider credential is active, inactive, or never leaked outside this repository. If a future scan points to a probable real credential:
 1. stop merge/cutover;
