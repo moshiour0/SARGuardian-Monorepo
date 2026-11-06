@@ -124,8 +124,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Require private repository before processing user data or credentials
+      - name: Fail closed before any checkout, credentials, or data access
         env:
+          MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
+          EXECUTE_DOWNLOADS: ${{ inputs.execute_downloads }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -141,13 +143,6 @@ jobs:
             exit 1
           fi
           echo "MONOREPO_PRIVATE_REPOSITORY_GATE=PASS"
-      - name: Fail closed before any checkout, credentials, or data access
-        env:
-          MONOREPO_KNOWN_PLACE_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED }}
-          EXECUTE_DOWNLOADS: ${{ inputs.execute_downloads }}
-        shell: bash
-        run: |
-          set -euo pipefail
           if [[ "$EXECUTE_DOWNLOADS" == "true" ]]; then
             if [[ "$MONOREPO_KNOWN_PLACE_ENABLED" != "true" ]]; then
               echo "::error::Monorepo Known Place raw downloads are disabled. Set MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED=true only after cutover approval, secret review and rollback readiness."
