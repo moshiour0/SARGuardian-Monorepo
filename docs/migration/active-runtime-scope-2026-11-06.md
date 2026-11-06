@@ -62,7 +62,7 @@ CI and migration verification workflows are separate from product runtime. Keep 
 - Known Place generic and author-exact workflows remain separate, with separate destination settings and consent markers. Preserve P05023 and exact author/science pins.
 - Keep Earthdata and Google Drive upload credentials in Monorepo Actions Secrets. Keep Firebase, Supabase service role, GitHub dispatch token, callback secrets and Drive result-read OAuth credentials in the API server environment only.
 - Preserve the canonical Drive parent identifier `GOOGLE_DRIVE_PARENT_FOLDER_ID`; do not add the legacy `GOOGLE_DRIVE_FOLDER_ID` alias.
-- Reconcile remote Supabase migration history before any history repair or `db push`.
+- Run a final authenticated read-only CLI v3 migration-list confirmation for the Monorepo's already aligned nine files; separately reconcile the original Dynamic Production history before any repair or `db push`.
 - Run a positive-case pilot for each feature included in the cutover, verify callback sequence, terminal failure propagation, artifact integrity and Drive receipts, and rehearse rollback.
 
 ## Safety boundary

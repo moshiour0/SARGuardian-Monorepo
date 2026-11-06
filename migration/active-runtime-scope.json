@@ -150,7 +150,7 @@
     "Run authenticated Preview persistence and map/search smoke tests.",
     "Run a positive-case RiverShift request with a genuinely bracketed event window, then verify processing, artifacts, Drive receipt and signed callback.",
     "Run separate Known Place generic and author-exact consent-gated pilots only if those features are included in the release.",
-    "Reconcile the first eight Monorepo Supabase migration identities read-only before db push or history repair.",
+    "Run an authenticated read-only Supabase CLI v3 migration list against Monorepo project qbmhpdprvxssqinnommz to confirm all nine aligned filename/version pairs; reconcile the separate Dynamic Production history independently. Do not run db push, repair, replay or reset as a shortcut.",
     "Complete npm advisory/bundle review, independent science review and rollback rehearsal.",
     "Merge the migration PRs in sequence and switch Production only after explicit owner approval."
   ],

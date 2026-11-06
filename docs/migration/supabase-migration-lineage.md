@@ -2,7 +2,7 @@
 
 **Source:** `moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6`  
 **Promoted destination:** `infrastructure/supabase/`  
-**Status:** exact source files promoted; a separate forward retention migration is applied and verified on the live project. Historical migration rows remain unrepaired.
+**Status:** exact source SQL provenance is preserved; the two Monorepo forward migrations are applied and verified on the dedicated Free Tokyo target. Monorepo local filenames now match its nine observed remote version prefixes. The existing Dynamic Production database is a separate target whose legacy history remains unrepaired.
 
 ## Files imported
 
@@ -38,16 +38,16 @@ The first four records have a remote `version` that differs from the timestamp e
 
 ## Required before any `supabase db push`
 
-Do not assume that matching SQL content or table structure makes the migration-history records interchangeable. Supabase CLI migration matching uses the migration version, and a version mismatch can make an already-applied migration appear pending. The local first four filenames have UTC-style prefixes from their source commits, while the remote history contains the same names under different deployment timestamps; the two RiverShift files also use different remote names. A schema match alone does not repair this history.
+This section applies only to the existing Dynamic Production project `SARGuardian_Dynamic` (`ufwjmhivvnoewjsbteey`). Do not apply its legacy version/name observations to the Monorepo target. Matching SQL content or table structure does not make migration-history records interchangeable. The old project's first four local filenames have UTC-style source-commit prefixes while its remote history contains deployment timestamps; the RiverShift names/timestamps also differ. The Monorepo target has a separate nine-row alignment manifest and CI contract.
 
 Before any future database write:
-1. run read-only `supabase migration list --remote` (CLI v3) against the intended project and compare it with the exact Monorepo migration files;
+1. run read-only `supabase migration list --remote` (CLI v3) against the **Dynamic Production project** and compare it with that project's exact original local migration directory;
 2. inspect the original deployment/release history that created remote versions `20261026023221` through `20261103230606`;
-3. compare remote migration statements/functions/triggers and the local SQL contents, including transaction effects and any subsequent hotfixes;
-4. produce a reviewed version/name reconciliation plan;
-5. only then consider a deliberate migration repair or an approved new forward migration.
+3. compare remote migration statements/functions/triggers and the local SQL contents, including transaction effects and later hotfixes;
+4. produce a separate reviewed Dynamic Production history plan;
+5. do not run repair/replay or `db push` until that project-specific plan is approved. Monorepo filename alignment is tracked independently later in this document.
 
-Do not blindly rename the files, reapply these SQL statements, delete remote migration records, or use `db reset`. No Supabase migration command that writes to the remote project has been executed during this Monorepo migration.
+Do not rename Dynamic Production's original files, reapply these SQL statements, delete remote migration records, or use `db reset`. No Supabase migration command that writes to the Dynamic Production project has been executed during this migration.
 
 ## Runtime ownership
 
@@ -147,13 +147,13 @@ Its Git blob is `d37e18839e4b143dd3cc8dbbab17f8d2289f17a1`. The imported `apps/a
 
 The current live inventory contains three expired preflights: one unreferenced and two referenced by the two existing `processing_jobs` rows. None has been expired for more than seven days yet. Therefore the first scheduled execution is expected to delete **zero** existing rows; the referenced records remain protected regardless of age. The migration does not purge `processing_jobs`, `displacement_jobs`, or `river_shift_jobs`, nor does it delete Google Drive files, GitHub artifacts, raw NISAR source data, or scientific result bundles. Those retention windows require separate explicit policies.
 
-The seven pre-existing remote migration records remain version/name-mismatched with their corresponding source SQL filenames. The new eighth migration is aligned at remote version `20261105205909`. No historical migration repair or old DDL replay was performed; only the new bounded forward migration was applied.
+For the existing Dynamic Production project `ufwjmhivvnoewjsbteey`, the seven pre-existing remote migration records in this historical checkpoint remained version/name-mismatched; the eighth retention migration was aligned at remote version `20261105205909`. This paragraph is about Dynamic Production only, not the dedicated Monorepo target. No historical migration repair or old DDL replay was performed there.
 
 ## Safe future CLI operation after Supabase CLI v3
 
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
 
-Before any future CLI call, inspect and pin the CLI version. A migration-history read should explicitly target the intended remote project with the v3 `--remote` form; do not copy a legacy `--linked` or `--project-ref` command into a new v3 workflow without checking the migration guide. Never add `--yes` to a hosted DDL command until the project ref, change set and approval are verified. The new forward migration was applied through the connected Supabase project tool, not through the CLI; no CLI migration repair or old migration replay was executed. The Monorepo target has its own filename/version map in `migration/supabase-history-alignment.json`; do not use that manifest to manage the separate Dynamic Production project.
+Before any future CLI call, inspect and pin the CLI version. For the Monorepo target, use the aligned nine-file manifest and run a read-only v3 migration list against `qbmhpdprvxssqinnommz` after CLI authentication. For Dynamic Production, use its own original local Supabase migration directory and separate project ref; never reuse the Monorepo manifest. Do not copy legacy `--linked`/`--project-ref` syntax into a v3 workflow without checking current documentation. Never add `--yes` to a hosted DDL command until project ref, change set and approval are verified. No CLI migration repair or old migration replay was executed.
 
 ## Dedicated SARGuardian-Monorepo Supabase project — verified 2026-11-06
 
