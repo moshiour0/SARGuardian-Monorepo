@@ -121,9 +121,9 @@ jobs:
               raise SystemExit("SOURCE_RUN_ATTEMPT_INVALID")
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"run_id={run_id}\\n")
-              output.write(f"run_attempt={attempt}\\n")
-              output.write(f"workflow_path={run['path']}\\n")
+              output.write(f"run_id={run_id}\n")
+              output.write(f"run_attempt={attempt}\n")
+              output.write(f"workflow_path={run['path']}\n")
           print("MONOREPO_SOURCE_RUN_VERIFICATION=PASS")
           print(f"SOURCE_RUN_ID={run_id}")
           print(f"SOURCE_RUN_ATTEMPT={attempt}")
