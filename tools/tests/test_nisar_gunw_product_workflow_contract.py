@@ -34,7 +34,7 @@ def _validate(path: Path, job_name: str, required_marker: str):
     assert "secrets.EARTHDATA_PASSWORD" in text
     assert required_marker in text
     assert "NISAR_GUNW_RAW_CLEANUP_SUCCESS" in text
-    assert "NISAR_GUNW_RAW_CLEANUP_FAILED" in text
+    assert "NISAR_GUNW_EARTHACCESS_RAW_CLEANUP_FAILED" in text
     assert "drive_resumable_upload.py" not in text
     assert "actions/checkout@v4" not in text
     assert "actions/setup-python@v5" not in text
