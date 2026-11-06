@@ -208,6 +208,23 @@ merely because the final schema matches.
   Consider the FK index through a reviewed forward migration only if plans or
   expected write patterns justify it.
 
+### Future-object default ACL audit
+
+A read-only query of `pg_default_acl` for both `postgres` and
+`supabase_admin` found that future public tables, sequences and functions
+inherit privileges for `anon`, `authenticated`, `service_role` and the
+owner role. The current four app tables are not granted to `anon` or
+`authenticated`; their direct table grants are limited to `postgres` and
+`service_role`, and all four have RLS enabled. The default grants apply to
+future objects and should not be mistaken for evidence that current job data
+is exposed.
+
+Before new public objects are introduced, review a separate forward
+default-privilege hardening migration for both object owners. Validate how
+future tables, sequences, functions, PostgREST exposure and any Supabase
+managed migrations are affected. No default ACL or live schema was changed
+during this audit.
+
 ### Secret key handling and API integration
 
 The API persistence module supports both a modern opaque sb_secret_ key and a

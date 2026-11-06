@@ -43,6 +43,24 @@ auth.jwt() in a scalar SELECT. Do not change these policies or drop unused
 indexes without query-plan evidence. A reviewed forward migration may add the
 FK index if query plans or expected delete/update volume justify it.
 
+## Default privileges for future public objects
+
+A direct read-only catalog query inspected `pg_default_acl` for both object
+owners `postgres` and `supabase_admin`. The current default ACLs include
+`anon`, `authenticated`, `service_role` and the owner roles for future
+public tables, sequences and function EXECUTE. This is distinct from the
+current four app tables: those tables grant access only to `postgres` and
+`service_role`; `anon` and `authenticated` have no direct table grants.
+
+This does not demonstrate current table exposure. It is a future-object risk:
+a new public table without RLS could inherit direct PostgREST grants, and a
+new function can inherit EXECUTE grants for browser roles. No live ACL was
+changed. Before creating additional public objects, review a forward
+`ALTER DEFAULT PRIVILEGES` migration for both object owners, verify which
+roles the application needs, and test Supabase-managed migrations/functions.
+Keep the service-role key server-side and continue enforcing `owner_uid`
+filters in API persistence methods.
+
 ## Migration history reconciliation
 
 The project reports eight remote migration records whose names map to the
@@ -58,10 +76,12 @@ version/name table and verification details.
 ## Server key
 
 The API persistence module supports both modern opaque sb_secret_ keys and
-legacy service_role JWTs. Create a dedicated named secret key in Supabase
-Dashboard → Settings → API Keys, with name sarguardian-monorepo-api. Put it
-only in the Monorepo Vercel API Preview environment as
-SUPABASE_SERVICE_ROLE_KEY. Never expose it to the Web project, source control,
+legacy service_role JWTs. The current API Preview environment inventory has
+SUPABASE_URL configured but no SUPABASE_SERVICE_ROLE_KEY. Create a dedicated
+named secret key in Supabase Dashboard → Settings → API Keys, with name
+sarguardian-monorepo-api. Put it only in the Monorepo Vercel API Preview
+environment as SUPABASE_SERVICE_ROLE_KEY. Do not paste the value into chat or
+commit it. Never expose it to the Web project, source control,
 GitHub Actions logs or chat. The new Monorepo project does not reuse the
 Dynamic Production key.
 
