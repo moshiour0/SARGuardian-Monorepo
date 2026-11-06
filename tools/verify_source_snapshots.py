@@ -434,7 +434,11 @@ def main() -> int:
             # These Monorepo-only additions are not source snapshot files:
             # - README.md documents the isolated target project and key setup.
             # - the retention migration is a separately reviewed forward migration.
-            ("README.md", "migrations/20261105205909_catalog_preflight_retention.sql"),
+            (
+                "README.md",
+                "migrations/20261105205909_catalog_preflight_retention.sql",
+                "migrations/20261106100000_public_default_privileges_hardening.sql",
+            ),
         ),
     )
     for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:

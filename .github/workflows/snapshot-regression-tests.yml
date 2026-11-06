@@ -202,6 +202,8 @@ jobs:
         run: node tests/google_maps_dashboard_adapter.test.mjs
       - name: Run Monorepo-only API owner-scope contract
         run: python -m pytest ../../tools/tests/test_api_owner_scoping_contract.py -q
+      - name: Validate Supabase future-object privilege migration
+        run: python -m pytest ../../tools/tests/test_supabase_default_privileges_contract.py -q
       - name: Run active API regression suite
         run: python -m pytest -q
 
