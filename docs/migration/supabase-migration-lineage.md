@@ -2,7 +2,7 @@
 
 **Source:** `moshiour0/SARGuardian_Dynamic@dd64b7adc90594f1d7f316b352e39fbac2013cb6`  
 **Promoted destination:** `infrastructure/supabase/`  
-**Status:** exact source SQL provenance is preserved; the two Monorepo forward migrations are applied and verified on the dedicated Free Tokyo target. Monorepo local filenames now match its nine observed remote version prefixes. The existing Dynamic Production database is a separate target whose legacy history remains unrepaired.
+**Current status (supersedes earlier nine-row checkpoint):** the dedicated Free Tokyo Monorepo target reports 11 remote migration rows, and all 11 version/name pairs match the canonical filenames in `infrastructure/supabase/migrations/`. Four Monorepo forward migrations are present and verified: catalogue-preflight retention, public default-privilege hardening, the processing-jobs preflight FK index, and owner-read RLS initplan optimization. The earlier nine-row tables below are preserved as historical checkpoints; the current 11-row table is at the end of this document. The existing Dynamic Production database is a separate target whose legacy history remains unrepaired.
 
 ## Files imported
 
