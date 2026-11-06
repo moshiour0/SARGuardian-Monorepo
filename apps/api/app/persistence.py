@@ -92,9 +92,10 @@ def _verify_server_role_access(client: Any) -> None:
     """Run a read-only, zero-row query to catch invalid/underprivileged server keys early."""
     try:
         client.table("displacement_jobs").select("id").limit(0).execute()
+        client.table("known_place_requests").select("request_id").limit(0).execute()
     except Exception:
         raise PersistenceConfigurationError(
-            "Supabase server-side access check failed for public.displacement_jobs. "
+            "Supabase server-side access check failed for the migrated job/request tables. "
             "Verify SUPABASE_SERVICE_ROLE_KEY is a server-only key and the migration grants are applied."
         ) from None
 
@@ -114,6 +115,9 @@ class JobStore(Protocol):
     def get_displacement_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...
     def get_displacement_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None: ...
     def update_displacement_job(self, job_id: UUID, values: dict[str, Any], *, expected_state: str | None = None, expected_sequence: int | None = None) -> dict[str, Any]: ...
+    def create_known_place_request(self, values: dict[str, Any]) -> dict[str, Any]: ...
+    def get_known_place_request(self, owner_uid: str, request_id: UUID, request_kind: str) -> dict[str, Any] | None: ...
+    def update_known_place_request(self, owner_uid: str, request_id: UUID, request_kind: str, dispatch_state: str) -> dict[str, Any]: ...
     def get_river_shift_job_by_idempotency(self, owner_uid: str, idempotency_key: str) -> dict[str, Any] | None: ...
     def create_river_shift_job(self, values: dict[str, Any]) -> dict[str, Any]: ...
     def list_river_shift_jobs(self, owner_uid: str, limit: int = 20) -> list[dict[str, Any]]: ...
@@ -329,6 +333,54 @@ class SupabaseJobStore:
             if expected_state is not None or expected_sequence is not None:
                 raise PersistenceConflictError("Job state changed concurrently; refresh before retrying.")
             raise PersistenceError("Displacement job was not found for update.")
+        return rows[0]
+
+    def create_known_place_request(self, values: dict[str, Any]) -> dict[str, Any]:
+        try:
+            response = self.client.table("known_place_requests").insert(values).select("*").execute()
+        except Exception:
+            raise PersistenceError("Could not persist the Known Place request owner mapping.") from None
+        rows = self._data(response)
+        if not rows:
+            raise PersistenceError("Known Place request owner mapping returned no record.")
+        return rows[0]
+
+    def get_known_place_request(
+        self, owner_uid: str, request_id: UUID, request_kind: str,
+    ) -> dict[str, Any] | None:
+        try:
+            response = (
+                self.client.table("known_place_requests")
+                .select("*")
+                .eq("owner_uid", owner_uid)
+                .eq("request_id", str(request_id))
+                .eq("request_kind", request_kind)
+                .limit(1)
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not verify Known Place request ownership.") from None
+        rows = self._data(response)
+        return rows[0] if rows else None
+
+    def update_known_place_request(
+        self, owner_uid: str, request_id: UUID, request_kind: str, dispatch_state: str,
+    ) -> dict[str, Any]:
+        try:
+            response = (
+                self.client.table("known_place_requests")
+                .update({"dispatch_state": dispatch_state})
+                .eq("owner_uid", owner_uid)
+                .eq("request_id", str(request_id))
+                .eq("request_kind", request_kind)
+                .select("*")
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not update Known Place dispatch state.") from None
+        rows = self._data(response)
+        if not rows:
+            raise PersistenceError("Known Place request owner mapping was not found for update.")
         return rows[0]
 
 
