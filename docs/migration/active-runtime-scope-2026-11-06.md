@@ -40,7 +40,7 @@ Do not turn standalone catalogue probes, manual renderer workflows, historical b
 
 ## Cutover acceptance gates
 
-- Monorepo-only API credentials: Firebase Admin JSON, Supabase service key, GitHub Actions token, displacement/RiverShift callback HMAC secrets, Drive result-read OAuth.
+- Store Firebase, Supabase, GitHub dispatch, callback-signing and Drive-read credentials only in the API server's private environment; keep every value outside Git and browser bundles.
 - Monorepo Actions secrets: Earthdata access, Drive OAuth client/refresh token and GOOGLE_DRIVE_PARENT_FOLDER_ID. Never expose these in apps/web or VITE_*.
 - Authenticated Preview login, owner-scoped Supabase persistence/readback, dispatch correlation, status polling, signed callbacks, terminal failure propagation and artifact access.
 - A successful isolated Find Displacements run using Monorepo workflow files and exact science pin.

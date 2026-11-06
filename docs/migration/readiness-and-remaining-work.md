@@ -4,9 +4,9 @@
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
-## Latest migration verification — 2026-11-06
+## Prior complete migration verification before current Known Place pin overlay — 2026-11-06
 
-- Code/workflow head `8454a15fe2e014afa1297e2c03faff132734e998`: [Snapshot Regression Tests 42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19**. This includes the three-workflow primary Find Displacements chain, RiverShift gated workflow contract, four preserved Known Place routes, promoted app/engine tests, exact source snapshot integrity, active-runtime-scope validation, Supabase migration filename/blob alignment, default-privilege SQL contract and frontend build/lint/unit tests.
+- Previous code/workflow head `8454a15fe2e014afa1297e2c03faff132734e998`: [Snapshot Regression Tests 42182301730](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42182301730) passed **19/19** before the latest active Known Place source-pin correction. The current correction has its own new CI runs and must pass separately before this branch is marked green.
 - Additional same-head checks: Backend source snapshot suites 2/2 passed, Migration Metadata Validation passed, Historical Secret Scan passed, Runner Allocation Diagnostic passed, Retention Archive Regression passed, Dashboard asset tests passed, and dual-pin AOI validation passed.
 - Docs/readiness-only head `16d1ac1866d2df66443badb40b645cb844afd018` follows that code head and is running its own final PR checks. Do not call the docs-only head fully green until its own Snapshot Regression finishes.
 - Monorepo Supabase local migration directory now contains nine files whose 14-digit filename prefixes and suffix names match the nine live migration records returned by the Monorepo project inventory. Seven imported SQL blobs are still byte-identical to their immutable Dynamic source-snapshot files; the two forward migration blobs are unchanged. CI checks every path and blob SHA. No remote migration record, schema, table or data was changed by this filename alignment.
@@ -14,39 +14,40 @@
 - PR #2 remains Draft/unmerged. Existing Dynamic/Backend Production routing, Vercel Production aliases and Production Supabase are unchanged.
 
 
-## 2026-11-06 active migration scope decision — supersedes broad 82-workflow promotion wording
+## 2026-11-06 active migration scope decision — evidence-based product paths
 
-The migration scope is intentionally **not** “activate every workflow copied from the source repositories.” The 82 source workflow instances are retained for immutable provenance and audit only. Current API-linked cutover scope has three operational tiers:
+The migration does **not** activate all 82 historic workflow instances. Their source snapshots remain preserved, but the current Dynamic application call graph contains two active application paths and two independently gated features.
 
-| Tier | Workflow count | Contents | Acceptance state |
+| Tier | Workflow count | Contents | Evidence / acceptance |
 |---|---:|---|---|
-| **Primary proven runtime** | 3 | Find Displacements dispatcher → dashboard engine → one-product worker | Backend run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed successfully: 20 jobs, one failed initial GUNW-002 download, failed-only retry passed, dashboard assembly passed, terminal callback passed |
-| **Connected gated feature** | 1 | RiverShift NISAR GCOV workflow | Backend run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247) matched 14/14 catalogue granules but correctly stopped at `EVENT_WINDOW_NOT_BRACKETED` before processing; positive-case GCOV pilot still required |
-| **Preserved but disabled feature paths** | 4 | Generic Known Place dispatcher/reusable analysis and author-exact P05023 dispatcher/replay | No matching Known Place dispatch found in the latest 100 Backend runs reviewed on 2026-11-06; keep separate and gated, not part of the primary cutover |
-| **Migration CI** | 7 | Source snapshot regression, API/Web/engine tests, metadata, secret scan, retention and AOI code validation | Validation-only; not product runtime dependencies |
+| **Primary application runtime** | 5 | Find Displacements dispatcher → dashboard engine → product worker; generic Known Place dispatcher → generic two-polygon analysis engine | Find Displacements run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed, recovered GUNW-002 via failed-only retry, assembled dashboard and reported terminal callback. Generic Known Place Backend-main dispatch page returned 16 runs: 8 success, 7 failure, 1 cancelled; successful runs [41533701551](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533701551) and [41533582770](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533582770) retained result artifacts at exact generic reusable workflow pin 0e0611c. |
+| **Connected gated feature paths** | 3 | RiverShift GCOV; author-exact P05023 dispatcher and reusable replay | RiverShift run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247) matched 14/14 granules but stopped safely at EVENT_WINDOW_NOT_BRACKETED. Author-exact run [41423614257](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41423614257) passed consent and Drive derived-bundle receipt, but source-manifest completeness failed and raw cleanup was blocked. |
+| **Migration CI** | 7 | Snapshot/source regression, metadata, secret scan, retention, dashboard assets and AOI code validation | Validation-only; not product runtime dependencies. |
 
-The exact primary allowlist, RiverShift gated-feature list, Known Place disabled-feature list, API routes, source pins and run evidence are maintained in [active runtime scope](active-runtime-scope-2026-11-06.md) and `migration/active-runtime-scope.json`. CI enforces those tiers through `tools/validate_active_runtime_scope.py`.
+The Known Place generic engine now uses the active Backend main workflow/source pin 0e0611c12913044787ee84a39fa60a81d30ae516. The Monorepo PR #85 research snapshot remains preserved, but PR #85 itself is still Draft/Open on feat/know-place-analysis and was not merged to Backend main. The detailed lineage and exact 10-file source overlay are recorded in [active runtime scope](active-runtime-scope-2026-11-06.md) and migration/active-runtime-pins/known-place-generic-0e061.json.
 
 ### What this scope decision changes
 
-- Only the three Find Displacements workflows count as the primary proven processing runtime.
-- RiverShift stays in the Monorepo and in the API feature set, but its API and repository dispatch gates remain false until an eligible acquisition window completes a positive-case pilot.
-- Known Place generic and author-exact P05023 source/API/engine paths remain preserved, but they are not treated as current production dependencies and their gates remain false.
-- Manual diagnostics, standalone NISAR experiments, retained-artifact repair/replay workflows, alternate forks, historical push-triggered bridges and unused research variants are not automatic runtime dependencies. Preserve their exact source snapshots; do not promote them into the active API dispatch graph.
-- Keep all 82 source workflow instances in the disposition register and immutable snapshots. Inventory completeness does not mean every workflow should be active.
-- Do not change the existing Dynamic Production API, Backend Actions targets, Production callbacks, Vercel aliases or Production Supabase while this isolated cutover is incomplete.
+- The current application cutover graph contains only Find Displacements and generic Known Place.
+- RiverShift remains connected to the API but dispatch stays false until a scientifically eligible event window completes a positive-case GCOV pilot.
+- Author-exact P05023 remains a separate manual-consent path with fixed workflow/code pins; its gate stays false until a complete source-manifest, science, Drive and cleanup acceptance passes.
+- Historical diagnostics, one-off renderer jobs, alternate forks and unused worker variants remain archived/provenance-only; they are not user-job runtime dependencies.
+- Keep all 82 source workflow instances preserved in the inventory and immutable snapshots. This is provenance completeness, not a requirement to activate all of them.
+- Existing Dynamic Production, Backend workflow targets, callbacks, Vercel Production aliases and Production Supabase remain unchanged.
 
 ### Remaining completion gates
 
-1. Pass current-head CI including the active-runtime-scope validator and full history secret scan.
-2. Configure Monorepo-only API Preview credentials (Firebase Admin, Supabase service key, GitHub dispatch token, callback HMAC secrets and Drive result-read OAuth) and Monorepo Actions Secrets (Earthdata + Google Drive OAuth/parent folder). Do not paste credentials into chat or Git.
-3. Verify authenticated Preview login, owner-scoped Supabase persistence, Find Displacements mock dispatch, signed callback, status polling, artifact access and duplicate-dispatch protection.
-4. Complete a positive-case RiverShift pilot with a genuinely bracketed event window; verify GCOV processing, 15-product barriers, failed-only retry, Drive receipts and signed callback. Keep the feature off until it passes.
-5. Keep Known Place disabled in this primary cutover; separately accept generic two-polygon and author-exact P05023 only if/when those features are deliberately released.
-6. Run the final read-only `supabase migration list --remote=qbmhpdprvxssqinnommz` with authenticated CLI access to confirm all nine filename/version pairs; do not use `db push`, repair or replay as a shortcut.
-7. Review Web bundle size/npm advisories, independent science validity, licensing and rollback; then merge PRs in sequence and cut over Production only after explicit owner approval.
+1. Pass current-head Snapshot Regression, Backend Source Snapshot Regression, Historical Secret Scan and all independent CI checks after the Known Place pin correction.
+2. Configure Monorepo-only API Preview credentials (Firebase Admin, Supabase service role, GitHub dispatch, callback HMAC and Drive result-read OAuth) and Monorepo Actions Secrets (Earthdata and Drive OAuth/parent folder). Do not commit or paste secret values.
+3. Verify authenticated Preview login, owner-scoped Supabase persistence/readback, API → workflow request correlation, status polling, signed callbacks, terminal failure propagation and artifact access.
+4. Run a catalog-only Known Place Preview, then a controlled positive two-polygon measurement pilot against the exact 0e061 pin; confirm Drive receipt and API artifact access.
+5. Run Find Displacements in Monorepo with an isolated/mock dispatch then a controlled real-data pilot; verify product retries, dashboard output, Drive receipts and terminal callback.
+6. Complete a positive-case RiverShift run with a genuinely bracketed event date; verify 15-product batch barriers, failed-only retries, output, Drive receipt and signed callback.
+7. Keep Author-Exact P05023 manual-consent-gated until the full source-manifest and scientific validation succeeds and raw cleanup is independently verified.
+8. Confirm the nine Monorepo Supabase migration filename/version/name pairs using an authenticated read-only CLI v3 listing if available; no db push, repair, replay or reset is justified because the connected inventory already matches the local alignment manifest. Keep original Dynamic Production lineage separate.
+9. Review Web advisories/bundle size, licensing, science validity and rollback; then merge PRs in sequence. Production cutover requires explicit owner approval.
 
-**Current status:** source/API/engine promotion and the primary Find Displacements workflow chain exist on the isolated migration branch. Full operational migration is **not complete**: authenticated Preview, credentials, callbacks, RiverShift positive-case pilot, migration-history reconciliation, current-head CI, and Production cutover remain open. Existing Production continues to run on Dynamic + Backend.
+**Current status:** the latest branch now contains the active generic Known Place 0e061 source overlay and matching workflow/API paths. CI is still being rerun against this exact head. Full operational migration is not complete until Preview credentials, authenticated persistence/callbacks, the required pilots and final merge/cutover gates pass.
 
 
 > **Current-head verification — 2026-11-06, code/workflow head `f6f48462a3546bccfe551549c931c87523d35fa8`:**
