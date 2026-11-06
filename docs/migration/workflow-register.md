@@ -178,18 +178,20 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (16 files total)
+### Root workflow entrypoints currently promoted (18 files total)
 
-- Find Displacements: API-facing AOI dispatcher and reusable dashboard engine,
-  product worker, manual AOI dispatcher, and live ASF catalogue-only diagnostic.
-  The manual dispatcher calls the local Monorepo reusable engine. The catalogue
-  diagnostic uses the promoted discovery tool plus the exact 006d4cd science
-  snapshot; it is manual-only, fail-closed, and receives no Earthdata or Drive
-  credentials. A separate retained-artifact reassembly workflow uses the exact
-  d9e67 tool snapshot and ab547 NISAR science commit from Monorepo Git history;
-  it accepts only Monorepo artifact run IDs, verifies the 33-product
-  (15 GUNW/18 GOFF) manifest and uploads to Drive only after parity PASS.
-  All three use independent fail-closed gates and explicit least-scope secrets.
+- Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
+  workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
+  retained-artifact reassembly, and source-AOI streaming caller/product worker.
+  All operational entrypoints are fail-closed. The catalogue diagnostic uses
+  the promoted discovery tool and exact 006d4cd science snapshot, without
+  download/Drive credentials. Reassembly uses exact d9e67 tools and ab547
+  science commit from Monorepo Git history, accepts only Monorepo artifact run
+  IDs, verifies the 33-product manifest (15 GUNW/18 GOFF), and uploads only
+  after parity PASS. Source-AOI streaming uses the exact ab547 baseline and
+  local reusable worker, keeps the two-product pilot default and one-at-a-time
+  product execution/retry semantics, and requires a separate repository gate.
+  These workflows never call the old Backend repository.
 - Known Place: generic two-polygon analysis dispatcher and the separate
   author-exact P05023 dispatcher/replay workflow. The paper reproduction keeps
   its explicit historical backend-code pin, independent science pin, and
@@ -214,11 +216,11 @@ The migration is not complete until every source workflow version has a
 documented destination and every required operational workflow is represented
 in the Monorepo root workflow system. Remaining families include:
 
-1. Find Displacements and legacy streaming: the live catalogue-only diagnostic
-   and retained-artifact reassembly are promoted as gated/manual-only root
-   workflows. The source-AOI streaming batch, retention pilot, Earthdata
-   auth/token tests and manual source-AOI science validation still need
-   reviewed root implementations or explicit archive/retirement dispositions. Keep GOFF and GUNW evidence separate.
+1. Find Displacements and legacy streaming: the catalogue-only diagnostic,
+   retained-artifact reassembly and source-AOI streaming batch/product worker
+   are promoted as gated/manual-only root workflows. The retention pilot,
+   Earthdata auth/token tests and manual source-AOI science validation still
+   need reviewed root implementations or explicit archive/retirement dispositions. Keep GOFF and GUNW evidence separate.
 2. Known Place PR #85 additions: author dashboard/map rendering, DEM source
    acquisition, terrain/datum sensitivity, retained-crown audit, displacement
    null audit, generic/author-exact consent bridges, generic Drive retry,
