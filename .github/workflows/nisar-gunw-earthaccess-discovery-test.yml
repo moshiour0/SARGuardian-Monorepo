@@ -65,6 +65,7 @@ jobs:
         shell: bash
         env:
           SCIENCE_ROOT: ${{ runner.temp }}/nisar-legacy-science
+          SCIENCE_COMMIT: 77cc9646cfa46d3aff3669d351912f984cf67aa3
         run: |
           set -euo pipefail
           test -n "$EARTHDATA_USERNAME"
