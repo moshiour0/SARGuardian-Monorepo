@@ -211,7 +211,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, os
+          import json, os, re
           from pathlib import Path
 
           prior_root = Path(os.environ["PRIOR_ROOT"])
