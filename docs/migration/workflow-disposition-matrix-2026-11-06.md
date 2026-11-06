@@ -15,7 +15,7 @@ The Backend main and Known Place PR #85 inventories are separate source lineages
 
 ## Current Monorepo root inventory
 
-At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contained 38 files. The retention-archive port added one root workflow, and commit 1245412807200702460aaf30fec056a0976e588b records 39. The current live-validation port in this change raises the expected root inventory to 40. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
+At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contained 38 files. The retention-archive port raised this to 39, the fixed P05023 live-retention port raised it to 40, and this dedicated AOI code-validation port raises the expected root inventory to 41. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
 
 ## Dynamic main source workflows (7)
 
@@ -63,7 +63,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 | **river-shift-sentinel2-retained-replay.yml** | 79291b782a51 | .github/workflows/river-shift-sentinel2-retained-replay.yml | Root exists — contract review open |
 | **river-shift-tests.yml** | d9f69946b85b | .github/workflows/snapshot-regression-tests.yml | Consolidated CI — parity review open |
 | **runner-test.yml** | afba718f35d3 | — | Manual benchmark — promote/retire decision open |
-| **sarguardian-aoi-code-validation.yml** | 1bbff061aae4 | .github/workflows/snapshot-regression-tests.yml | Consolidated CI — parity review open |
+| **sarguardian-aoi-code-validation.yml** | 1bbff061aae4 | .github/workflows/sarguardian-aoi-code-validation.yml | Consolidated CI — parity review open |
 | **sarguardian-aoi-live-discovery-check.yml** | 30bbadd02b42 | .github/workflows/find-displacements-live-catalogue-diagnostic.yml | Renamed root port — contract review open |
 | **sarguardian-aoi-product-worker.yml** | 15dc032db32a | .github/workflows/sarguardian-aoi-product-worker.yml | Root exists — contract review open |
 | **sarguardian-aoi-wkt-dashboard.yml** | eabdc43e0e0b | .github/workflows/sarguardian-aoi-wkt-dashboard.yml | Root exists — contract review open |
@@ -99,7 +99,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 - **river-shift-sentinel2-retained-replay.yml:** Root Sentinel-2 replay exists; original push trigger must remain removed and cross-sensor validation must stay separate from GCOV.
 - **river-shift-tests.yml:** RiverShift worker tests are executed by the promoted-engine job in Snapshot Regression Tests. Verify the full source test contract, geospatial environment, GDAL driver checks and workflow-contract assertions remain equivalent.
 - **runner-test.yml:** Legacy benchmark writes a 5 GB file and allocates about 4 GB RAM. The root runner-allocation diagnostic is not equivalent. Decide whether to port behind a strict manual gate or retire with an explicit rationale; do not run as routine CI.
-- **sarguardian-aoi-code-validation.yml:** Root promoted Find Displacements/NISAR jobs cover the primary engine tests, but source workflow also checks the separate historical science ref 006d4cd1485cf80e509eaf8717c12e9c6390ac09 and dashboard JS parsing. Verify those exact checks are retained before closing this item.
+- **sarguardian-aoi-code-validation.yml:** A dedicated root CI workflow now tests the exact 006d parser/GOFF pin, promoted Find Displacements tools/dashboard, generated JavaScript syntax and root AOI YAML. PR #85's 10639 source variant is also tested by the same root workflow, but its branch-specific trigger/test diff remains open. The historic Backend Run-32 artifact download is not reused; a separate same-repository Dashboard Real Artifact Smoke owns that integration check.
 - **sarguardian-aoi-live-discovery-check.yml:** Renamed to an isolated Find Displacements catalogue-only diagnostic. Verify WKT/date input contract, immutable science-source selection, ASF diagnostics and the new fail-closed gate; do not enable downloads or Drive writes.
 - **sarguardian-aoi-product-worker.yml:** Root reusable AOI product worker exists; compare required inputs, source pin, cleanup, artifact names and failure status semantics.
 - **sarguardian-aoi-wkt-dashboard.yml:** Root API-facing caller exists separately from the workflow_call engine; compare dispatch schema, callbacks, retries, artifact identity and terminal status.
@@ -145,7 +145,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 | **nisar-single-download-test.yml** | cfb86b48e127 | .github/workflows/nisar-single-download-test.yml | PR #85 variant — canonical selection open |
 | **retention-archive-tests.yml** | 3a81ad4c8adc | .github/workflows/retention-archive-tests.yml | Root exists — contract review open |
 | **runner-test.yml** | afba718f35d3 | — | Manual benchmark — promote/retire decision open |
-| **sarguardian-aoi-code-validation.yml** | bc05df58d653 | .github/workflows/snapshot-regression-tests.yml | PR #85 variant — canonical selection open |
+| **sarguardian-aoi-code-validation.yml** | bc05df58d653 | .github/workflows/sarguardian-aoi-code-validation.yml | PR #85 variant — canonical selection open |
 | **sarguardian-aoi-live-discovery-check.yml** | 30bbadd02b42 | .github/workflows/find-displacements-live-catalogue-diagnostic.yml | PR #85 variant — canonical selection open |
 | **sarguardian-aoi-product-worker.yml** | eb2baa483366 | .github/workflows/sarguardian-aoi-product-worker.yml | PR #85 variant — canonical selection open |
 | **sarguardian-aoi-wkt-dashboard.yml** | 595dff2527b0 | .github/workflows/sarguardian-aoi-wkt-dashboard.yml | PR #85 variant — canonical selection open |

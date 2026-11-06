@@ -1,0 +1,141 @@
+name: SARGuardian AOI Code Validation (Monorepo, dual historical pins)
+
+on:
+  push:
+    branches:
+      - "migration/source-snapshot-import"
+    paths:
+      - "engines/find-displacements/**"
+      - "migration/source-snapshots/nisar-pins/006d4cd/**"
+      - "migration/source-snapshots/nisar-pins/10639a9/**"
+      - ".github/workflows/sarguardian-aoi-code-validation.yml"
+      - ".github/workflows/sarguardian-aoi-*.yml"
+  pull_request:
+    paths:
+      - "engines/find-displacements/**"
+      - "migration/source-snapshots/nisar-pins/006d4cd/**"
+      - "migration/source-snapshots/nisar-pins/10639a9/**"
+      - ".github/workflows/sarguardian-aoi-code-validation.yml"
+      - ".github/workflows/sarguardian-aoi-*.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monorepo-aoi-code-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-and-parser-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Monorepo source snapshots and promoted engine
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
+
+      - name: Install static and geospatial test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            pytest pyyaml requests numpy scipy h5py rasterio pyproj pillow matplotlib
+
+      - name: Compile promoted Find Displacements Python modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m compileall -q \
+            engines/find-displacements/tools \
+            engines/find-displacements/dashboard
+
+      - name: Syntax-check generated dashboard JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          source = Path("engines/find-displacements/tools/aggregate_aoi_run.py").read_text(encoding="utf-8")
+          marker = 'doc = r"""'
+          start = source.find(marker)
+          if start < 0:
+              raise SystemExit("ERROR=DASHBOARD_HTML_TEMPLATE_NOT_FOUND")
+          start += len(marker)
+          end = source.find('"""', start)
+          if end < 0:
+              raise SystemExit("ERROR=DASHBOARD_HTML_TEMPLATE_UNTERMINATED")
+          html = source[start:end]
+          script_marker = "<script>\\n"
+          script_start = html.find(script_marker)
+          if script_start < 0:
+              script_marker = "<script>"
+              script_start = html.find(script_marker)
+              if script_start < 0:
+                  raise SystemExit("ERROR=DASHBOARD_INTERACTIVE_SCRIPT_NOT_FOUND")
+              script_start += len(script_marker)
+          else:
+              script_start += len(script_marker)
+          script_end = html.find("</script>", script_start)
+          if script_end < 0:
+              raise SystemExit("ERROR=DASHBOARD_INTERACTIVE_SCRIPT_UNTERMINATED")
+          Path("$RUNNER_TEMP/sarguardian-dashboard.js").write_text(html[script_start:script_end], encoding="utf-8")
+          print("DASHBOARD_JS_EXTRACTED=$RUNNER_TEMP/sarguardian-dashboard.js")
+          PY
+          node --check "$RUNNER_TEMP/sarguardian-dashboard.js"
+
+      - name: Parse root AOI workflow YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          files = sorted(Path(".github/workflows").glob("sarguardian-aoi-*.yml"))
+          if not files:
+              raise SystemExit("ERROR=AOI_WORKFLOW_FILES_MISSING")
+          for path in files:
+              with path.open(encoding="utf-8") as handle:
+                  yaml.compose(handle, Loader=yaml.BaseLoader)
+              print(f"YAML_SYNTAX_PASS={path}")
+          PY
+
+      - name: Test backend-main science pin 006d parser and promoted AOI engine
+        shell: bash
+        env:
+          PYTHONPATH: ${{ github.workspace }}/migration/source-snapshots/nisar-pins/006d4cd/src:${{ github.workspace }}/engines/find-displacements
+        run: |
+          set -euo pipefail
+          python -m pytest -q \
+            migration/source-snapshots/nisar-pins/006d4cd/tests/test_aoi_wkt.py \
+            migration/source-snapshots/nisar-pins/006d4cd/tests/test_goff_reader.py \
+            engines/find-displacements/tools/tests/test_discover_aoi_products.py \
+            engines/find-displacements/tools/tests/test_validate_aoi_derived_outputs.py \
+            engines/find-displacements/tools/tests/test_plan_aoi_retries.py \
+            engines/find-displacements/tools/tests/test_aggregate_aoi_run.py \
+            engines/find-displacements/tools/tests/test_aoi_wide_displacement_screen.py \
+            engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py \
+            engines/find-displacements/tools/tests/test_science_engine_dispatch_contract.py \
+            engines/find-displacements/dashboard/tests/test_prepare_web_assets.py
+
+      - name: Test Known Place PR #85 science pin 10639 parser compatibility
+        shell: bash
+        env:
+          PYTHONPATH: ${{ github.workspace }}/migration/source-snapshots/nisar-pins/10639a9/src:${{ github.workspace }}/engines/find-displacements
+        run: |
+          set -euo pipefail
+          python -m pytest -q \
+            migration/source-snapshots/nisar-pins/10639a9/tests/test_aoi_wkt.py \
+            migration/source-snapshots/nisar-pins/10639a9/tests/test_goff_reader.py \
+            engines/find-displacements/tools/tests/test_discover_aoi_products.py \
+            engines/find-displacements/tools/tests/test_validate_aoi_derived_outputs.py \
+            engines/find-displacements/tools/tests/test_plan_aoi_retries.py \
+            engines/find-displacements/tools/tests/test_aggregate_aoi_run.py \
+            engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py

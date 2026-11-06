@@ -4,7 +4,7 @@
   "monorepo_repository": "moshiour0/SARGuardian-Monorepo",
   "monorepo_branch": "migration/source-snapshot-import",
   "monorepo_base_head": "3420eaea6b3d97175c075d4eb4da00423d89c176",
-  "expected_root_workflow_count": 40,
+  "expected_root_workflow_count": 41,
   "sources": [
     {
       "id": "dynamic-main",
@@ -415,11 +415,11 @@
       "source_snapshot_path": "migration/source-snapshots/backend-main/.github/workflows/sarguardian-aoi-code-validation.yml",
       "source_blob_sha": "1bbff061aae409d27a5089cd13e380aac6079b86",
       "workflow_name": "sarguardian-aoi-code-validation.yml",
-      "disposition": "ci-consolidated-parity-review",
+      "disposition": "root-present-contract-review-required",
       "root_workflows": [
-        ".github/workflows/snapshot-regression-tests.yml"
+        ".github/workflows/sarguardian-aoi-code-validation.yml"
       ],
-      "note": "Root promoted Find Displacements/NISAR jobs cover the primary engine tests, but source workflow also checks the separate historical science ref 006d4cd1485cf80e509eaf8717c12e9c6390ac09 and dashboard JS parsing. Verify those exact checks are retained before closing this item."
+      "note": "A dedicated root CI port now validates both the exact 006d NISAR parser/GOFF source pin and the promoted Find Displacements tools/dashboard. It compiles the engine, checks generated JavaScript syntax, parses root AOI workflow YAML and runs the historical source plus promoted engine suites. The old Backend Run-32 artifact download from another repository is intentionally not reused; the Monorepo has a separate same-repository Dashboard Real Artifact Smoke workflow. Verify current-head CI and compare any remaining fixture differences before closure."
     },
     {
       "source_id": "backend-main",
@@ -928,9 +928,9 @@
       "workflow_name": "sarguardian-aoi-code-validation.yml",
       "disposition": "feature-variant-contract-review-required",
       "root_workflows": [
-        ".github/workflows/snapshot-regression-tests.yml"
+        ".github/workflows/sarguardian-aoi-code-validation.yml"
       ],
-      "note": "Known Place PR #85 version differs from Backend main at this path. The root counterpart is an adapted workflow, not a byte-identical copy. Compare the PR #85 caller/worker fields, science pins, callbacks and output artifacts before declaring which source variant is canonical. Root promoted Find Displacements/NISAR jobs cover the primary engine tests, but source workflow also checks the separate historical science ref 006d4cd1485cf80e509eaf8717c12e9c6390ac09 and dashboard JS parsing. Verify those exact checks are retained before closing this item."
+      "note": "The PR #85 variant uses the separate 10639 NISAR science pin and a different trigger/test set. The root CI port runs parser/GOFF-reader tests for both 006d and 10639, plus promoted tools/dashboard tests; the branch-specific test/trigger diff remains under review. Its old cross-repository Run-32 artifact smoke is replaced by the separate same-repository Dashboard Real Artifact Smoke workflow."
     },
     {
       "source_id": "backend-known-place-pr85",
@@ -1076,11 +1076,11 @@
   ],
   "summary": {
     "source_workflow_instances": 82,
-    "root_workflow_files": 40,
+    "root_workflow_files": 41,
     "disposition_counts": {
-      "ci-consolidated-parity-review": 5,
+      "ci-consolidated-parity-review": 4,
       "renamed-root-port-contract-review": 6,
-      "root-present-contract-review-required": 30,
+      "root-present-contract-review-required": 31,
       "api-dispatch-replacement-contract-review": 1,
       "manual-benchmark-disposition-required": 2,
       "legacy-callback-source-review-required": 2,

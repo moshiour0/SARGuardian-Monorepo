@@ -296,3 +296,8 @@ The live source trees were re-read at the audited refs and contain 7 Dynamic mai
 ## 2026-11-06 fixed P05023 live-retention workflow port
 
 The Backend-main two-product live retention workflow now has a separate root port at `.github/workflows/sarguardian-live-validation.yml`. It remains manual-only and fail-closed behind the repository variable `MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED` plus the required `confirm_live_retention` dispatch input. The port uses the exact `ab547ecc82bcc4d6ccef545a59852536c2beacc6` source commit through Monorepo Git history and a detached worktree; it does not check out a second repository or silently substitute NISAR main. It retains one GUNW and one GOFF P05023 source-AOI product, serial processing, engine-ready Drive retention receipts, and no automatic raw deletion. It has not been live-dispatched.
+
+
+## 2026-11-06 dual-pin AOI code-validation port
+
+The Backend main and Known Place PR #85 versions of `sarguardian-aoi-code-validation.yml` use different NISAR source pins (006d and 10639) and have different triggers/test sets. A dedicated root CI workflow now tests both exact imported source snapshots, compiles the promoted Find Displacements tools/dashboard, checks generated dashboard JavaScript and parses the root AOI workflows. It has no external repository checkout or credentials. The legacy Backend Run-32 artifact download is not carried across repositories; the Monorepo's separate Dashboard Real Artifact Smoke remains the integration-artifact path. The PR #85 variant still requires final test/trigger parity review.
