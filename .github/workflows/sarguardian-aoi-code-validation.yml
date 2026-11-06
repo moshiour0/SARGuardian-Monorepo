@@ -62,6 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
+          import os
           from pathlib import Path
           source = Path("engines/find-displacements/tools/aggregate_aoi_run.py").read_text(encoding="utf-8")
           marker = 'doc = r"""'
@@ -86,8 +87,9 @@ jobs:
           script_end = html.find("</script>", script_start)
           if script_end < 0:
               raise SystemExit("ERROR=DASHBOARD_INTERACTIVE_SCRIPT_UNTERMINATED")
-          Path("$RUNNER_TEMP/sarguardian-dashboard.js").write_text(html[script_start:script_end], encoding="utf-8")
-          print("DASHBOARD_JS_EXTRACTED=$RUNNER_TEMP/sarguardian-dashboard.js")
+          output = Path(os.environ["RUNNER_TEMP"]) / "sarguardian-dashboard.js"
+          output.write_text(html[script_start:script_end], encoding="utf-8")
+          print(f"DASHBOARD_JS_EXTRACTED={output}")
           PY
           node --check "$RUNNER_TEMP/sarguardian-dashboard.js"
 
