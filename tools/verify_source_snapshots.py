@@ -637,8 +637,8 @@ def main() -> int:
     if alignment.get("project_ref") != "qbmhpdprvxssqinnommz":
         raise RuntimeError("Supabase history alignment manifest targets the wrong project.")
     migration_records = alignment.get("records")
-    if not isinstance(migration_records, list) or len(migration_records) != 11:
-        raise RuntimeError("Supabase history alignment must contain exactly eleven remote migrations.")
+    if not isinstance(migration_records, list) or len(migration_records) != 12:
+        raise RuntimeError("Supabase history alignment must contain exactly twelve remote migrations.")
 
     expected_sql_paths: set[str] = set()
     seen_versions: set[str] = set()
@@ -692,7 +692,7 @@ def main() -> int:
     }
     if actual_sql_paths != expected_sql_paths:
         raise RuntimeError(
-            "Supabase migration directory differs from the nine-record remote alignment manifest: "
+            "Supabase migration directory differs from the twelve-record remote alignment manifest: "
             f"missing={sorted(expected_sql_paths - actual_sql_paths)}; "
             f"extra={sorted(actual_sql_paths - expected_sql_paths)}"
         )
