@@ -154,3 +154,70 @@ The seven pre-existing remote migration records remain version/name-mismatched w
 Supabase released CLI v3 on 2 November 2026. The 4 November breaking-change notice says hosted database commands now default to the local stack; use `--remote` for the linked hosted database. Hosted changes ask for confirmation, and unattended CI needs an explicit `--yes`. See the [Supabase CLI v2→v3 migration guide](https://supabase.com/docs/guides/local-development/cli/migrating-to-v3) and [4 November breaking-change notice](https://supabase.com/changelog?types=breaking-change).
 
 Before any future CLI call, inspect and pin the CLI version. A migration-history read should explicitly target the intended remote project with the v3 `--remote` form; do not copy a legacy `--linked` or `--project-ref` command into a new v3 workflow without checking the migration guide. Never add `--yes` to a hosted DDL command until the project ref, change set and approval are verified. The new forward migration was applied through the connected Supabase project tool, not through the CLI; no CLI migration repair or old migration replay was executed. The next `supabase migration list --remote` should show `20261105205909` aligned with the local canonical filename.
+
+## Dedicated SARGuardian-Monorepo Supabase project — verified 2026-11-06
+
+The Monorepo database target is available and healthy:
+
+- Project: SARGuardian-Monorepo
+- Project ref: qbmhpdprvxssqinnommz
+- Region: Japan/Tokyo (ap-northeast-1)
+- API URL: https://qbmhpdprvxssqinnommz.supabase.co
+- Organization plan: Free; project cost quote: $0/month
+- PostgreSQL: 17.11.0.018
+- Project status: ACTIVE_HEALTHY
+
+The project contains the four expected public job tables:
+catalog_preflights, processing_jobs, displacement_jobs, and river_shift_jobs.
+All four have RLS enabled and were empty at the verification point (zero rows).
+Each has an authenticated owner-read policy bound to the JWT sub claim. No
+anon/authenticated direct table grant was observed for these job tables.
+Security Advisor returned no findings.
+
+### Monorepo remote migration records
+
+The new project reports eight remote migration records. Their recorded names
+map to all eight local SQL files under infrastructure/supabase/migrations:
+
+| Remote version | Remote name | Local file stem |
+|---|---|---|
+| 20261106000844 | 20261017143644_processing_jobs | 20261017143644_processing_jobs |
+| 20261106000850 | 20261022203034_displacement_jobs | 20261022203034_displacement_jobs |
+| 20261106000856 | 20261023141449_displacement_active_request_guard | 20261023141449_displacement_active_request_guard |
+| 20261106000901 | 20261024111404_scientific_request_contract | 20261024111404_scientific_request_contract |
+| 20261106000905 | 20261027003643_place_target_contract | 20261027003643_place_target_contract |
+| 20261106000909 | 20261103100000_river_shift_jobs | 20261103100000_river_shift_jobs |
+| 20261106000923 | 20261104120000_river_shift_analysis_modes | 20261104120000_river_shift_analysis_modes |
+| 20261106000928 | 20261105205909_catalog_preflight_retention | 20261105205909_catalog_preflight_retention |
+
+The migration names map, but the remote version values are not the timestamp
+prefixes of the local filenames. Treat this as a migration-history identity
+mismatch until a read-only Supabase CLI v3 reconciliation is completed. Do not
+run db push, replay these migrations, rename remote history, or run db reset
+merely because the final schema matches.
+
+### Access and performance notes
+
+- Security Advisor: zero lints.
+- Performance Advisor: one unindexed FK finding on processing_jobs.preflight_id;
+  four policy-evaluation warnings; and eight unused-index INFO findings on a
+  newly provisioned, low-volume database.
+- The observed owner policies already express the JWT lookup as a scalar
+  subquery. Confirm advisor behavior with query plans before changing them.
+- Do not drop indexes based only on unused status while the project is empty.
+  Consider the FK index through a reviewed forward migration only if plans or
+  expected write patterns justify it.
+
+### Secret key handling and API integration
+
+The API persistence module supports both a modern opaque sb_secret_ key and a
+legacy JWT service_role key. Create a dedicated named secret in Supabase
+Dashboard → Settings → API Keys, named sarguardian-monorepo-api. Set it only in
+the Monorepo Vercel API Preview environment as SUPABASE_SERVICE_ROLE_KEY.
+Keep it out of Frontend variables, GitHub source, workflow logs, and chat.
+The Monorepo project does not reuse the Dynamic Production key.
+
+The Dynamic Production Supabase project remains separate and unchanged. This
+Monorepo project is the database target for Preview integration and eventual
+reviewed cutover; GitHub Actions migration and API dispatch cutover remain
+separate acceptance gates.

@@ -165,3 +165,70 @@ Keep the target-free AOI workflow separate from Known Place and RiverShift. Pres
 ## Promotion gate for each workflow
 
 No workflow should move into root `.github/workflows/` until its trigger scope, callers, job graph, permissions, secrets/variables, external checkouts, artifacts, callback contract, retention, failure behavior, and rollback path are documented and tested. Production workflows remain disabled/isolated until explicit cutover approval.
+
+## Central Monorepo workflow migration progress — 2026-11-06
+
+The audited source inventory remains 42 baseline workflows (7 Dynamic plus 35
+Backend main) and 40 Known Place PR #85 workflow variants (15 additions, 8
+changed same-path definitions, and 17 unchanged definitions). All source trees
+remain preserved under migration/source-snapshots and
+migration/source-branch-snapshots. Source preservation is not itself root
+workflow promotion.
+
+### Root workflow entrypoints currently promoted
+
+- Find Displacements: API-facing AOI dispatcher and reusable dashboard engine,
+  product worker, plus the newly added manual AOI dispatcher. The manual
+  dispatcher now calls the local Monorepo reusable engine rather than the old
+  Backend workflow. It uses a fail-closed repository-variable gate and explicit
+  least-scope secret mapping.
+- Known Place: generic two-polygon analysis dispatcher and the separate
+  author-exact P05023 dispatcher/replay workflow. The paper reproduction keeps
+  its explicit historical backend-code pin, independent science pin, and
+  consent requirement.
+- RiverShift: independent NISAR GCOV dispatcher/worker with the original 20-job
+  processing graph wrapped by a fail-closed gate. Four sequential first-pass
+  batches retain max-parallel 15, failed-only retry waves, artifact receipt
+  reconciliation and final failure propagation.
+- Shared migration CI: source-integrity, full-history secret scanning, workflow
+  contract inventory, metadata checks and runner diagnostics.
+
+All processing variables remain false. No new manual or API processing
+workflow has been activated, and the API still targets Backend in Production.
+
+### Workflow families still requiring root promotion or explicit archive disposition
+
+The migration is not complete until every source workflow version has a
+documented destination and every required operational workflow is represented
+in the Monorepo root workflow system. Remaining families include:
+
+1. Find Displacements and legacy streaming: the source-AOI streaming batch,
+   retained-artifact reassembly, retention pilot, live catalogue/auth tests,
+   Earthdata token tests, and manual source-AOI science validation. Keep GOFF
+   and GUNW evidence paths separate. Port required recovery/retention functions
+   with local snapshot pins and mock contracts.
+2. Known Place PR #85 additions: author dashboard/map rendering, DEM source
+   acquisition, terrain/datum sensitivity, retained-crown audit, displacement
+   null audit, generic/author-exact consent bridges, generic Drive retry,
+   analysis reanalysis and explicit author-exact acquisition/replay. Preserve
+   author consent; remove unintended push triggers; keep author-exact P05023
+   separate from generic two-polygon analysis.
+3. RiverShift: independent reference validation and retained OPERA DSWx-S1,
+   Run #36, and Sentinel-2 replays. These are not interchangeable with the
+   primary GCOV processor; preserve source evidence and require explicit manual
+   run/consent boundaries. Remove accidental push-trigger execution on code
+   changes.
+4. NISAR and shared platform validation: catalogue discovery, GOFF time-series,
+   GUNW Earthaccess discovery/read/science/time-series, single/multi-granule
+   download/storage tests, dashboard asset/artifact smoke tests, generic
+   retention tests and runner diagnostics.
+5. Reusable workflow parity: reconcile Dynamic and Backend duplicate AOI
+   dispatcher/dashboard/product-worker contracts and update callers to local
+   root reusable workflows without changing input, artifact, callback, retry
+   or terminal-status behavior.
+
+A source workflow counts as migrated only when the root implementation is
+local to this repository, its trigger and caller graph are reviewed, its
+input/output and secret contract is tested, source-data and Drive side effects
+are controlled, and an isolated dry-run proves failure propagation. Otherwise
+it remains preserved as an inactive source snapshot with a named disposition.
