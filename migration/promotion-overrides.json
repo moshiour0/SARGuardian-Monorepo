@@ -337,13 +337,14 @@
       "source_path": "migration/source-snapshots/backend-main/tools/tests/test_plan_aoi_retries.py",
       "destination_path": "engines/find-displacements/tools/tests/test_plan_aoi_retries.py",
       "source_blob_sha": "6ee6a74ed9344f1df3dad91954444bb8c3042c6f",
-      "destination_blob_sha": "9c6135f65113b2241b9acd6b01bc0903f32c1a70",
+      "destination_blob_sha": "6ec279261e623d43ca5901b8d21d6b4fcd3009d1",
       "mode": "100644",
       "object_type": "blob",
       "reason": "Add regression tests proving transient Drive HTTP 502 after validated science retries only the failed product, permanent Drive 403 is terminal, successful products remain PASS, and workflow assertions inspect the active root workflow graph.",
       "implementation_commits": [
         "aef4b1076ae1315fd96a877f31711543e010fb50",
-        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89"
+        "93b815b77e6c60937f5e6e3c12d53c9f88f8fa89",
+        "cde8671ba6a1f56846c34e10b36af834ba9f4cc4"
       ],
       "verification_paths": [
         "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
