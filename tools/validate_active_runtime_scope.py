@@ -95,7 +95,6 @@ def main() -> int:
         ".github/workflows/sarguardian-aoi-dashboard-engine.yml",
         "uses: ./.github/workflows/sarguardian-aoi-product-worker.yml",
         "max-parallel: 15",
-        "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
     )
     require_contains(
         ".github/workflows/sarguardian-aoi-product-worker.yml",
