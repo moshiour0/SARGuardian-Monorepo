@@ -11,6 +11,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
+from urllib.parse import parse_qs, unquote, urlparse
 import zipfile
 from typing import Any
 
@@ -71,6 +73,30 @@ def create_derived_bundle(run_dir: Path, archive_path: Path) -> dict[str, Any]:
     }
 
 
+def normalize_drive_folder_id(configured_value: str) -> str:
+    """Accept a raw Drive folder ID or a standard Drive folder URL.
+
+    GitHub Actions secrets are sometimes pasted from the browser address bar.
+    Convert only known Drive URL shapes; never pass an arbitrary URL as a file ID.
+    """
+    value = configured_value.strip()
+    if not value:
+        raise BundleUploadError("DRIVE_PARENT_FOLDER_ID_REQUIRED")
+    if "://" in value:
+        parsed = urlparse(value)
+        if parsed.hostname not in {"drive.google.com", "www.drive.google.com", "docs.google.com"}:
+            raise BundleUploadError("DRIVE_PARENT_FOLDER_URL_HOST_INVALID")
+        match = re.search(r"/folders/([^/]+)", parsed.path)
+        if match:
+            value = unquote(match.group(1))
+        else:
+            query_id = parse_qs(parsed.query).get("id", [])
+            value = query_id[0].strip() if query_id else ""
+    if not value or not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+        raise BundleUploadError("DRIVE_PARENT_FOLDER_ID_FORMAT_INVALID")
+    return value
+
+
 def upload_and_verify(archive_path: Path, *, folder_name: str) -> dict[str, Any]:
     client = DriveClient.from_environment()
     client.refresh_access_token()
@@ -78,12 +104,13 @@ def upload_and_verify(archive_path: Path, *, folder_name: str) -> dict[str, Any]
     if not isinstance(email, str) or email.lower() != EXPECTED_ACCOUNT.lower():
         raise BundleUploadError("DRIVE_STORAGE_ACCOUNT_IDENTITY_MISMATCH")
 
-    parent_id = os.environ.get("GOOGLE_DRIVE_PARENT_FOLDER_ID", "").strip()
-    if not parent_id:
-        raise BundleUploadError("DRIVE_PARENT_FOLDER_ID_REQUIRED")
-    parent = client.get_file(parent_id)
-    if parent.get("mimeType") != DRIVE_FOLDER_MIME:
-        raise BundleUploadError("DRIVE_PARENT_FOLDER_IS_NOT_A_FOLDER")
+    parent_id = normalize_drive_folder_id(os.environ.get("GOOGLE_DRIVE_PARENT_FOLDER_ID", ""))
+    # Match the proven Find Displacements Drive path: enumerate children
+    # under the configured parent and let create_folder enforce that the parent
+    # is a writable folder. Do not require files.get(parent_id) here; that
+    # extra metadata lookup is not used by the working AOI worker path and has
+    # been returning a false-negative 404 for this same configured destination.
+    client.list_children(parent_id)
 
     matches = [entry for entry in client.list_children(parent_id) if entry.get("name") == folder_name]
     if any(entry.get("mimeType") != DRIVE_FOLDER_MIME for entry in matches):
@@ -159,8 +186,20 @@ def main() -> int:
         })
         receipt_path = args.run_root.expanduser().resolve() / f"{args.folder_name}.drive-upload-receipt.json"
         receipt_path.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    except (OSError, ValueError, DriveClientError, BundleUploadError) as exc:
-        print(f"DRIVE_BUNDLE_UPLOAD_STATUS=FAIL")
+    except DriveClientError as exc:
+        print("DRIVE_BUNDLE_UPLOAD_STATUS=FAIL")
+        if exc.code == "DRIVE_FILE_LOOKUP_FAILED" and exc.status == 404:
+            print("ERROR=DRIVE_PARENT_FOLDER_NOT_FOUND_OR_NOT_ACCESSIBLE")
+            print("ACTION=CHECK_GOOGLE_DRIVE_PARENT_FOLDER_ID_AND_GRANT_ACCESS_TO_EXPECTED_STORAGE_ACCOUNT")
+        else:
+            print(f"ERROR=DriveClientError:{exc.code}")
+        if exc.status is not None:
+            print(f"DRIVE_HTTP_STATUS={exc.status}")
+        if exc.api_reason:
+            print(f"DRIVE_API_REASON={exc.api_reason}")
+        return 2
+    except (OSError, ValueError, BundleUploadError) as exc:
+        print("DRIVE_BUNDLE_UPLOAD_STATUS=FAIL")
         print(f"ERROR={type(exc).__name__}:{str(exc).split(':', 1)[0][:120]}")
         return 2
 
