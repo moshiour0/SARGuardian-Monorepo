@@ -15,7 +15,7 @@ def _load(path: Path):
     return yaml.load(text, Loader=yaml.BaseLoader), text
 
 
-def _validate(path: Path, job_name: str, required_marker: str):
+def _validate(path: Path, job_name: str, required_marker: str, cleanup_failure_marker: str):
     workflow, text = _load(path)
     assert set(workflow.get("on", {})) == {"workflow_dispatch"}
     assert workflow["permissions"]["contents"] == "read"
@@ -34,15 +34,15 @@ def _validate(path: Path, job_name: str, required_marker: str):
     assert "secrets.EARTHDATA_PASSWORD" in text
     assert required_marker in text
     assert "NISAR_GUNW_RAW_CLEANUP_SUCCESS" in text
-    assert "NISAR_GUNW_EARTHACCESS_RAW_CLEANUP_FAILED" in text
+    assert cleanup_failure_marker in text
     assert "drive_resumable_upload.py" not in text
     assert "actions/checkout@v4" not in text
     assert "actions/setup-python@v5" not in text
 
 
 def test_gunw_earthaccess_read_test_is_gated_and_exact_pin():
-    _validate(READ, "read-gunw", "earthaccess.download(")
+    _validate(READ, "read-gunw", "earthaccess.download(", "NISAR_GUNW_EARTHACCESS_RAW_CLEANUP_FAILED")
 
 
 def test_gunw_science_feasibility_test_is_gated_and_exact_pin():
-    _validate(SCIENCE, "gunw-science-test", "asf_search.download_url(")
+    _validate(SCIENCE, "gunw-science-test", "asf_search.download_url(", "NISAR_GUNW_RAW_CLEANUP_FAILED")
