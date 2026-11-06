@@ -1,5 +1,10 @@
 # SARGuardian Monorepo readiness and remaining work
 
+> **Latest checkpoint:** this file is a historical timeline. For the current
+> deployment, Supabase, security and release-gate state, read
+> [latest-release-checkpoint-2026-11-06.md](latest-release-checkpoint-2026-11-06.md).
+> Later verified state in that checkpoint supersedes older sections below.
+>
 **Last updated:** 2026-11-06  
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
