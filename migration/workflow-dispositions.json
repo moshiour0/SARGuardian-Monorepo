@@ -4,7 +4,7 @@
   "monorepo_repository": "moshiour0/SARGuardian-Monorepo",
   "monorepo_branch": "migration/source-snapshot-import",
   "monorepo_base_head": "3420eaea6b3d97175c075d4eb4da00423d89c176",
-  "expected_root_workflow_count": 41,
+  "expected_root_workflow_count": 42,
   "sources": [
     {
       "id": "dynamic-main",
@@ -532,11 +532,12 @@
       "source_snapshot_path": "migration/source-snapshots/backend-main/.github/workflows/sarguardian-retention-ci.yml",
       "source_blob_sha": "6e7e46fcbaa1fbd40f66c5868e4aad31e101f2c9",
       "workflow_name": "sarguardian-retention-ci.yml",
-      "disposition": "ci-consolidated-parity-review",
+      "disposition": "root-present-contract-review-required",
       "root_workflows": [
+        ".github/workflows/backend-source-regression-tests.yml",
         ".github/workflows/snapshot-regression-tests.yml"
       ],
-      "note": "Snapshot Regression covers promoted engines, but exact legacy backend tests/, requirements and pinned-science-regression must be compared. Add any missing isolated retention assertions rather than assuming filename-level consolidation."
+      "note": "The Monorepo now runs the full immutable Backend-main source snapshot test suite (tools/ and tests/) in its own secret-free CI workflow. The workflow also compiles the entire source tree and parses the source retention workflow YAML. The source workflow's pinned-science regression job is covered separately by the root Snapshot Regression NISAR science job against the imported 9fcb main tree."
     },
     {
       "source_id": "backend-main",
@@ -1030,11 +1031,12 @@
       "source_snapshot_path": "migration/source-snapshots/backend-known-place-pr85/.github/workflows/sarguardian-retention-ci.yml",
       "source_blob_sha": "e02ca99b48a640a0636326aed3308ee6219120d8",
       "workflow_name": "sarguardian-retention-ci.yml",
-      "disposition": "feature-variant-contract-review-required",
+      "disposition": "root-present-contract-review-required",
       "root_workflows": [
+        ".github/workflows/backend-source-regression-tests.yml",
         ".github/workflows/snapshot-regression-tests.yml"
       ],
-      "note": "Known Place PR #85 version differs from Backend main at this path. The root counterpart is an adapted workflow, not a byte-identical copy. Compare the PR #85 caller/worker fields, science pins, callbacks and output artifacts before declaring which source variant is canonical. Snapshot Regression covers promoted engines, but exact legacy backend tests/, requirements and pinned-science-regression must be compared. Add any missing isolated retention assertions rather than assuming filename-level consolidation."
+      "note": "The Monorepo runs the full immutable Known Place PR #85 source snapshot test suite in the same separate secret-free CI workflow, including the PR-specific tools/know_place/requirements.txt dependency. Its pinned-science regression is covered separately by the root Snapshot Regression NISAR science job against the imported 9fcb main tree."
     },
     {
       "source_id": "backend-known-place-pr85",
@@ -1076,15 +1078,15 @@
   ],
   "summary": {
     "source_workflow_instances": 82,
-    "root_workflow_files": 41,
+    "root_workflow_files": 42,
     "disposition_counts": {
-      "ci-consolidated-parity-review": 4,
+      "ci-consolidated-parity-review": 3,
       "renamed-root-port-contract-review": 6,
-      "root-present-contract-review-required": 31,
+      "root-present-contract-review-required": 33,
       "api-dispatch-replacement-contract-review": 1,
       "manual-benchmark-disposition-required": 2,
       "legacy-callback-source-review-required": 2,
-      "feature-variant-contract-review-required": 26,
+      "feature-variant-contract-review-required": 25,
       "manual-research-port-required": 3,
       "author-exact-research-disposition-required": 1,
       "split-ci-live-contract-review": 1,

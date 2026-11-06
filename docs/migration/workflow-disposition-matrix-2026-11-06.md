@@ -15,7 +15,7 @@ The Backend main and Known Place PR #85 inventories are separate source lineages
 
 ## Current Monorepo root inventory
 
-At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contained 38 files. The retention-archive port raised this to 39, the fixed P05023 live-retention port raised it to 40, and this dedicated AOI code-validation port raises the expected root inventory to 41. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
+At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contained 38 files. The retention-archive port raised this to 39, the fixed P05023 live-retention port to 40, the dual-pin AOI code-validation port to 41, and the full Backend source snapshot regression port raises the expected root inventory to 42. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
 
 ## Dynamic main source workflows (7)
 
@@ -109,6 +109,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 - **sarguardian-product-worker.yml:** Root streaming reusable worker exists and remains distinct from the AOI product worker; compare inputs, outputs, retries and cleanup.
 - **sarguardian-reassemble-existing.yml:** Renamed/scoped as Find Displacements retained-artifact reassembly. Verify run-ID inputs, historical artifact names, six artifact classes, pinned science revision and Drive receipt parity.
 - **sarguardian-retention-ci.yml:** Snapshot Regression covers promoted engines, but exact legacy backend tests/, requirements and pinned-science-regression must be compared. Add any missing isolated retention assertions rather than assuming filename-level consolidation.
+- **sarguardian-retention-ci.yml:** Both Backend main and Known Place PR #85 source variants now run their complete source `tests/` suite in a separate secret-free matrix workflow. The same workflow compiles all `tools/` and `tests/` and validates the source retention workflow YAML; the pinned-science half is covered by Snapshot Regression's imported NISAR science job.
 - **sarguardian-retention-pilot.yml:** Root pilot is engine-scoped and fail-closed. Verify all source inputs, one-granule constraint, science pin, no-delete invariant and Drive receipt handling.
 - **sarguardian-science-worker.yml:** Legacy worker checks out Sagormodak/SARGuardian@77cc9646..., uses WORKER_CALLBACK_SECRET and RENDER_CALLBACK_URL. Keep its exact snapshot; resolve whether its old callback/service is still required before porting or retiring. Never silently redirect it to current Vercel or moshiour0/SARGuardian.
 - **sarguardian-streaming-batch.yml:** Root streaming batch exists; verify manifest, 15-at-a-time batching where applicable, failed-only retries, preassembly checks and final failure propagation.
@@ -216,7 +217,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 - sarguardian-live-validation.yml: root port exists with manual consent and repository opt-in gates; keep live execution disabled until the current-head structural and dry-run tests pass.
 - sarguardian-science-worker.yml: legacy fork pin and WORKER_CALLBACK_SECRET / RENDER_CALLBACK_URL ownership need resolution.
 - Known Place PR #85 has ten added workflow paths without a root counterpart; each remains explicitly dispositioned above (manual port, research, renderer, consent bridge, Drive retry or archive-only).
-- Workflow entries mapped to snapshot-regression-tests.yml still need parity evidence for every original test/fixture; a shared CI target is not proof of equivalence.
+- Workflow entries mapped to snapshot-regression-tests.yml still need parity evidence for every original test/fixture; a shared CI target is not proof of equivalence. Full Backend main and Known Place PR #85 source test suites now have a separate explicit matrix run.
 
 ## Automated enforcement
 
@@ -225,3 +226,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 - .github/workflows/snapshot-regression-tests.yml runs that validator on source/migration/workflow changes.
 
 **Current disposition status:** inventory coverage is enforceable; semantic parity and production acceptance remain open. The migration is not complete until every review-required and port-required item is either validated and closed or explicitly approved as archived/retired, and all production dispatch routes are cut over with rollback.
+
+## Backend source retention CI port
+
+The original `sarguardian-retention-ci.yml` runs the full repository `tests/` suite, not merely the isolated HDF5 archive fixtures. The Monorepo now has `.github/workflows/backend-source-regression-tests.yml`, which runs both immutable source trees (Backend main and Known Place PR #85) in isolated matrix jobs. It compiles all `tools/` and `tests/`, installs the source-specific runtime/test dependencies, runs the complete pytest suite, and validates retention-related source workflow YAML. It uses only read-only `contents` permissions, with no Earthdata, Drive, callback or Supabase secrets. The second source workflow job (pinned NISAR science) is exercised separately by the Monorepo Snapshot Regression NISAR science job against the imported 9fcb main tree.
