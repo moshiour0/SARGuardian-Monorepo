@@ -325,7 +325,8 @@ def test_workflow_retries_failed_product_matrix_before_dashboard_assembly() -> N
     assert "execution_label: retry-1" in workflow
     assert "DRIVE_LOG:" in worker
     assert '"drive_retryable": drive_retryable' in worker
-    assert 'DRIVE_CHUNK_UPLOAD_HTTP_' in worker
+    assert "DRIVE_(?:TOKEN_REFRESH|API|RESUMABLE_STATUS|CHUNK_UPLOAD)_" in worker
+    assert "HTTP_(?:408|425|429|500|502|503|504)" in worker
     assert "needs: [manifest, process-products, retry-plan, retry-products]" in workflow
     assert "needs: [report-running, manifest, process-products, retry-plan, retry-products, dashboard]" in workflow
     assert workflow.index("  retry-products:\n") < workflow.index("  dashboard:\n")
