@@ -178,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (18 files total)
+### Root workflow entrypoints currently promoted (19 files total)
 
 - Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
   workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
@@ -191,7 +191,11 @@ workflow promotion.
   after parity PASS. Source-AOI streaming uses the exact ab547 baseline and
   local reusable worker, keeps the two-product pilot default and one-at-a-time
   product execution/retry semantics, and requires a separate repository gate.
-  These workflows never call the old Backend repository.
+  These workflows never call the old Backend repository. A separately gated,
+  one-granule Retention Pilot also uses the exact ab547 science snapshot,
+  archives and inventories one GUNW/GOFF product, verifies the actual science
+  reader equivalence and Drive receipts, and preserves the source workflow's
+  non-destructive raw-data policy. It is not a multi-user queue.
 - Known Place: generic two-polygon analysis dispatcher and the separate
   author-exact P05023 dispatcher/replay workflow. The paper reproduction keeps
   its explicit historical backend-code pin, independent science pin, and
@@ -217,10 +221,11 @@ documented destination and every required operational workflow is represented
 in the Monorepo root workflow system. Remaining families include:
 
 1. Find Displacements and legacy streaming: the catalogue-only diagnostic,
-   retained-artifact reassembly and source-AOI streaming batch/product worker
-   are promoted as gated/manual-only root workflows. The retention pilot,
-   Earthdata auth/token tests and manual source-AOI science validation still
-   need reviewed root implementations or explicit archive/retirement dispositions. Keep GOFF and GUNW evidence separate.
+   retained-artifact reassembly, source-AOI streaming batch/product worker and
+   one-granule non-destructive retention pilot are promoted as gated/manual-only
+   root workflows. Earthdata auth/token tests and manual source-AOI science
+   validation still need reviewed root implementations or explicit
+   archive/retirement dispositions. Keep GOFF and GUNW evidence separate.
 2. Known Place PR #85 additions: author dashboard/map rendering, DEM source
    acquisition, terrain/datum sensitivity, retained-crown audit, displacement
    null audit, generic/author-exact consent bridges, generic Drive retry,
