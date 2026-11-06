@@ -147,7 +147,10 @@ The machine-readable structural audit is documented in [workflow-contract-audit.
 - Three retained RiverShift replay workflows have `push` triggers in addition to manual dispatch. These must not be promoted unchanged into the monorepo because unrelated source pushes could cause replay activity.
 - Multiple worker/test workflows still check out `Sagormodak/SARGuardian`. Do not silently redirect these to `moshiour0/SARGuardian` until source identity and expected historical revision are verified.
 - Dynamic and backend each contain copies of similarly named AOI worker/dashboard workflows. Their role must be decided from actual callers and payload contracts, not filename similarity.
-- Root Monorepo workflows include migration metadata validation, snapshot regression validation, and the full-history Gitleaks scan. A root `.github/workflows/river-shift-gcov-process.yml` now exists as the first central processing port. It is `workflow_dispatch` only and fails closed unless the repository variable `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` is exactly `true`; the API still targets Backend by default. The unchanged 20-job source candidate remains under `migration/workflow-candidates/` for exact comparison. OPERA/Run #36 replay files remain archived under `migration/source-branch-snapshots/`; source workflow folders and engine-local compatibility fixtures remain nested/inactive.
+- The Monorepo root now contains 15 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
+- The API-facing Find Displacements workflow remains named `sarguardian-aoi-wkt-dashboard.yml` because its `workflow_dispatch.inputs` carries the account-job and callback contract consumed by `apps/api/app/displacements.py`. `sarguardian-aoi-wkt-dispatcher.yml` is a separate manual entrypoint, not an interchangeable API target.
+- Author-exact P05023 resolves its historical `b825df…` backend code and `10639a9…` NISAR science from local immutable Monorepo snapshots, with no push trigger and explicit author consent. The generic two-polygon Known Place flow remains separate.
+- API Preview destinations now point to Monorepo workflow names on `migration/source-snapshot-import`; all processing flags remain false. Production API dispatch and original Backend workflows remain authoritative until end-to-end acceptance and explicit cutover. OPERA/Run #36 replay evidence remains archived under `migration/source-branch-snapshots/`.
 
 ## High-risk engine constraints
 
@@ -175,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted
+### Root workflow entrypoints currently promoted (15 files total)
 
 - Find Displacements: API-facing AOI dispatcher and reusable dashboard engine,
   product worker, manual AOI dispatcher, and live ASF catalogue-only diagnostic.
@@ -197,8 +200,9 @@ workflow promotion.
 - Shared migration CI: source-integrity, full-history secret scanning, workflow
   contract inventory, metadata checks and runner diagnostics.
 
-All processing variables remain false. No new manual or API processing
-workflow has been activated, and the API still targets Backend in Production.
+All processing variables remain false. No Monorepo processing workflow has been
+activated. API Preview points at the Monorepo migration branch; Production still
+targets the original Backend Actions until an explicit cutover.
 
 ### Workflow families still requiring root promotion or explicit archive disposition
 
@@ -206,21 +210,21 @@ The migration is not complete until every source workflow version has a
 documented destination and every required operational workflow is represented
 in the Monorepo root workflow system. Remaining families include:
 
-1. Find Displacements and legacy streaming: the source-AOI streaming batch,
-   retained-artifact reassembly, retention pilot, live catalogue/auth tests,
-   Earthdata token tests, and manual source-AOI science validation. Keep GOFF
-   and GUNW evidence paths separate. Port required recovery/retention functions
-   with local snapshot pins and mock contracts.
+1. Find Displacements and legacy streaming: the live catalogue-only diagnostic
+   is promoted. The source-AOI streaming batch, retained-artifact reassembly,
+   retention pilot, Earthdata auth/token tests and manual source-AOI science
+   validation still need reviewed root implementations or explicit
+   archive/retirement dispositions. Keep GOFF and GUNW evidence separate.
 2. Known Place PR #85 additions: author dashboard/map rendering, DEM source
    acquisition, terrain/datum sensitivity, retained-crown audit, displacement
    null audit, generic/author-exact consent bridges, generic Drive retry,
    analysis reanalysis and explicit author-exact acquisition/replay. Preserve
    author consent; remove unintended push triggers; keep author-exact P05023
    separate from generic two-polygon analysis.
-3. RiverShift: retained OPERA DSWx-S1, Run #36, and Sentinel-2 replays. These are not interchangeable with the
-   primary GCOV processor; preserve source evidence and require explicit manual
-   run/consent boundaries. Remove accidental push-trigger execution on code
-   changes.
+3. RiverShift: independent-reference validation is now promoted separately
+   from GCOV. Retained OPERA DSWx-S1, Run #36 and Sentinel-2 replays still need
+   root manual-only ports or explicit archived dispositions. Preserve source
+   evidence and do not allow unrelated pushes to trigger replay.
 4. NISAR and shared platform validation: catalogue discovery, GOFF time-series,
    GUNW Earthaccess discovery/read/science/time-series, single/multi-granule
    download/storage tests, dashboard asset/artifact smoke tests, generic
