@@ -147,7 +147,7 @@ The machine-readable structural audit is documented in [workflow-contract-audit.
 - Three retained RiverShift replay workflows have `push` triggers in addition to manual dispatch. These must not be promoted unchanged into the monorepo because unrelated source pushes could cause replay activity.
 - Multiple worker/test workflows still check out `Sagormodak/SARGuardian`. Do not silently redirect these to `moshiour0/SARGuardian` until source identity and expected historical revision are verified.
 - Dynamic and backend each contain copies of similarly named AOI worker/dashboard workflows. Their role must be decided from actual callers and payload contracts, not filename similarity.
-- The Monorepo root now contains 15 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
+- The Monorepo root now contains 29 workflow files. Operational entrypoints cover API-facing Find Displacements, a separate manual AOI dispatcher, a gated live ASF catalogue-only diagnostic, generic Known Place, author-exact P05023, RiverShift GCOV, and separate RiverShift independent-reference validation. All operational entrypoints fail closed; the catalogue diagnostic does not receive Earthdata download or Drive credentials.
 - The API-facing Find Displacements workflow remains named `sarguardian-aoi-wkt-dashboard.yml` because its `workflow_dispatch.inputs` carries the account-job and callback contract consumed by `apps/api/app/displacements.py`. `sarguardian-aoi-wkt-dispatcher.yml` is a separate manual entrypoint, not an interchangeable API target.
 - Author-exact P05023 resolves its historical `b825df…` backend code and `10639a9…` NISAR science from local immutable Monorepo snapshots, with no push trigger and explicit author consent. The generic two-polygon Known Place flow remains separate.
 - API Preview destinations now point to Monorepo workflow names on `migration/source-snapshot-import`; all processing flags remain false. Production API dispatch and original Backend workflows remain authoritative until end-to-end acceptance and explicit cutover. OPERA/Run #36 replay evidence remains archived under `migration/source-branch-snapshots/`.
@@ -178,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (23 files total)
+### Root workflow entrypoints currently promoted (29 files total)
 
 - Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
   workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
@@ -238,10 +238,10 @@ in the Monorepo root workflow system. Remaining families include:
    from GCOV. Retained OPERA DSWx-S1, Run #36 and Sentinel-2 replays still need
    root manual-only ports or explicit archived dispositions. Preserve source
    evidence and do not allow unrelated pushes to trigger replay.
-4. NISAR and shared platform validation: catalogue discovery, GOFF time-series,
-   GUNW Earthaccess discovery/read/science/time-series, single/multi-granule
-   download/storage tests, dashboard asset/artifact smoke tests, generic
-   retention tests and runner diagnostics.
+4. Shared platform validation: dashboard asset/artifact smoke tests, generic
+   retention tests, manual source-AOI science validation, and runner/resource
+   diagnostics. The eight Backend-main NISAR diagnostic/storage workflows are
+   now ported to root and remain manual/gated.
 5. Reusable workflow parity: reconcile Dynamic and Backend duplicate AOI
    dispatcher/dashboard/product-worker contracts and update callers to local
    root reusable workflows without changing input, artifact, callback, retry
