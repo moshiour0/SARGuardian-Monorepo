@@ -93,6 +93,14 @@
       "blob_sha": "c856e3e9aa88bd31d63f1e03ee83c5e6f3fa7b31",
       "source_path": null,
       "kind": "monorepo-forward-migration"
+    },
+    {
+      "remote_version": "20261106171458",
+      "remote_name": "known_place_request_ownership",
+      "destination_path": "infrastructure/supabase/migrations/20261106171458_known_place_request_ownership.sql",
+      "blob_sha": "20c90f023e18ec9cc76d6fc83d81273b3141b2d3",
+      "source_path": null,
+      "kind": "monorepo-forward-migration"
     }
   ]
 }
