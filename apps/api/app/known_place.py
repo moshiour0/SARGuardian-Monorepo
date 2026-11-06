@@ -298,10 +298,11 @@ def _github_request(
 def dispatch_known_place_analysis(
     settings: RuntimeSettings,
     payload: KnownPlaceAnalysisRequest,
+    request_id: str | None = None,
 ) -> KnownPlaceAnalysisSubmission:
     if not settings.displacement_actions_enabled:
         raise KnownPlaceWorkflowError("Processing is disabled by server configuration.")
-    request_id = str(uuid4())
+    request_id = str(UUID(request_id)) if request_id is not None else str(uuid4())
     repository, workflow, ref, workflow_page = _workflow_target(settings)
     workflow_path = f"/repos/{repository}/actions/workflows/{workflow}/dispatches"
     inputs = {
@@ -350,13 +351,14 @@ def dispatch_known_place_analysis(
 def dispatch_known_place_paper_reproduction(
     settings: RuntimeSettings,
     payload: KnownPlacePaperReproductionRequest,
+    request_id: str | None = None,
 ) -> KnownPlaceAnalysisSubmission:
     """Dispatch the fixed author-exact Bhote Koshi P05023 reproduction workflow."""
     if not settings.displacement_actions_enabled:
         raise KnownPlaceWorkflowError("Processing is disabled by server configuration.")
     if payload.confirm_raw_downloads is not True:
         raise KnownPlaceWorkflowError("Explicit author-exact raw-download consent is required.")
-    request_id = str(uuid4())
+    request_id = str(UUID(request_id)) if request_id is not None else str(uuid4())
     repository, workflow, ref, workflow_page = _workflow_target(settings, paper_reproduction=True)
     workflow_path = f"/repos/{repository}/actions/workflows/{workflow}/dispatches"
     inputs = {
