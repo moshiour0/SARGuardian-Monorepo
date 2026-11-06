@@ -86,6 +86,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           import yaml
 
           archive_paths = (
@@ -100,9 +101,24 @@ jobs:
                   raise SystemExit(f"Archived workflow is not a valid job map: {path}")
               if "workflow_dispatch:" not in raw:
                   raise SystemExit(f"Archived validation workflow lost its manual trigger: {path}")
-              if (active_root / path.name).exists():
-                  raise SystemExit(f"Archived validation workflow has an active root copy: {path.name}")
-              print(f"ARCHIVED_WORKFLOW_YAML_PASS {path}")
+              active_path = active_root / path.name
+              if active_path.exists():
+                  active_raw = active_path.read_text(encoding="utf-8")
+                  active_document = yaml.safe_load(active_raw)
+                  if not isinstance(active_document, dict) or not isinstance(active_document.get("jobs"), dict):
+                      raise SystemExit(f"Promoted root workflow is not a valid job map: {active_path}")
+                  if active_raw == raw:
+                      raise SystemExit(f"Root workflow is a byte-identical archived source copy: {path.name}")
+                  if (
+                      "workflow_dispatch:" not in active_raw
+                      or re.search(r"(?m)^\s*push\s*:", active_raw)
+                      or "MONOREPO_RIVERSHIFT_" not in active_raw
+                      or '!= "true"' not in active_raw
+                  ):
+                      raise SystemExit(f"Promoted RiverShift root port is not manual-only and fail-closed: {path.name}")
+                  print(f"ARCHIVED_SOURCE_PRESERVED_SEPARATE_GATED_ROOT_PORT_PASS {path.name}")
+              else:
+                  print(f"ARCHIVED_WORKFLOW_YAML_PASS_NO_ROOT_PORT {path}")
           PY
 
   snapshot-integrity:
