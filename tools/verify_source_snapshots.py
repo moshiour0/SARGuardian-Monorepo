@@ -423,7 +423,9 @@ def main() -> int:
             "RiverShift GCOV engine promotion",
             "migration/source-snapshots/backend-main/tools/river_shift/",
             "engines/river-shift/tools/river_shift/",
-            (),
+            # These two Monorepo-only helpers are reviewed by the retained replay
+            # contract suite below; the imported engine files remain byte-identical.
+            ("replay_retained_run36_monorepo.py", "verify_monorepo_source_run.py"),
         ),
         (
             "Supabase configuration and migration promotion",
