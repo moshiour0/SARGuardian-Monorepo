@@ -18,7 +18,7 @@ def test_retention_pilot_is_manual_gated_pinned_and_non_destructive():
     assert '!= "true"' in text
     assert workflow["jobs"]["retain-one-granule"]["needs"] == "preflight"
     assert "ab547ecc82bcc4d6ccef545a59852536c2beacc6" in text
-    assert "git archive" in text
+    assert 'git -C "$GITHUB_WORKSPACE" archive' in text
     assert "repository: moshiour0/SARGuardian" not in text
     assert "sarguardian-backend-api.vercel.app" not in text
 
