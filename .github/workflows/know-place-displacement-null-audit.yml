@@ -84,6 +84,8 @@ jobs:
           print("ORIGINAL_GENERATOR_AND_DRAW_SEQUENCE_IDENTITY=UNVERIFIED")
           print("PAPER_REPRODUCTION_STATUS="+report["paper_reproduction_status"])
           print("HAZARD_DETECTION_STATUS=NOT_EVALUATED")
+          print("RAW_HDF5_READ_OR_DOWNLOADED=NO")
+          print("ORIGINAL_GENERATOR_AND_DRAW_SEQUENCE_IDENTITY=UNVERIFIED")
           PY
       - name: Summarize displacement-null table parity and limitations
         if: always()
