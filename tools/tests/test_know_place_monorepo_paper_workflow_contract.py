@@ -40,7 +40,7 @@ def test_author_exact_replay_uses_only_monorepo_preserved_science_and_code_pins(
     assert '--science-root "$SCIENCE_SOURCE_ROOT"' in text
     assert "repository: moshiour0/SARGuardian-backend" not in text
     assert "repository: moshiour0/SARGuardian" not in text
-    assert text.count("working-directory: ${{ env.BACKEND_SOURCE_ROOT }}") == 5
+    assert text.count("working-directory: migration/source-snapshots/backend-pins/b825df") == 5
     assert '"$BACKEND_SOURCE_ROOT/tools/drive_resumable_upload.py"' in text
 
 
