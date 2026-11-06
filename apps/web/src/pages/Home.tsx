@@ -12,6 +12,8 @@ type HomeProps = {
   user: User | null;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   authError: string | null;
+  apiConnectionStatus: 'idle' | 'checking' | 'ready' | 'error';
+  apiConnectionError: string | null;
   firebaseConfigured: boolean;
   missingFirebaseConfig: readonly string[];
   showAuthModal?: boolean;
@@ -22,7 +24,7 @@ type HomeProps = {
   onOpenWorkspace: () => void;
 };
 
-export function Home({ user, authState, authError, firebaseConfigured, missingFirebaseConfig, showAuthModal = false, onCloseAuthModal, onSignIn, onSignOut, onSelectEngine, onOpenWorkspace }: HomeProps) {
+export function Home({ user, authState, authError, apiConnectionStatus, apiConnectionError, firebaseConfigured, missingFirebaseConfig, showAuthModal = false, onCloseAuthModal, onSignIn, onSignOut, onSelectEngine, onOpenWorkspace }: HomeProps) {
   const handleEngineSelect = (engine: Engine) => onSelectEngine(engine);
 
   return (
@@ -34,6 +36,17 @@ export function Home({ user, authState, authError, firebaseConfigured, missingFi
         {!firebaseConfigured && (
           <section className="setup-banner" role="status">
             Local sign-in setup required. Missing: {missingFirebaseConfig.join(', ')}.
+          </section>
+        )}
+        {user && apiConnectionStatus !== 'idle' && (
+          <section
+            className={apiConnectionStatus === 'error' ? 'error-banner' : 'setup-banner'}
+            role={apiConnectionStatus === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
+          >
+            {apiConnectionStatus === 'checking' && 'Google sign-in is active. Verifying Firebase ID token and the Monorepo Supabase job store…'}
+            {apiConnectionStatus === 'ready' && 'Backend connection verified: Firebase ID token accepted and the Monorepo Supabase job store responded. No science workflow was started.'}
+            {apiConnectionStatus === 'error' && `Google sign-in succeeded, but the authenticated API/Supabase check failed: ${apiConnectionError || 'Unknown backend error.'} The session remains signed in; processing must remain disabled until this is resolved.`}
           </section>
         )}
         <Hero onStartExploring={onOpenWorkspace} />
