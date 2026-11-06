@@ -15,7 +15,7 @@ The Backend main and Known Place PR #85 inventories are separate source lineages
 
 ## Current Monorepo root inventory
 
-At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contains **38 workflow files**. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
+At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ contains **38 workflow files**. After adding the dedicated retention-archive port in commit to follow, the expected inventory is **39 root workflow files**. Root files added for migration CI (snapshot regression, metadata, secret scan and runner diagnostics) are not source-engine workflows. Root paths listed below are candidate ports or consolidated coverage; root presence alone does not imply parity.
 
 ## Dynamic main source workflows (7)
 
@@ -211,7 +211,7 @@ At base head 3420eaea6b3d97175c075d4eb4da00423d89c176, root .github/workflows/ c
 
 ## First unresolved root items
 
-- retention-archive-tests.yml: isolated archive fixture regression needs its own root port or a proven test-for-test consolidation.
+- retention-archive-tests.yml: a secret-free root CI port now runs the isolated historical archive fixture suite from the byte-verified Backend source snapshot; current-head CI must pass before closure.
 - runner-test.yml: its 5-GB disk and ~4-GB memory benchmark is not the same as the runner-allocation diagnostic; decide whether to port behind an explicit manual gate or retire.
 - sarguardian-live-validation.yml: credentialed GUNW/GOFF download plus Drive retention path needs a distinct fail-closed manual port.
 - sarguardian-science-worker.yml: legacy fork pin and WORKER_CALLBACK_SECRET / RENDER_CALLBACK_URL ownership need resolution.
