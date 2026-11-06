@@ -331,6 +331,20 @@ jobs:
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_nisar_timeseries_workflow_contract.py"
       - name: Validate single and multi-granule storage workflow contracts
         run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_nisar_storage_workflow_contract.py"
+  dashboard-assets-workflow-contracts:
+    name: Dashboard offline asset workflow contract tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: "3.12"
+      - name: Install contract-test dependencies
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6,<7" "pytest>=8,<10"
+      - name: Validate offline dashboard asset workflow
+        run: python -m pytest -q "$GITHUB_WORKSPACE/tools/tests/test_monorepo_dashboard_assets_workflow_contract.py"
+
 
   promoted-nisar-science:
     name: Promoted NISAR science regression tests
