@@ -43,32 +43,47 @@ auth.jwt() in a scalar SELECT. Do not change these policies or drop unused
 indexes without query-plan evidence. A reviewed forward migration may add the
 FK index if query plans or expected delete/update volume justify it.
 
-## Default privileges for future public objects
+## Default privileges for future public objects — hardened
 
-A direct read-only catalog query inspected `pg_default_acl` for both object
-owners `postgres` and `supabase_admin`. The current default ACLs include
-`anon`, `authenticated`, `service_role` and the owner roles for future
-public tables, sequences and function EXECUTE. This is distinct from the
-current four app tables: those tables grant access only to `postgres` and
-`service_role`; `anon` and `authenticated` have no direct table grants.
+Forward migration
+`infrastructure/supabase/migrations/20261106064055_public_default_privileges_hardening.sql`
+was applied successfully to this Monorepo Preview database and its effects
+were verified with a transactional create/check/rollback probe.
 
-This does not demonstrate current table exposure. It is a future-object risk:
-a new public table without RLS could inherit direct PostgREST grants, and a
-new function can inherit EXECUTE grants for browser roles. No live ACL was
-changed. Before creating additional public objects, review a forward
-`ALTER DEFAULT PRIVILEGES` migration for both object owners, verify which
-roles the application needs, and test Supabase-managed migrations/functions.
-Keep the service-role key server-side and continue enforcing `owner_uid`
-filters in API persistence methods.
+For future objects **created by role `postgres`**:
+- Future public tables: default grants to `anon` and `authenticated` are revoked.
+- Future public sequences: default grants to `anon` and `authenticated` are revoked.
+- Future functions: schema-scoped grants to `anon` and `authenticated` are revoked, and PostgreSQL's global default `PUBLIC EXECUTE` grant is revoked for functions created by `postgres`.
+- Existing default grants for `service_role` are preserved. The API still uses its server-only role.
+- Existing table ACLs, policies, functions and trigger definitions are not rewritten by this migration.
+
+The post-apply probe created one temporary public table, sequence and function
+inside a transaction. `has_table_privilege`, `has_sequence_privilege` and
+`has_function_privilege` confirmed that neither browser role inherited
+privileges while `service_role` retained the required grants. The transaction
+was rolled back; no probe object remains. Security Advisor still reports zero
+findings.
+
+**Scope limitation:** the connection runs as `postgres` and cannot
+`SET ROLE supabase_admin`. Supabase-managed future objects created by
+`supabase_admin` retain the provider's default privileges. This migration
+does not change `supabase_admin` defaults, global role membership or existing
+managed objects. Keep application-created objects owned by `postgres`, enable
+RLS on every new table, and explicitly grant only the roles each object
+requires. The current app tables still have no direct `anon` or
+`authenticated` table grants.
 
 ## Migration history reconciliation
 
-The project reports eight remote migration records whose names map to the
-eight local SQL files under infrastructure/supabase/migrations. Remote version
-values do not match the timestamp prefixes of local filenames. Treat this as
-a history identity mismatch until a read-only Supabase CLI v3 reconciliation
-is completed. Do not run db push, replay migrations, rename remote history or
-db reset merely because the final schema matches.
+The project reports nine remote migration records. Their names map to the
+nine canonical SQL files under infrastructure/supabase/migrations. The first
+eight remote version values still differ from the timestamp prefixes of their
+local source filenames. The ninth forward migration has remote version
+20261106064055 matching the local filename prefix; its recorded remote name is
+20261106100000_public_default_privileges_hardening. Keep the eight historical
+identities under review and perform a read-only Supabase CLI v3 reconciliation
+before any future db push. Do not replay the imported migrations, repair old
+history or reset the database merely because the final schema matches.
 
 See docs/migration/supabase-migration-lineage.md for the complete migration
 version/name table and verification details.

@@ -157,7 +157,7 @@ Before any future CLI call, inspect and pin the CLI version. A migration-history
 
 ## Dedicated SARGuardian-Monorepo Supabase project — verified 2026-11-06
 
-The Monorepo database target is available and healthy:
+The Monorepo database target is live and healthy:
 
 - Project: SARGuardian-Monorepo
 - Project ref: qbmhpdprvxssqinnommz
@@ -167,74 +167,88 @@ The Monorepo database target is available and healthy:
 - PostgreSQL: 17.11.0.018
 - Project status: ACTIVE_HEALTHY
 
-The project contains the four expected public job tables:
-catalog_preflights, processing_jobs, displacement_jobs, and river_shift_jobs.
-All four have RLS enabled and were empty at the verification point (zero rows).
-Each has an authenticated owner-read policy bound to the JWT sub claim. No
-anon/authenticated direct table grant was observed for these job tables.
-Security Advisor returned no findings.
+The four expected public job tables exist: `catalog_preflights`,
+`processing_jobs`, `displacement_jobs`, and `river_shift_jobs`. At the
+last read-only check they were all empty and RLS-enabled. Each has an
+authenticated owner-read policy bound to the JWT `sub` claim; none of these
+tables grants direct access to `anon` or `authenticated`. Security Advisor
+returned no findings.
 
 ### Monorepo remote migration records
 
-The new project reports eight remote migration records. Their recorded names
-map to all eight local SQL files under infrastructure/supabase/migrations:
+The target reports nine remote migration records:
 
-| Remote version | Remote name | Local file stem |
+| Remote version | Remote name | Local canonical file |
 |---|---|---|
-| 20261106000844 | 20261017143644_processing_jobs | 20261017143644_processing_jobs |
-| 20261106000850 | 20261022203034_displacement_jobs | 20261022203034_displacement_jobs |
-| 20261106000856 | 20261023141449_displacement_active_request_guard | 20261023141449_displacement_active_request_guard |
-| 20261106000901 | 20261024111404_scientific_request_contract | 20261024111404_scientific_request_contract |
-| 20261106000905 | 20261027003643_place_target_contract | 20261027003643_place_target_contract |
-| 20261106000909 | 20261103100000_river_shift_jobs | 20261103100000_river_shift_jobs |
-| 20261106000923 | 20261104120000_river_shift_analysis_modes | 20261104120000_river_shift_analysis_modes |
-| 20261106000928 | 20261105205909_catalog_preflight_retention | 20261105205909_catalog_preflight_retention |
+| 20261106000844 | 20261017143644_processing_jobs | 20261017143644_processing_jobs.sql |
+| 20261106000850 | 20261022203034_displacement_jobs | 20261022203034_displacement_jobs.sql |
+| 20261106000856 | 20261023141449_displacement_active_request_guard | 20261023141449_displacement_active_request_guard.sql |
+| 20261106000901 | 20261024111404_scientific_request_contract | 20261024111404_scientific_request_contract.sql |
+| 20261106000905 | 20261027003643_place_target_contract | 20261027003643_place_target_contract.sql |
+| 20261106000909 | 20261103100000_river_shift_jobs | 20261103100000_river_shift_jobs.sql |
+| 20261106000923 | 20261104120000_river_shift_analysis_modes | 20261104120000_river_shift_analysis_modes.sql |
+| 20261106000928 | 20261105205909_catalog_preflight_retention | 20261105205909_catalog_preflight_retention.sql |
+| 20261106064055 | 20261106100000_public_default_privileges_hardening | 20261106064055_public_default_privileges_hardening.sql |
 
-The migration names map, but the remote version values are not the timestamp
-prefixes of the local filenames. Treat this as a migration-history identity
-mismatch until a read-only Supabase CLI v3 reconciliation is completed. Do not
-run db push, replay these migrations, rename remote history, or run db reset
-merely because the final schema matches.
+The first eight remote version identities do not match their local filename
+prefixes and remain an explicit read-only CLI v3 reconciliation task. The new
+ninth migration's version **does** match its local filename prefix; its
+recorded remote name is the original label passed to the Supabase migration
+tool. Do not rename or repair the first eight records, reapply old DDL, run
+`db push` or `db reset` until the history has been reconciled deliberately.
 
-### Access and performance notes
+### Live access and performance notes
 
-- Security Advisor: zero lints.
-- Performance Advisor: one unindexed FK finding on processing_jobs.preflight_id;
-  four policy-evaluation warnings; and eight unused-index INFO findings on a
-  newly provisioned, low-volume database.
-- The observed owner policies already express the JWT lookup as a scalar
-  subquery. Confirm advisor behavior with query plans before changing them.
-- Do not drop indexes based only on unused status while the project is empty.
-  Consider the FK index through a reviewed forward migration only if plans or
-  expected write patterns justify it.
+- Security Advisor: zero lints after the default-privilege migration.
+- Performance Advisor: one unindexed FK on `processing_jobs.preflight_id`,
+  four policy-evaluation warnings, and eight unused-index INFO findings on a
+  newly provisioned, low-volume database. Do not drop indexes or change owner
+  policies without query-plan evidence.
+- Current table grants remain limited to `postgres` and `service_role`;
+  `anon` and `authenticated` have no direct table grants. All four tables
+  have RLS enabled.
+- The daily `sarguardian-expired-preflight-cleanup` job is active at 03:20
+  UTC. Its owner-only SECURITY DEFINER purge function retains an empty
+  `search_path` and is executable only by `postgres`.
 
-### Future-object default ACL audit
+### Future-object default ACL hardening
 
-A read-only query of `pg_default_acl` for both `postgres` and
-`supabase_admin` found that future public tables, sequences and functions
-inherit privileges for `anon`, `authenticated`, `service_role` and the
-owner role. The current four app tables are not granted to `anon` or
-`authenticated`; their direct table grants are limited to `postgres` and
-`service_role`, and all four have RLS enabled. The default grants apply to
-future objects and should not be mistaken for evidence that current job data
-is exposed.
+Migration
+`20261106064055_public_default_privileges_hardening.sql` was applied
+successfully to this Free Tokyo target. It hardens defaults for **future
+objects created by `postgres`**:
+- revoke table and sequence defaults from `anon` and `authenticated` in
+  `public`;
+- revoke function EXECUTE defaults from `anon` and `authenticated` in
+  `public`, plus revoke PostgreSQL's global default `PUBLIC EXECUTE` for
+  future functions created by `postgres`;
+- preserve `service_role` default grants.
 
-Before new public objects are introduced, review a separate forward
-default-privilege hardening migration for both object owners. Validate how
-future tables, sequences, functions, PostgREST exposure and any Supabase
-managed migrations are affected. No default ACL or live schema was changed
-during this audit.
+A post-apply transaction created a test public table, sequence and function,
+verified browser roles had no inherited privileges and `service_role`
+retained access, then rolled back. No test object remains. Existing objects,
+table ACLs, owner policies and trigger functions were not modified by this
+migration.
+
+The connection is `postgres` and cannot assume `supabase_admin`. Therefore
+future Supabase-managed objects created by `supabase_admin` retain the
+provider defaults; this migration does not attempt to change provider-owned
+ACLs. Keep app-created objects owned by `postgres`, enable RLS on all new
+tables and grant only the roles each object requires.
 
 ### Secret key handling and API integration
 
-The API persistence module supports both a modern opaque sb_secret_ key and a
-legacy JWT service_role key. Create a dedicated named secret in Supabase
-Dashboard → Settings → API Keys, named sarguardian-monorepo-api. Set it only in
-the Monorepo Vercel API Preview environment as SUPABASE_SERVICE_ROLE_KEY.
-Keep it out of Frontend variables, GitHub source, workflow logs, and chat.
-The Monorepo project does not reuse the Dynamic Production key.
+The API persistence module accepts a modern opaque `sb_secret_` key or a
+legacy `service_role` JWT. The API Preview environment contains the target
+`SUPABASE_URL`, but not `SUPABASE_SERVICE_ROLE_KEY`; it also lacks Firebase
+Admin JSON, GitHub Actions token, HMAC callback secrets and Drive OAuth
+values. Create a dedicated named secret `sarguardian-monorepo-api` in
+Supabase Dashboard → Settings → API Keys and add it only to the Monorepo
+Vercel API Preview environment. Never put it in Web/`VITE_*` variables,
+GitHub source, workflow logs or chat. Do not reuse the Dynamic Production
+key.
 
-The Dynamic Production Supabase project remains separate and unchanged. This
-Monorepo project is the database target for Preview integration and eventual
-reviewed cutover; GitHub Actions migration and API dispatch cutover remain
-separate acceptance gates.
+The Dynamic Production Supabase project remains separate and unchanged. The
+Monorepo database is for isolated Preview integration and eventual reviewed
+cutover; workflow credential setup and API dispatch cutover remain separate
+acceptance gates.
