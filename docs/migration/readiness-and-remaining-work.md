@@ -4,6 +4,41 @@
 **Working branch:** `migration/source-snapshot-import`  
 **Current production state:** unchanged; original Dynamic app/API and backend Actions remain authoritative.
 
+## 2026-11-06 active migration scope decision — supersedes broad 82-workflow promotion wording
+
+The migration scope is intentionally **not** “activate every workflow copied from the source repositories.” The 82 source workflow instances are retained for immutable provenance and audit only. Current API-linked cutover scope has three operational tiers:
+
+| Tier | Workflow count | Contents | Acceptance state |
+|---|---:|---|---|
+| **Primary proven runtime** | 3 | Find Displacements dispatcher → dashboard engine → one-product worker | Backend run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed successfully: 20 jobs, one failed initial GUNW-002 download, failed-only retry passed, dashboard assembly passed, terminal callback passed |
+| **Connected gated feature** | 1 | RiverShift NISAR GCOV workflow | Backend run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247) matched 14/14 catalogue granules but correctly stopped at `EVENT_WINDOW_NOT_BRACKETED` before processing; positive-case GCOV pilot still required |
+| **Preserved but disabled feature paths** | 4 | Generic Known Place dispatcher/reusable analysis and author-exact P05023 dispatcher/replay | No matching Known Place dispatch found in the latest 100 Backend runs reviewed on 2026-11-06; keep separate and gated, not part of the primary cutover |
+| **Migration CI** | 7 | Source snapshot regression, API/Web/engine tests, metadata, secret scan, retention and AOI code validation | Validation-only; not product runtime dependencies |
+
+The exact primary allowlist, RiverShift gated-feature list, Known Place disabled-feature list, API routes, source pins and run evidence are maintained in [active runtime scope](active-runtime-scope-2026-11-06.md) and `migration/active-runtime-scope.json`. CI enforces those tiers through `tools/validate_active_runtime_scope.py`.
+
+### What this scope decision changes
+
+- Only the three Find Displacements workflows count as the primary proven processing runtime.
+- RiverShift stays in the Monorepo and in the API feature set, but its API and repository dispatch gates remain false until an eligible acquisition window completes a positive-case pilot.
+- Known Place generic and author-exact P05023 source/API/engine paths remain preserved, but they are not treated as current production dependencies and their gates remain false.
+- Manual diagnostics, standalone NISAR experiments, retained-artifact repair/replay workflows, alternate forks, historical push-triggered bridges and unused research variants are not automatic runtime dependencies. Preserve their exact source snapshots; do not promote them into the active API dispatch graph.
+- Keep all 82 source workflow instances in the disposition register and immutable snapshots. Inventory completeness does not mean every workflow should be active.
+- Do not change the existing Dynamic Production API, Backend Actions targets, Production callbacks, Vercel aliases or Production Supabase while this isolated cutover is incomplete.
+
+### Remaining completion gates
+
+1. Pass current-head CI including the active-runtime-scope validator and full history secret scan.
+2. Configure Monorepo-only API Preview credentials (Firebase Admin, Supabase service key, GitHub dispatch token, callback HMAC secrets and Drive result-read OAuth) and Monorepo Actions Secrets (Earthdata + Google Drive OAuth/parent folder). Do not paste credentials into chat or Git.
+3. Verify authenticated Preview login, owner-scoped Supabase persistence, Find Displacements mock dispatch, signed callback, status polling, artifact access and duplicate-dispatch protection.
+4. Complete a positive-case RiverShift pilot with a genuinely bracketed event window; verify GCOV processing, 15-product barriers, failed-only retry, Drive receipts and signed callback. Keep the feature off until it passes.
+5. Keep Known Place disabled in this primary cutover; separately accept generic two-polygon and author-exact P05023 only if/when those features are deliberately released.
+6. Reconcile the first eight Monorepo Supabase migration version/name identities read-only; do not use `db push`, repair or replay as a shortcut.
+7. Review Web bundle size/npm advisories, independent science validity, licensing and rollback; then merge PRs in sequence and cut over Production only after explicit owner approval.
+
+**Current status:** source/API/engine promotion and the primary Find Displacements workflow chain exist on the isolated migration branch. Full operational migration is **not complete**: authenticated Preview, credentials, callbacks, RiverShift positive-case pilot, migration-history reconciliation, current-head CI, and Production cutover remain open. Existing Production continues to run on Dynamic + Backend.
+
+
 > **Current-head verification — 2026-11-06, code/workflow head `f6f48462a3546bccfe551549c931c87523d35fa8`:**
 > - [Snapshot Regression Tests 42176353725](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42176353725): **19/19 jobs passed** on this exact head. This includes the API's Monorepo-only 13-query owner-scope guard and the new Supabase future-object default-privilege SQL contract, as well as Web, Dynamic API/frontend, Find Displacements, Known Place, RiverShift, NISAR, workflow inventory and source blob-integrity jobs.
 > - [Backend Source Snapshot Regression 42176353744](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42176353744): immutable source suites passed — Backend main **595 passed, 1 skipped**; Known Place PR #85 **563 passed, 1 skipped**.
