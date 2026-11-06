@@ -54,6 +54,6 @@ def test_reassembly_is_manual_gated_and_uses_only_monorepo_artifacts():
     assert '{"GUNW": 15, "GOFF": 18}' in workflow_text
     assert "REASSEMBLY_SCIENCE_COMMIT_DOES_NOT_MATCH_EXACT_BASELINE_PIN" in workflow_text
     assert "aggregate_streamed_outputs.py" in workflow_text
-    assert 'report_status != "PASS"' in workflow_text
+    assert '|| "$report_status" != "PASS"' in workflow_text
     assert "if: steps.aggregate_results.outputs.status == 'PASS' && steps.aggregate_results.outputs.script_exit == '0'" in workflow_text
     assert "drive_resumable_upload.py" in workflow_text
