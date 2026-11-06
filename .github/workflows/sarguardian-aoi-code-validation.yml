@@ -125,6 +125,7 @@ jobs:
             engines/find-displacements/tools/tests/test_aoi_wide_displacement_screen.py \
             engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py \
             engines/find-displacements/tools/tests/test_science_engine_dispatch_contract.py \
+            tools/tests/test_monorepo_aoi_science_pin_contract.py \
             engines/find-displacements/dashboard/tests/test_prepare_web_assets.py
 
       - name: Test Known Place PR #85 science pin 10639 parser compatibility

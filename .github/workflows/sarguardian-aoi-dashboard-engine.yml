@@ -90,6 +90,11 @@ permissions:
   contents: read
   actions: read
 
+# Pinned revision of the immutable NISAR science snapshot imported into this repository.
+# Workflow scope is required because both manifest discovery and dashboard assembly use it.
+env:
+  SCIENCE_COMMIT: "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
+
 concurrency:
   group: sarguardian-aoi-wkt-data-processing
   cancel-in-progress: false
