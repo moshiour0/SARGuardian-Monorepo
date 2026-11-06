@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
   "generated_date": "2026-11-05",
-  "policy": "ARCHIVAL_ONLY_NOT_ACTIVE_WORKFLOWS",
-  "purpose": "Preserve unmerged RiverShift independent-reference and Run #36 reproducibility work with exact source blob identity. These files are not promoted to root .github/workflows and must not be treated as production-ready dispatchers.",
+  "policy": "ARCHIVAL_SNAPSHOTS_WITH_SEPARATE_REVIEWED_ROOT_PORTS",
+  "purpose": "Preserve every unmerged RiverShift validation source file at its exact Git blob identity. The archived workflows remain immutable source evidence only. Separate root ports for the OPERA DSWx-S1 and Run #36 replay workflows are independently reviewed, manual-only, fail-closed Monorepo Preview workflows; the archive files themselves are never activated or run on general pushes.",
   "sources": [
     {
       "source_repository": "moshiour0/SARGuardian-backend",
