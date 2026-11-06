@@ -108,7 +108,7 @@ def verify(
     products = sorted(
         item.get("name", "")
         for item in artifact_rows
-        if item.get("name", "").startswith("rivershift-product-b01-")
+        if item.get("name", "").startswith("rivershift-product-")
         and item.get("expired") is False
         and int(item.get("size_in_bytes", 0)) > 0
     )
