@@ -119,7 +119,8 @@ def main() -> int:
         "MONOREPO_RIVERSHIFT_PROCESSING_ENABLED",
         "max-parallel: 15",
         "retry_status:",
-        "acquisition_compatibility_audit",
+        "event_date:",
+        "analysis_mode:",
     )
     require_contains(
         "engines/river-shift/tools/river_shift/batched_gcov_job.py",
