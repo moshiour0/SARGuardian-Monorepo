@@ -70,6 +70,68 @@ def api_dispatch_input_names() -> set[str]:
     return set()
 
 
+def validate_author_exact_reproduction_gate() -> None:
+    """Require a repository-level opt-in and exact consent before P05023 raw acquisition."""
+    worker_path = ROOT / ".github" / "workflows" / "know-place-author-exact-replay.yml"
+    paper_dispatcher_path = ROOT / ".github" / "workflows" / "know-place-paper-reproduction-dispatcher.yml"
+    worker = read_yaml(worker_path)
+    dispatcher = read_yaml(paper_dispatcher_path)
+
+    events = mapping(worker.get("on"), "author-exact worker events")
+    if set(events) != {"workflow_dispatch", "workflow_call"}:
+        fail("Author-exact worker must remain manual/reusable only.")
+    dispatch = mapping(events["workflow_dispatch"], "author-exact workflow_dispatch")
+    call = mapping(events["workflow_call"], "author-exact workflow_call")
+    if "consent_marker" not in mapping(dispatch.get("inputs"), "author-exact dispatch inputs"):
+        fail("Author-exact manual entry point must require the consent marker input.")
+    if "consent_marker" not in mapping(call.get("inputs"), "author-exact call inputs"):
+        fail("Author-exact reusable call must accept the consent marker.")
+
+    jobs = mapping(worker.get("jobs"), "author-exact worker jobs")
+    if set(jobs) != {"trigger-gate", "acquire-analyze-retain"}:
+        fail("Author-exact worker job graph changed.")
+    gate = mapping(jobs["trigger-gate"], "author-exact trigger gate")
+    steps = gate.get("steps")
+    if not isinstance(steps, list) or len(steps) != 1:
+        fail("Author-exact trigger gate must have one credential-free step.")
+    step = mapping(steps[0], "author-exact trigger gate step")
+    if "uses" in step or "secrets." in str(gate):
+        fail("Author-exact trigger gate must not use external actions or receive secrets.")
+    env = mapping(step.get("env"), "author-exact trigger gate env")
+    if env.get("PAPER_REPRODUCTION_ENABLED") != expression("vars.MONOREPO_KNOWN_PLACE_PAPER_REPRODUCTION_ENABLED"):
+        fail("Author-exact worker must read its own repository-level opt-in Variable.")
+    if env.get("MANUAL_CONSENT_MARKER") != expression("inputs.consent_marker || ''"):
+        fail("Author-exact worker must inspect the explicit consent marker.")
+    run = str(step.get("run", ""))
+    for marker in (
+        'if [[ "$PAPER_REPRODUCTION_ENABLED" != "true" ]]',
+        'if [[ "$MANUAL_CONSENT_MARKER" != "[run-know-place]" ]]',
+        "exit 1",
+        'echo "RAW_SOURCE_DOWNLOADS=0"',
+    ):
+        if marker not in run:
+            fail(f"Author-exact preflight is missing fail-closed marker: {marker}")
+
+    processing = mapping(jobs["acquire-analyze-retain"], "author-exact processing job")
+    if processing.get("needs") != "trigger-gate":
+        fail("Author-exact acquisition must depend on the repository/consent gate.")
+    if processing.get("if") != expression("needs.trigger-gate.outputs.run_author_exact == 'true'"):
+        fail("Author-exact acquisition must require successful gate output.")
+    if not mapping(processing.get("env"), "author-exact processing env").get("EARTHDATA_TOKEN"):
+        fail("Author-exact worker must keep Earthdata credentials in the gated processing job.")
+
+    dispatcher_jobs = mapping(dispatcher.get("jobs"), "paper dispatcher jobs")
+    dispatcher_job = mapping(dispatcher_jobs.get("author-exact-p05023-replay"), "paper dispatcher reusable call")
+    if dispatcher_job.get("uses") != "./.github/workflows/know-place-author-exact-replay.yml":
+        fail("Paper dispatcher must call the gated Monorepo-local author-exact worker.")
+    forwarded = mapping(dispatcher_job.get("with"), "paper dispatcher inputs")
+    if forwarded.get("consent_marker") != expression("inputs.consent_marker"):
+        fail("Paper dispatcher must forward the exact user consent marker unchanged.")
+    if forwarded.get("bridge_authorized") != "false":
+        fail("Paper dispatcher must not claim a consent-bridge authorization.")
+    print("KNOWN_PLACE_AUTHOR_EXACT_REPOSITORY_AND_CONSENT_GATE_PASS")
+
+
 def main() -> int:
     api_inputs = api_dispatch_input_names()
     dispatcher = read_yaml(DISPATCHER_PATH)
@@ -261,6 +323,7 @@ def main() -> int:
     if artifact_name != expected_artifact_name:
         fail("Workflow artifact name must match the API's know-place-aoi-{run_id}- result lookup prefix.")
 
+    validate_author_exact_reproduction_gate()
     print("KNOWN_PLACE_API_INPUT_CONTRACT_PASS")
     print("KNOWN_PLACE_DISPATCH_STATUS_CORRELATION_PASS")
     print("KNOWN_PLACE_REUSABLE_FORWARDING_PASS")

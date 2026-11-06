@@ -90,22 +90,39 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          PAPER_REPRODUCTION_ENABLED: ${{ vars.MONOREPO_KNOWN_PLACE_PAPER_REPRODUCTION_ENABLED }}
           MANUAL_CONSENT_MARKER: ${{ inputs.consent_marker || '' }}
           BRIDGE_AUTHORIZED: ${{ inputs.bridge_authorized || false }}
         run: |
           set -euo pipefail
           run_author_exact=false
-          if [[ "$MANUAL_CONSENT_MARKER" == "[run-know-place]" ]] && { [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "workflow_call" ]] || [[ "$EVENT_NAME" == "push" && "$BRIDGE_AUTHORIZED" == "true" ]]; }; then
-            run_author_exact=true
-          fi
-          echo "run_author_exact=$run_author_exact" >> "$GITHUB_OUTPUT"
-          if [[ "$run_author_exact" != "true" ]]; then
-            echo "No exact [run-know-place] consent marker was supplied; no CMR query, download, analysis or Drive upload occurred." >> "$GITHUB_STEP_SUMMARY"
-            echo "AUTHOR_EXACT_RUN=SKIPPED_NO_EXPLICIT_CONSENT"
+          echo "run_author_exact=false" >> "$GITHUB_OUTPUT"
+
+          if [[ "$PAPER_REPRODUCTION_ENABLED" != "true" ]]; then
+            echo "AUTHOR_EXACT_REPRODUCTION_GATE=CLOSED"
             echo "RAW_SOURCE_DOWNLOADS=0"
-          else
-            echo "AUTHOR_EXACT_RUN=EXPLICIT_CONSENT_CONFIRMED"
+            echo "::error::Author-exact P05023 processing is disabled. Set MONOREPO_KNOWN_PLACE_PAPER_REPRODUCTION_ENABLED=true only after explicit cutover approval, secret review and rollback readiness."
+            exit 1
           fi
+
+          if [[ "$MANUAL_CONSENT_MARKER" != "[run-know-place]" ]]; then
+            echo "AUTHOR_EXACT_RUN=REJECTED_NO_EXPLICIT_CONSENT"
+            echo "RAW_SOURCE_DOWNLOADS=0"
+            echo "::error::The exact [run-know-place] consent marker is required; no source acquisition was attempted."
+            exit 1
+          fi
+
+          if [[ "$EVENT_NAME" != "workflow_dispatch" && "$EVENT_NAME" != "workflow_call" ]] && [[ "$BRIDGE_AUTHORIZED" != "true" ]]; then
+            echo "AUTHOR_EXACT_RUN=REJECTED_UNSUPPORTED_TRIGGER"
+            echo "RAW_SOURCE_DOWNLOADS=0"
+            echo "::error::This workflow accepts only manual/reusable invocation or a separately authorized consent bridge."
+            exit 1
+          fi
+
+          run_author_exact=true
+          echo "run_author_exact=true" >> "$GITHUB_OUTPUT"
+          echo "AUTHOR_EXACT_REPRODUCTION_GATE=PASS"
+          echo "AUTHOR_EXACT_RUN=EXPLICIT_CONSENT_CONFIRMED"
 
   acquire-analyze-retain:
     name: Acquire exact five P05023 HDF5 products, hash, analyse, retain derived results

@@ -57,7 +57,7 @@ The API-side switches remain fail-closed:
 - `DISPLACEMENT_ACTIONS_ENABLED=false` controls Find Displacements and both Known Place dispatch routes.
 - `RIVERSHIFT_ACTIONS_ENABLED=false` controls the independent RiverShift API dispatcher.
 
-The Monorepo Actions repository also has separate repository **Variables** (not Secrets) that gate processing before a worker receives credentials. Keep `MONOREPO_DISPLACEMENT_ACTIONS_ENABLED`, `MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED`, `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` and `MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED` false until the matching workflow, secret, callback, persistence and rollback checks are accepted.
+The Monorepo Actions repository also has separate repository **Variables** (not Secrets) that gate processing before a worker receives credentials. Keep `MONOREPO_DISPLACEMENT_ACTIONS_ENABLED`, `MONOREPO_KNOWN_PLACE_ACTIONS_ENABLED`, `MONOREPO_KNOWN_PLACE_PAPER_REPRODUCTION_ENABLED`, `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` and `MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED` false until the matching workflow, secret, callback, persistence and rollback checks are accepted.
 
 **Important displacement input distinction:** `sarguardian-displacement.yml` is the legacy Dynamic wrapper. It is not present in the Monorepo root. The Monorepo API adapter must target `sarguardian-aoi-wkt-dashboard.yml`, whose `workflow_dispatch` inputs use the Backend dashboard schema. Sending the Dynamic wrapper's `product_type` / `acquisition_window` / `retention_mode` / `processing_profile` fields to that workflow is invalid and GitHub will reject the dispatch.
 
