@@ -11,7 +11,7 @@ MIGRATION = ROOT / "infrastructure/supabase/migrations/20261106100000_public_def
 def test_default_privilege_migration_is_narrow_and_service_role_preserving() -> None:
     sql = MIGRATION.read_text(encoding="utf-8")
     normalized = re.sub(r"--[^\n]*", "", sql).lower()
-    normalized = re.sub(r"\s+", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
 
     expected = (
         "alter default privileges for role postgres in schema public "
