@@ -136,7 +136,7 @@ def check_ancestor(label: str, ancestor: str, descendant: str) -> None:
 
 
 def load_promotion_overrides() -> dict[str, dict[str, str]]:
-    """Load hash-pinned, path-preserving edits to promoted files only."""
+    """Load hash-pinned, path-preserving edits to explicitly promoted files only."""
     manifest_path = Path(__file__).resolve().parents[1] / "migration" / "promotion-overrides.json"
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -148,23 +148,36 @@ def load_promotion_overrides() -> dict[str, dict[str, str]]:
     if not isinstance(rows, list):
         raise RuntimeError("Promotion override manifest must contain an approved_overrides array.")
 
-    source_root = "migration/source-snapshots/dynamic/Backend/"
-    destination_root = "apps/api/"
+    promotion_roots = {
+        "Dynamic active API promotion": {
+            "source": "migration/source-snapshots/dynamic/Backend/",
+            "destination": "apps/api/",
+            "verification": "apps/api/tests/",
+        },
+        "Dynamic frontend promotion": {
+            "source": "migration/source-snapshots/dynamic/Frontend/",
+            "destination": "apps/web/",
+            "verification": "apps/web/src/",
+        },
+    }
     approved: dict[str, dict[str, str]] = {}
     for row in rows:
         if not isinstance(row, dict):
             raise RuntimeError("Promotion override row must be an object.")
+        scope = row.get("promotion_scope")
+        roots = promotion_roots.get(scope) if isinstance(scope, str) else None
         source_path = row.get("source_path")
         destination_path = row.get("destination_path")
         if (
-            not isinstance(source_path, str)
-            or not source_path.startswith(source_root)
+            roots is None
+            or not isinstance(source_path, str)
+            or not source_path.startswith(roots["source"])
             or not isinstance(destination_path, str)
-            or not destination_path.startswith(destination_root)
+            or not destination_path.startswith(roots["destination"])
         ):
-            raise RuntimeError("Promotion overrides are restricted to the Dynamic active API promotion.")
-        relative_source = source_path[len(source_root):]
-        relative_destination = destination_path[len(destination_root):]
+            raise RuntimeError("Promotion override scope, source and destination roots do not match an approved promotion.")
+        relative_source = source_path[len(roots["source"]):]
+        relative_destination = destination_path[len(roots["destination"]):]
         if not relative_source or relative_source != relative_destination or ".." in Path(relative_source).parts:
             raise RuntimeError(f"Promotion override source/destination paths do not correspond: {source_path}.")
         source_sha = row.get("source_blob_sha")
@@ -183,12 +196,18 @@ def load_promotion_overrides() -> dict[str, dict[str, str]]:
             or not isinstance(commits, list) or not commits
             or any(not isinstance(item, str) or not re.fullmatch(r"[0-9a-f]{40}", item) for item in commits)
             or not isinstance(tests, list) or not tests
-            or any(not isinstance(item, str) or not item.startswith("apps/api/tests/") for item in tests)
+            or any(
+                not isinstance(item, str)
+                or not item.startswith(roots["verification"])
+                or not ("/tests/" in item or ".test." in item or ".spec." in item)
+                for item in tests
+            )
         ):
             raise RuntimeError(f"Promotion override lacks reviewable reason, commit or test evidence: {destination_path}.")
-        if relative_source in approved:
+        override_key = f"{scope}:{relative_source}"
+        if override_key in approved:
             raise RuntimeError(f"Duplicate promotion override for {destination_path}.")
-        approved[relative_source] = row
+        approved[override_key] = row
     return approved
 
 
@@ -482,7 +501,8 @@ def main() -> int:
         )
         unapproved_changed: list[str] = []
         for relative_path in changed:
-            override = promotion_overrides.get(relative_path) if label == "Dynamic active API promotion" else None
+            override_key = f"{label}:{relative_path}"
+            override = promotion_overrides.get(override_key)
             if override is None:
                 unapproved_changed.append(relative_path)
                 continue
@@ -497,7 +517,7 @@ def main() -> int:
             if source_entry != expected_source or destination_entry != expected_destination:
                 unapproved_changed.append(relative_path)
                 continue
-            used_promotion_overrides.add(relative_path)
+            used_promotion_overrides.add(override_key)
             print(
                 f"PROMOTED_PATH_OVERRIDE_PASS {override['destination_path']}: "
                 f"{override['source_blob_sha']} -> {override['destination_blob_sha']}"
@@ -508,7 +528,7 @@ def main() -> int:
                 f"missing={missing[:10]}; extra={extra[:10]}; "
                 f"unapproved_changed={unapproved_changed[:10]}"
             )
-        if changed and label != "Dynamic active API promotion":
+        if changed and label not in {"Dynamic active API promotion", "Dynamic frontend promotion"}:
             raise RuntimeError(f"{label}: promotion overrides are not permitted for this source.")
         print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")
 
