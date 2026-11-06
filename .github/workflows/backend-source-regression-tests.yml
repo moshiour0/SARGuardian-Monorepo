@@ -99,7 +99,7 @@ jobs:
               "sarguardian-retention-ci.yml",
           )
           if (root / "tools/know_place").is_dir():
-              names = names + ("know-place-aoi-dispatcher.yml", "know-place-paper-reproduction-dispatcher.yml")
+              names = names + ("know-place-aoi-analysis.yml", "know-place-author-exact-replay.yml")
           for name in names:
               path = root / ".github" / "workflows" / name
               if not path.is_file():
