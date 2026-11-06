@@ -17,7 +17,7 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 ## Engine boundaries
 
 - **Find Displacements:** target-free AOI-wide candidate discovery. GOFF offsets and GUNW LOS diagnostics remain separate measurement families.
-- **Known Place Analysis:** a separate fixed-benchmark and two-polygon research workflow. Its feature-branch and PR #85 lineage is preserved.
+- **Known Place Analysis:** a current API-connected generic two-polygon workflow pinned to Backend's active reusable workflow/source revision 0e0611c12913044787ee84a39fa60a81d30ae516; the original feat/know-place-analysis branch was not merged into Backend main and PR #85 remains Draft/Open. Its PR #85 lineage is preserved separately. Author-exact P05023 replay remains a distinct manual-consent-gated path.
 - **River Shift:** an independent NISAR GCOV engine with ASF acquisition discovery, processing, overlap diagnostics, transects, and external validation.
 - **Glacier Movement:** currently a product/category route into the shared Find Displacements engine, not a separately proven processing engine.
 

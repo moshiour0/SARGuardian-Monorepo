@@ -156,3 +156,39 @@ The correct promotion mapping is nested under the worker package, not flattened 
 The source branch PR #85's entire 277-file snapshot remains separately preserved under `migration/source-branch-snapshots/backend-known-place-pr85/`; `engines/known-place/` is a promoted, runnable package layout that also includes its app, support modules, retained evidence, and selected workflow source snapshots. The exact 36-file runtime and 39-file test mappings above verify the critical code/test subtree without conflating the whole 277-file lineage archive with the runtime import.
 
 This verifies source package integrity, not test execution, author-exact P05023 scientific validity, or production cutover.
+
+
+## Current Production Known Place runtime pin overlay — 2026-11-06
+
+A second source-lineage check identified that the Backend's current production generic Known Place dispatcher is not running PR #85 head directly. Backend main's know-place-aoi-dispatcher.yml calls the reusable workflow at immutable commit 0e0611c12913044787ee84a39fa60a81d30ae516, and passes the same SHA as backend_science_ref.
+
+The feature branch was **not merged into main**:
+- feat/know-place-analysis tip: bd7a59c54ddae7c19fd88896e877c3a530b43d9e;
+- PR #85: Draft/Open, base feat/know-place-analysis, head bfde7dde8ada92a03054cd8dbad8daa7a5c119f8;
+- the active generic pin 0e0611c is 78 commits ahead of the feature-branch pointer and 32 commits ahead of PR #85's head;
+- PR #86 merged to main as 50af9e5413db5f797c4f2866bc4685be84a9fcef, but changed only the GOFF-candidate handoff UI feature. It did not merge PR #85's generic two-polygon engine.
+
+The first 100 rows returned by the Backend workflow_dispatch + branch=main run query contained 16 generic Known Place runs: 8 success, 7 failure and 1 cancelled. Successful runs 41533701551 and 41533582770 referenced the 0e061 reusable workflow and retained result artifacts. The query reported 115 total matching runs; counts here are explicitly the returned first page, not all 115.
+
+### Exact active generic runtime/test overlay
+
+The PR #85 promoted tree remains a complete immutable branch-lineage import (277 entries), but ten engines/known-place files are now sourced from the actual current production generic runtime pin 0e0611c:
+
+| Backend source path | Monorepo destination | Source Git blob |
+|---|---|---|
+| tools/know_place/aoi_request.py | engines/known-place/tools/know_place/aoi_request.py | 8fcfdf635994ceb6093160931f21ae6cf0f986de |
+| tools/know_place/aoi_runner.py | engines/known-place/tools/know_place/aoi_runner.py | 9364b94d6629c67e44f007a0e2634824aa7e1f9f |
+| tools/know_place/geometry.py | engines/known-place/tools/know_place/geometry.py | 25292440fd94426882a8c51b00b186b162de429a |
+| tools/know_place/series.py | engines/known-place/tools/know_place/series.py | f1b67c9255706b8e10ad4e2e280e80640490b405 |
+| tools/know_place/upload_bundle_to_drive.py | engines/known-place/tools/know_place/upload_bundle_to_drive.py | ef721ee9e1d1b388927866054883440f95e1f2f6 |
+| tools/tests/test_know_place_aoi_runner.py | engines/known-place/tools/tests/test_know_place_aoi_runner.py | 1a48c7258d97ec4b98dd81d67cc425a73b02f8d8 |
+| tools/tests/test_know_place_geometry.py | engines/known-place/tools/tests/test_know_place_geometry.py | 17d7b56cdb47af6d774c58d8abc9b33903be7144 |
+| tools/tests/test_know_place_series.py | engines/known-place/tools/tests/test_know_place_series.py | 22acef6e41822e4b7f23d2902f467015e4a69099 |
+| tools/tests/test_know_place_upload_bundle.py | engines/known-place/tools/tests/test_know_place_upload_bundle.py | 88bc0c613b05023658555f605104a2570266d7ba |
+| app/storage/drive_client.py | engines/known-place/app/storage/drive_client.py | 64aef9f7e3b6c4eee63d2ad9e21565be2ebed2a2 |
+
+The exact pin/dispatcher/workflow metadata is recorded in migration/active-runtime-pins/known-place-generic-0e061.json. The source-snapshot verifier excludes only these ten deliberate overlay paths from PR #85's promoted-directory byte parity; the active-runtime-scope validator independently computes each destination Git blob and checks it against the 0e061 manifest. The Monorepo Known Place reusable workflow now expects the exact active runner blob 9364b94, not the older PR #85 blob.
+
+### Author-exact P05023 stays separate and gated
+
+Backend main's paper-reproduction dispatcher calls reusable workflow pin d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9 and passes Backend code pin b825df798ea4cb9874aa10dd01174d2a8ef73cba. The observed run 41423614257 passed the explicit consent gate and verified the derived Drive bundle/receipt, but source-manifest completeness failed; raw cleanup was blocked with SOURCE_MANIFEST_STATUS_NOT_COMPLETE, and final author scientific/retention gates did not pass. This is not a successful complete author-exact replay. Keep the separate manual consent marker, fixed P05023 source pins and Monorepo repository gate closed until a positive complete run passes.

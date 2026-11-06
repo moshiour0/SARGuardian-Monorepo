@@ -396,10 +396,21 @@ def main() -> int:
             (),
         ),
         (
-            "Known Place PR #85 promotion",
+            "Known Place PR #85 promotion (excluding separately pinned active generic runtime overlay)",
             "migration/source-snapshots/backend-known-place-pr85/",
             "engines/known-place/",
-            (),
+            (
+                "tools/know_place/aoi_request.py",
+                "tools/know_place/aoi_runner.py",
+                "tools/know_place/geometry.py",
+                "tools/know_place/series.py",
+                "tools/know_place/upload_bundle_to_drive.py",
+                "tools/tests/test_know_place_aoi_runner.py",
+                "tools/tests/test_know_place_geometry.py",
+                "tools/tests/test_know_place_series.py",
+                "tools/tests/test_know_place_upload_bundle.py",
+                "app/storage/drive_client.py",
+            ),
         ),
         (
             "NISAR science promotion",

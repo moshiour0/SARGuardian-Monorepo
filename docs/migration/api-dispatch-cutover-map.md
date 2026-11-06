@@ -67,3 +67,12 @@ The canonical Drive parent-folder variable is `GOOGLE_DRIVE_PARENT_FOLDER_ID`. T
 7. Only after all acceptance gates and explicit owner approval: merge the Draft PR, deploy reviewed Vercel Production projects, set API repository/ref values to `main`, and update repository Variables. Do not retarget Production before that approval.
 
 All API and root workflow processing switches remain disabled. A CI PASS is not a live dispatch test or independent scientific validation.
+
+
+## Verified Known Place source lineage and current runtime pins — 2026-11-06
+
+The feat/know-place-analysis branch itself was not merged into Backend main. PR #85 remains Draft/Open, with base feat/know-place-analysis (bd7a59c...) and head bfde7dde.... This does not mean Known Place is absent from the current application path: Backend main's generic dispatcher pins the reusable analysis workflow and backend_science_ref to 0e0611c12913044787ee84a39fa60a81d30ae516.
+
+The filtered Backend workflow-dispatch history shows current generic Known Place dispatch usage (the first page returned 16 generic runs, 8 successful). Successful runs 41533701551 and 41533582770 used the 0e061 reusable workflow and retained result artifacts. The Monorepo generic API target is therefore a current runtime flow, not an unused research branch. The Monorepo engine package applies the ten exact runtime/test blobs from 0e061 recorded in migration/active-runtime-pins/known-place-generic-0e061.json.
+
+PR #86 merged only the GOFF candidate handoff to main; it did not merge PR #85's two-polygon science implementation. Keep the author-exact P05023 path separate: Backend main dispatcher → reusable workflow d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9 → Backend code b825df798ea4cb9874aa10dd01174d2a8ef73cba. The observed author-exact run 41423614257 failed its final source-manifest/cleanup/science acceptance; its Monorepo gate remains false.

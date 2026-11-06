@@ -144,7 +144,7 @@ jobs:
             exit 1
           fi
           runner_blob="$(git rev-parse HEAD:engines/known-place/tools/know_place/aoi_runner.py)"
-          if [[ "$runner_blob" != "059395e4c028697b20bbd20c62bca4d1b7d8ae31" ]]; then
+          if [[ "$runner_blob" != "9364b94d6629c67e44f007a0e2634824aa7e1f9f" ]]; then
             echo "ERROR=KNOWN_PLACE_RUNNER_SOURCE_BLOB_MISMATCH actual=$runner_blob"
             exit 1
           fi
@@ -159,6 +159,7 @@ jobs:
           echo "MONOREPO_ENGINE_COMMIT=$actual"
           echo "KNOWN_PLACE_RUNNER_BLOB=$runner_blob"
           echo "KNOWN_PLACE_REQUIREMENTS_BLOB=$requirements_blob"
+          echo "KNOWN_PLACE_BACKEND_RUNTIME_PIN=0e0611c12913044787ee84a39fa60a81d30ae516"
 
       - name: Set up pinned Python 3.13 runtime
         uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3

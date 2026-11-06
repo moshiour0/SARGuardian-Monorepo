@@ -1,72 +1,57 @@
 # Evidence-based active runtime scope — 2026-11-06
 
-**Purpose:** reduce migration scope to the SARGuardian paths that the current Dynamic application actually exposes and the Backend actually runs. This is a runtime-scope decision, not a Production cutover.
+**Purpose:** identify the currently application-linked SARGuardian dispatch paths and the exact source revisions they execute. This is not authorization for Production cutover.
 
-## Decision
+## Corrected decision
 
-Do not make all 82 source workflow instances active in the Monorepo. Preserve source snapshots for provenance, but distinguish the primary runtime, connected gated pilots and optional preserved features.
+Do not activate all 82 historical workflow instances. Keep their source snapshots and dispositions for provenance, but promote only the workflows currently connected to Dynamic's API and proven dispatch history.
 
-- **Primary proven runtime:** Dynamic Web/API → Find Displacements API → `sarguardian-aoi-wkt-dashboard.yml` → local dashboard engine → per-product worker → receipts/retry → dashboard → terminal callback. The three-file root workflow chain is the only workflow chain in the current primary runtime allowlist.
-- **Connected, not yet validated feature:** RiverShift API → `river-shift-gcov-process.yml` → `engines/river-shift`. It is kept as a separate gated feature, not counted as a proven active processing path. The latest observed request reached exact catalogue matching (14/14) and stopped at `EVENT_WINDOW_NOT_BRACKETED` before product batches. This is a fail-closed scientific eligibility result, not a proven infrastructure defect; it is not a successful processing pilot.
-- **Preserved, disabled features outside the current cutover scope:** Known Place generic and author-exact P05023 API routes/workflows. No matching Known Place `workflow_dispatch` appeared in the latest 100 Backend Actions runs reviewed on 2026-11-06. Keep their code and pins for future acceptance, but do not enable or count these workflows as active production dependencies now.
-
-## Direct live execution evidence
-
-### Find Displacements — successful end-to-end run
-
-Backend workflow run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601), created 2026-11-05 19:46:26 UTC:
-
-- Workflow conclusion: **success**; 20 jobs total.
-- 13 initial product jobs succeeded. One initial GUNW-002 download failed.
-- Only GUNW-002 was retried; the retry job succeeded.
-- Dashboard assembly/downloadable maps succeeded.
-- The final validated terminal-state callback job succeeded.
-
-This is sufficient to classify the Find Displacements dispatch chain as the primary proven runtime to promote. Its exact science pin remains `006d4cd1485cf80e509eaf8717c12e9c6390ac09`; do not silently replace it with NISAR main.
-
-### RiverShift — connected, but no positive-case processing evidence yet
-
-Backend workflow run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247), created 2026-11-05 19:02:08 UTC:
-
-- Exact catalogue matching returned **14/14** submitted granules.
-- The worker stopped at `acquisition_compatibility_audit` with `EVENT_WINDOW_NOT_BRACKETED`.
-- No product batch started.
-
-The workflow's fail-closed behavior worked. A request whose event date is not bracketed by compatible acquisitions must not proceed. Preserve RiverShift's API/worker integration, but do not declare the GCOV processing path production-validated until a scientifically eligible positive-case pilot completes.
-
-### Known Place — retain feature, do not overstate usage
-
-The current Dynamic API contains generic two-polygon and author-exact P05023 routes. The latest 100 Backend Actions run records contained no matching Known Place dispatch. This does not prove the feature has never been used; it means this audit does not have recent live-run evidence to place it in the primary cutover path. Keep the two routes and their independent science pins separate and disabled until explicitly tested.
-
-## Monorepo runtime call graph
-
-| Path | API surface | Root workflow(s) | Migration decision |
+| Tier | Workflow files | Evidence | Monorepo decision |
 |---|---|---|---|
-| Find Displacements | `apps/api/app/displacements.py` | `sarguardian-aoi-wkt-dashboard.yml` → `sarguardian-aoi-dashboard-engine.yml` → `sarguardian-aoi-product-worker.yml` | Primary runtime |
-| RiverShift | `apps/api/app/river_shift_jobs.py` | `river-shift-gcov-process.yml` | Preserve; require positive-case pilot |
-| Known Place generic | `apps/api/app/known_place.py` | `know-place-aoi-dispatcher.yml` → `know-place-aoi-analysis.yml` | Preserve as gated feature |
-| Known Place author-exact | `apps/api/app/known_place.py` | `know-place-paper-reproduction-dispatcher.yml` → `know-place-author-exact-replay.yml` | Preserve separately; manual consent and fixed P05023 pins |
+| **Primary, currently proven application runtime** | Find Displacements dispatcher → dashboard engine → product worker; generic Known Place dispatcher → two-polygon reusable workflow | Find Displacements run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) succeeded after a failed-only GUNW retry, dashboard assembly and terminal callback. Generic Known Place runs [41533701551](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533701551) and [41533582770](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41533582770) succeeded and produced workflow artifacts. | Keep the 5-file primary call graph in Monorepo. The generic Known Place engine is pinned to its actual current Backend runtime commit 0e0611c12913044787ee84a39fa60a81d30ae516, not just the older PR #85 head. |
+| **Connected but gated feature paths** | RiverShift GCOV workflow; author-exact P05023 dispatcher → replay workflow | RiverShift run [42089984247](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42089984247) matched 14/14 catalogue granules but correctly stopped before products at EVENT_WINDOW_NOT_BRACKETED. Author-exact run [41423614257](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41423614257) passed its consent gate and uploaded its derived bundle/receipt, but source-manifest completeness failed and post-delete cleanup was blocked. | Preserve both call graphs, but keep their processing gates false until a successful positive-case pilot satisfies the scientific and retention acceptance criteria. |
+| **Migration CI** | Seven test/security/metadata workflows listed in migration/active-runtime-scope.json | Snapshot, source regression, metadata, secret-scan, retention, dashboard and AOI code checks. | Keep as CI only; they are not user-job processing workflows. |
 
-The Web and active Dynamic API belong in `apps/web` and `apps/api`. Find Displacements is the primary currently proven runtime. RiverShift remains a gated connected feature; Known Place routes are retained but disabled and outside this cutover scope. Do not remove their API/source code merely because they are not in the primary active workflow allowlist.
+## Known Place branch/merge lineage — verified
 
-## What is not part of the active product dispatch graph
+- Backend branch feat/know-place-analysis currently points to bd7a59c54ddae7c19fd88896e877c3a530b43d9e.
+- Backend main is 97d849454918b1425ac41bb70e7a32d11cfd3833.
+- PR [#85](https://github.com/moshiour0/SARGuardian-backend/pull/85), the independent two-polygon implementation, is still **Draft/Open**, not merged. Its base is feat/know-place-analysis; its head is bfde7dde8ada92a03054cd8dbad8daa7a5c119f8.
+- This does **not** mean Known Place is absent from current main. Backend main has a generic dispatcher whose reusable workflow and backend_science_ref both pin 0e0611c12913044787ee84a39fa60a81d30ae516. The pin is 78 commits ahead of the current feature-branch pointer and 32 commits ahead of the PR #85 head.
+- PR [#86](https://github.com/moshiour0/SARGuardian-backend/pull/86) merged into main as 50af9e5413db5f797c4f2866bc4685be84a9fcef, but its scope was only the GOFF-candidate-to-suggested-measurement-polygon handoff. It did not merge PR #85's generic two-polygon engine.
+- Backend main's author-exact dispatcher separately calls reusable workflow pin d847b0461a2fec1bdf2abcce0a6b1d2f9dddabc9 and passes Backend code pin b825df798ea4cb9874aa10dd01174d2a8ef73cba.
 
-The remaining manual catalogue probes, Earthdata diagnostics, GUNW/GOFF science experiments, retained-artifact repair tools, one-granule retention pilots, independent RiverShift reference/replay workflows, and historical alternate-fork workers are not called by the current Dynamic API product routes. Do not make them automatic runtime dependencies. Keep their source versions and evidence in the immutable snapshots; only retain a root manual tool when a separately documented operator need justifies it.
+Therefore, the Monorepo retains PR #85's complete immutable branch snapshot for its research lineage, while the ten runtime/test files that differ from current production generic pin 0e0611c are explicitly overlaid into engines/known-place. The exact source blob hashes are recorded in migration/active-runtime-pins/known-place-generic-0e061.json. The source-snapshot verifier excludes only these ten deliberate overlays from PR #85 directory parity; the active-pin validator checks each destination blob against the 0e061 manifest.
 
-CI and migration verification workflows are separate from product runtime. Keep the source-snapshot regression, promoted application/engine tests, metadata validation, history secret scan, retention fixture tests, dashboard asset tests and AOI source-pin validation. They verify the migration; they do not process user jobs.
+## Workflow call graphs in Monorepo
 
-## Required settings and acceptance gates
+| Feature | API surface | Root workflow chain | State |
+|---|---|---|---|
+| Find Displacements | apps/api/app/displacements.py | sarguardian-aoi-wkt-dashboard.yml → sarguardian-aoi-dashboard-engine.yml → sarguardian-aoi-product-worker.yml | Primary runtime |
+| Known Place generic two-polygon | apps/api/app/known_place.py | know-place-aoi-dispatcher.yml → know-place-aoi-analysis.yml | Primary runtime; exact active source pin 0e061 copied and hash-checked |
+| RiverShift NISAR GCOV | apps/api/app/river_shift_jobs.py | river-shift-gcov-process.yml | Gated pending positive-case pilot |
+| Known Place author-exact P05023 | apps/api/app/known_place.py | know-place-paper-reproduction-dispatcher.yml → know-place-author-exact-replay.yml | Gated pending complete successful replay |
 
-- Find Displacements uses its separate API dispatch flag, token, destination, callback secret and public API URL. Keep the Monorepo API flag and root repository gate false until Preview dispatch/callback tests pass.
-- RiverShift uses its independent API flag/token/callback secret/public URL and root `MONOREPO_RIVERSHIFT_PROCESSING_ENABLED` gate. Never share the GOFF/GUNW displacement payload with GCOV.
-- Known Place generic and author-exact workflows remain separate, with separate destination settings and consent markers. Preserve P05023 and exact author/science pins.
-- Keep Earthdata and Google Drive upload credentials in Monorepo Actions Secrets. Keep Firebase, Supabase service role, GitHub dispatch token, callback secrets and Drive result-read OAuth credentials in the API server environment only.
-- Preserve the canonical Drive parent identifier `GOOGLE_DRIVE_PARENT_FOLDER_ID`; do not add the legacy `GOOGLE_DRIVE_FOLDER_ID` alias.
-- Run a final authenticated read-only CLI v3 migration-list confirmation for the Monorepo's already aligned nine files; separately reconcile the original Dynamic Production history before any repair or `db push`.
-- Run a positive-case pilot for each feature included in the cutover, verify callback sequence, terminal failure propagation, artifact integrity and Drive receipts, and rehearse rollback.
+Generic Known Place and author-exact remain separate request schemas, workflow pins, artifact paths and safety gates. The author-exact path requires exact [run-know-place] consent and the fixed P05023 source identity; do not merge it into the generic polygon workflow.
+
+## What remains outside the runtime call graph
+
+Do not turn standalone catalogue probes, manual renderer workflows, historical branch bridges, one-off validation runs, alternate legacy worker variants, or unrelated failed experiments into automatic user-job dependencies. Their source versions remain in immutable source snapshots and the 82-entry workflow disposition register. A source archive is not a deployment dependency.
+
+## Cutover acceptance gates
+
+- Monorepo-only API credentials: Firebase Admin JSON, Supabase service key, GitHub Actions token, displacement/RiverShift callback HMAC secrets, Drive result-read OAuth.
+- Monorepo Actions secrets: Earthdata access, Drive OAuth client/refresh token and GOOGLE_DRIVE_PARENT_FOLDER_ID. Never expose these in apps/web or VITE_*.
+- Authenticated Preview login, owner-scoped Supabase persistence/readback, dispatch correlation, status polling, signed callbacks, terminal failure propagation and artifact access.
+- A successful isolated Find Displacements run using Monorepo workflow files and exact science pin.
+- A successful generic Known Place catalog-only check and positive two-polygon measurement pilot using exact 0e061 files.
+- A scientifically eligible, positive-case RiverShift GCOV pilot.
+- A complete author-exact P05023 replay only if that feature is included in the release; require all five exact source hashes, author metric tables, Drive byte verification and raw cleanup receipt.
+- Read-only Supabase migration-history verification; independent science review; dependency/licensing review; rollback rehearsal.
+- Explicit owner approval before merging to the production default branch or changing any Production Vercel/API/DB target.
 
 ## Safety boundary
 
-This scope reduction does not authorize turning off the existing Dynamic Production, changing its Backend dispatch targets, changing Production Vercel aliases, or modifying the existing Production Supabase project. The new Monorepo remains isolated until all acceptance gates pass and the owner explicitly approves Production cutover.
+All Monorepo processing switches remain false. Existing Dynamic Production, Backend Actions, Production callback URLs, Production Vercel aliases and the original Supabase project remain unchanged.
 
-Machine-readable counterpart: [`migration/active-runtime-scope.json`](../../migration/active-runtime-scope.json). The primary-runtime allowlist is deliberately smaller than the full historical inventory; separately gated and preserved features are listed in their own allowlists.
+Machine-readable counterpart: migration/active-runtime-scope.json.

@@ -23,26 +23,6 @@
     "active_pin_ahead_of_pr85_commits": 32,
     "active_pin_ahead_of_feature_branch_tip_commits": 78
   },
-  "runtime_evidence": {
-    "query": "GET /repos/moshiour0/SARGuardian-backend/actions/runs?event=workflow_dispatch&branch=main&per_page=100",
-    "dispatch_runs_total": 115,
-    "generic_dispatches": 16,
-    "generic_success": 8,
-    "generic_failure": 7,
-    "generic_cancelled": 1,
-    "successful_runs": [
-      41533701551,
-      41533582770
-    ],
-    "latest_success": 41533701551,
-    "latest_success_artifact": "know-place-aoi-41533701551-1",
-    "author_exact_dispatches": 1,
-    "author_exact_success": 0,
-    "author_exact_failure": 1,
-    "author_exact_failure_run": 41423614257,
-    "author_exact_failure_code": "SOURCE_MANIFEST_STATUS_NOT_COMPLETE",
-    "author_exact_cleanup_status": "BLOCKED_PRE_DELETE_VALIDATION"
-  },
   "files": [
     {
       "source_path": "tools/know_place/aoi_request.py",
