@@ -101,13 +101,12 @@ jobs:
     outputs:
       reported: ${{ steps.callback.outputs.reported }}
     steps:
-      - name: Check out the signed-callback contract
+      - name: Check out the Monorepo API callback adapter
         if: inputs.job_id != ''
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: moshiour0/SARGuardian-Monorepo
-          ref: db6472e1c304e21242f1ab1dfd671ccb21ba5697
-          path: dynamic-api
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Report running state to the account API
         id: callback
@@ -131,7 +130,7 @@ jobs:
             echo "ERROR=ACCOUNT_REQUEST_FINGERPRINT_INVALID"
             exit 1
           fi
-          PYTHONPATH="$GITHUB_WORKSPACE/dynamic-api/Backend" python -m science_adapter.dynamic_callback \
+          PYTHONPATH="$GITHUB_WORKSPACE/apps/api" python -m science_adapter.dynamic_callback \
             --state running --stage initializing --sequence 1 \
             --callback-url "$CALLBACK_URL" --callback-secret "$CALLBACK_SECRET" \
             --job-id "$JOB_ID" --request-fingerprint "$REQUEST_FINGERPRINT" \
@@ -169,12 +168,14 @@ jobs:
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
           echo "AOI_ORCHESTRATION_SHA=$sha" >> "$GITHUB_ENV"
 
-      - name: Checkout pinned dynamic-WKT scientific engine
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: moshiour0/SARGuardian-Monorepo
-          ref: 006d4cd1485cf80e509eaf8717c12e9c6390ac09
-          path: science-source
+      - name: Verify immutable NISAR source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
+          echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -186,7 +187,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r science-source/requirements.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r engines/find-displacements/tools/requirements-retention.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 rasterio matplotlib pyproj
 
@@ -203,7 +204,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/sarguardian-aoi/manifest"
           python engines/find-displacements/tools/discover_aoi_products.py \
-            --science-root "$PWD/science-source" \
+            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" \
             --start-date "$START_DATE" --end-date "$END_DATE" \
             --date-filter-mode "$DATE_FILTER_MODE" \
             --run-profile "$RUN_PROFILE" --retention-profile "$RETENTION_PROFILE" \
@@ -383,12 +384,14 @@ jobs:
           test "$actual" = "${EXPECTED_DASHBOARD_SHA:?}"
           echo "DASHBOARD_BUILDER_SHA=$actual"
 
-      - name: Checkout the same pinned science engine for WKT/provenance checks
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: moshiour0/SARGuardian-Monorepo
-          ref: 006d4cd1485cf80e509eaf8717c12e9c6390ac09
-          path: science-source
+      - name: Verify immutable NISAR source snapshot for dashboard assembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
+          echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
       - name: Verify dashboard code matches the product manifest revision
         shell: bash
@@ -408,7 +411,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r science-source/requirements.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r engines/find-displacements/tools/requirements-retention.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 rasterio matplotlib
 
@@ -436,7 +439,7 @@ jobs:
           python dashboard-source/engines/find-displacements/tools/aggregate_aoi_run.py \
             --manifest "$root/manifest/manifest.json" \
             --artifact-root "$root/product-artifacts" \
-            --science-root "$PWD/science-source" \
+            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" \
             --out-root "$root/dashboard" 2>&1 | tee "$root/dashboard-build.log" || status=$?
           echo "script_exit=$status" >> "$GITHUB_OUTPUT"
           if [[ -s "$root/dashboard/aoi-run-summary.json" ]]; then
@@ -528,14 +531,6 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Check out the signed-callback contract
-        if: inputs.job_id != ''
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: moshiour0/SARGuardian-Monorepo
-          ref: db6472e1c304e21242f1ab1dfd671ccb21ba5697
-          path: dynamic-api
-
       - name: Download the assembled AOI dashboard and Drive receipt
         if: inputs.job_id != ''
         continue-on-error: true
@@ -580,7 +575,7 @@ jobs:
           summary_args=()
 
           if [[ "$PIPELINE_RESULT" == "success" ]]; then
-            if PYTHONPATH="$GITHUB_WORKSPACE/dynamic-api/Backend" python -m science_adapter.dynamic_callback \
+            if PYTHONPATH="$GITHUB_WORKSPACE/apps/api" python -m science_adapter.dynamic_callback \
               --dashboard-root "$root/dashboard" --github-run-id "$GITHUB_RUN_ID" \
               --build-summary-out "$root/dashboard/result-summary.json"; then
               state=succeeded
@@ -602,5 +597,5 @@ jobs:
           if [[ -n "$error_code" ]]; then
             args+=(--error-code "$error_code" --error-message "$error_message")
           fi
-          PYTHONPATH="$GITHUB_WORKSPACE/dynamic-api/Backend" python -m science_adapter.dynamic_callback "${args[@]}" "${summary_args[@]}"
+          PYTHONPATH="$GITHUB_WORKSPACE/apps/api" python -m science_adapter.dynamic_callback "${args[@]}" "${summary_args[@]}"
 
