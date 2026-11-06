@@ -53,13 +53,21 @@ def main() -> int:
     if not isinstance(jobs, dict) or set(jobs) != {"preflight", "validate-retention"}:
         fail("expected only preflight and validate-retention jobs")
     preflight = jobs["preflight"]
-    preflight_text = json.dumps(preflight, sort_keys=True)
-    if "MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED" not in preflight_text:
+    if not isinstance(preflight, dict) or not isinstance(preflight.get("steps"), list):
+        fail("credential-free preflight steps are missing")
+    preflight_steps = preflight["steps"]
+    preflight_runs = "\n".join(
+        step.get("run", "")
+        for step in preflight_steps
+        if isinstance(step, dict) and isinstance(step.get("run", ""), str)
+    )
+    preflight_env = json.dumps(preflight_steps, sort_keys=True)
+    if "MONOREPO_SARGUARDIAN_LIVE_VALIDATION_ENABLED" not in preflight_env:
         fail("repository opt-in gate is missing")
-    if "inputs.confirm_live_retention" not in preflight_text or "secrets." in preflight_text:
+    if "inputs.confirm_live_retention" not in preflight_env or "secrets." in preflight_env:
         fail("per-run consent must be checked before the processing job receives secrets")
-    if '!= "true"' not in preflight_text:
-        fail("preflight must fail closed unless both gates equal the literal true string")
+    if preflight_runs.count('!= "true"') < 2:
+        fail("both repository opt-in and per-run consent must fail closed unless literally true")
 
     processing = jobs["validate-retention"]
     if processing.get("needs") != "preflight":
