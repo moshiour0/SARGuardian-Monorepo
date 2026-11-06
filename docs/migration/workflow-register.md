@@ -178,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (29 files total)
+### Root workflow entrypoints currently promoted (35 files total)
 
 - Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
   workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
@@ -259,10 +259,11 @@ in the Monorepo root workflow system. Remaining families include:
    from GCOV. Retained OPERA DSWx-S1, Run #36 and Sentinel-2 replays still need
    root manual-only ports or explicit archived dispositions. Preserve source
    evidence and do not allow unrelated pushes to trigger replay.
-4. Shared platform validation: dashboard asset/artifact smoke tests, generic
-   retention tests, manual source-AOI science validation, and runner/resource
-   diagnostics. The eight Backend-main NISAR diagnostic/storage workflows are
-   now ported to root and remain manual/gated.
+4. Shared platform validation: dashboard asset builder tests and retained-
+   artifact smoke are now promoted separately; the eight Backend-main NISAR
+   diagnostic/storage workflows are also ported as manual/gated root entries.
+   Remaining work is generic retention tests, manual source-AOI science
+   validation, and runner/resource diagnostics.
 5. Reusable workflow parity: reconcile Dynamic and Backend duplicate AOI
    dispatcher/dashboard/product-worker contracts and update callers to local
    root reusable workflows without changing input, artifact, callback, retry
