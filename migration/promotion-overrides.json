@@ -6,14 +6,15 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/.env.example",
       "destination_path": "apps/api/.env.example",
       "source_blob_sha": "767a78697c484b572612a5807d1fc98d4de69460",
-      "destination_blob_sha": "57309a05329094823727f12e99f51b40381d2a80",
+      "destination_blob_sha": "dd11fa011f69f6ca364bcb111121fc2851e9981b",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Document independently configurable generic and author-exact Known Place workflow targets while preserving existing Backend dispatcher defaults until an explicit cutover.",
+      "reason": "Set the Monorepo staging Supabase URL and a clearly non-secret dashboard-entry placeholder for the server-only secret key, while retaining the legacy Backend workflow defaults for Production until explicit dispatch cutover.",
       "implementation_commits": [
         "088dddb2c0b66f28328a7f8373390b6679fdff3a",
         "3e8c6ff40fffca44447e7f98fef8383b5f638360",
-        "f336dc770d03c94560c41b4880fccbdff1c8c350"
+        "f336dc770d03c94560c41b4880fccbdff1c8c350",
+        "be0df97974ff199ef1d247e49099964025789624"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py"
