@@ -178,7 +178,7 @@ remain preserved under migration/source-snapshots and
 migration/source-branch-snapshots. Source preservation is not itself root
 workflow promotion.
 
-### Root workflow entrypoints currently promoted (36 files total)
+### Root workflow entrypoints currently promoted (38 files total)
 
 - Find Displacements: API-facing AOI dispatcher, reusable dashboard/product
   workers, manual AOI dispatcher, live ASF catalogue-only diagnostic,
@@ -199,10 +199,14 @@ workflow promotion.
 - Known Place: generic two-polygon analysis dispatcher and the separate
   author-exact P05023 dispatcher/replay workflow. The paper reproduction keeps
   its explicit historical backend-code pin, independent science pin, and
-  consent requirement. A manual-only synthetic generic-AOI map browser smoke
-  is also promoted at root; it uses only invented fixture values, checks four
-  responsive viewports, has no Earthdata/Drive secrets, and explicitly reports
-  measurement as SYNTHETIC_FIXTURE_ONLY and hazard as NOT_EVALUATED.
+  consent requirement. Three independent helpers are also promoted as manual-
+  only workflows: the synthetic generic-AOI map browser smoke (four responsive
+  viewports, invented fixture only, no secrets), public Copernicus GLO-90 DEM
+  source acquisition (16 SHA-256-pinned tiles, raster-profile checks, author
+  tile identity still unverified), and the displacement-null archive audit
+  (exact Zenodo size/SHA and five published table rows, but original generator
+  and draw-sequence identity remain unverified). All keep hazard status
+  NOT_EVALUATED.
 - RiverShift: independent NISAR GCOV dispatcher/worker with the original 20-job
   processing graph wrapped by a fail-closed gate. Four sequential first-pass
   batches retain max-parallel 15, failed-only retry waves, artifact receipt
@@ -252,14 +256,15 @@ in the Monorepo root workflow system. Remaining families include:
    Manual source-AOI science validation still needs a reviewed root
    implementation or explicit archive/retirement disposition. Keep GOFF and
    GUNW evidence separate.
-2. Known Place PR #85 additions: the synthetic generic-AOI map browser
-   smoke is promoted as manual-only. Remaining author dashboard/map rendering,
-   DEM source acquisition, terrain/datum sensitivity, retained-crown audit,
-   displacement-null audit, generic/author-exact consent bridges, generic Drive
-   retry and analysis reanalysis remain under separate review. Several source
-   definitions contain push triggers, old fixed artifact run IDs or job-wide
-   Drive credentials; do not port them unchanged. Preserve author consent and
-   keep author-exact P05023 separate from generic two-polygon analysis.
+2. Known Place PR #85 additions: synthetic generic-AOI map browser smoke,
+   public DEM source acquisition and displacement-null archive audit are
+   promoted as separate manual-only root workflows. Remaining author
+   dashboard/map rendering, terrain/datum sensitivity, retained-crown audit,
+   generic/author-exact consent bridges, generic Drive retry and analysis
+   reanalysis remain under separate review. Several source definitions contain
+   push triggers, old fixed artifact run IDs or job-wide Drive credentials; do
+   not port them unchanged. Preserve author consent and keep author-exact
+   P05023 separate from generic two-polygon analysis.
 3. RiverShift: independent-reference validation remains separate from
    GCOV. OPERA DSWx-S1, Run #36 and Sentinel-2 retained-reference replays are
    now separate manual-only, independently gated root ports. Their original
