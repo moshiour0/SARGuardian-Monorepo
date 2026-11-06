@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[4]
+ROOT = Path(__file__).resolve().parents[2]
 ENGINE_WORKFLOW = ROOT / ".github" / "workflows" / "sarguardian-aoi-dashboard-engine.yml"
 PRODUCT_WORKER = ROOT / ".github" / "workflows" / "sarguardian-aoi-product-worker.yml"
 DISCOVERY_TOOL = ROOT / "engines" / "find-displacements" / "tools" / "discover_aoi_products.py"
