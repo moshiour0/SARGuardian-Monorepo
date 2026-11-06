@@ -20,6 +20,8 @@ function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [pendingRoute, setPendingRoute] = useState<string | null>(null);
   const [hasActiveDisplacementTask, setHasActiveDisplacementTask] = useState(false);
+  const [apiConnectionStatus, setApiConnectionStatus] = useState<'idle' | 'checking' | 'ready' | 'error'>('idle');
+  const [apiConnectionError, setApiConnectionError] = useState<string | null>(null);
 
   const navigateTo = useCallback((nextPath: string) => {
     const normalizedPath = navigatePath(nextPath, window.location.pathname, window.history.pushState.bind(window.history));
@@ -41,17 +43,24 @@ function App() {
     try {
       const jobs = await listDisplacementJobs(currentUser);
       setHasActiveDisplacementTask(jobs.some((job) => ['queued', 'dispatching', 'running'].includes(job.state)));
-    } catch {
-      // A backend outage must not create a false navigation lock. The task
-      // screen presents its own recoverable account-state error instead.
+      setApiConnectionStatus('ready');
+      setApiConnectionError(null);
+    } catch (error: unknown) {
+      // Do not block navigation on an API outage, but never hide a failed
+      // Firebase-token/Supabase-readiness check from the signed-in user.
+      setApiConnectionStatus('error');
+      setApiConnectionError(error instanceof Error ? error.message : 'The signed-in API check failed.');
     }
   }, []);
 
   useEffect(() => {
     if (!user) {
       setHasActiveDisplacementTask(false);
+      setApiConnectionStatus('idle');
+      setApiConnectionError(null);
       return undefined;
     }
+    setApiConnectionStatus((current) => current === 'ready' ? current : 'checking');
     void refreshDisplacementTaskState(user);
     const timer = window.setInterval(() => { void refreshDisplacementTaskState(user); }, 5000);
     return () => window.clearInterval(timer);
@@ -185,6 +194,8 @@ function App() {
           user={user}
           authState={authState}
           authError={authError}
+          apiConnectionStatus={apiConnectionStatus}
+          apiConnectionError={apiConnectionError}
           firebaseConfigured={firebaseConfigured}
           missingFirebaseConfig={missingFirebaseConfig}
           showAuthModal={true}
@@ -217,6 +228,8 @@ function App() {
           user={user}
           authState={authState}
           authError={authError}
+          apiConnectionStatus={apiConnectionStatus}
+          apiConnectionError={apiConnectionError}
           firebaseConfigured={firebaseConfigured}
           missingFirebaseConfig={missingFirebaseConfig}
           showAuthModal={true}
@@ -261,6 +274,8 @@ function App() {
       user={user}
       authState={authState}
       authError={authError}
+      apiConnectionStatus={apiConnectionStatus}
+      apiConnectionError={apiConnectionError}
       firebaseConfigured={firebaseConfigured}
       missingFirebaseConfig={missingFirebaseConfig}
       showAuthModal={authModalOpen}
