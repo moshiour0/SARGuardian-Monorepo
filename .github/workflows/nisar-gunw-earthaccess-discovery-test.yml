@@ -1,0 +1,151 @@
+name: NISAR GUNW Earthaccess discovery diagnostic
+run-name: NISAR GUNW Earthaccess discovery · exact 77cc964 science pin
+
+# Manual-only bounded catalogue query using the exact historical science pin.
+# Never downloads or processes HDF5 and never uploads to Drive.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Require explicit Monorepo NISAR diagnostics opt-in
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fail closed before Earthdata access
+        env:
+          ENABLED: ${{ vars.MONOREPO_NISAR_DIAGNOSTICS_ENABLED }}
+        run: |
+          set -euo pipefail
+          if [[ "$ENABLED" != "true" ]]; then
+            echo "::error::NISAR diagnostics are disabled."
+            exit 1
+          fi
+
+  discover-gunw:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      EARTHDATA_USERNAME: ${{ secrets.EARTHDATA_USERNAME }}
+      EARTHDATA_PASSWORD: ${{ secrets.EARTHDATA_PASSWORD }}
+      SCIENCE_COMMIT: 77cc9646cfa46d3aff3669d351912f984cf67aa3
+    steps:
+      - name: Check out Monorepo history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Extract exact legacy science revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          science_root="$RUNNER_TEMP/nisar-legacy-science"
+          mkdir -p "$science_root"
+          git -C "$GITHUB_WORKSPACE" cat-file -e "$SCIENCE_COMMIT^{commit}"
+          git -C "$GITHUB_WORKSPACE" archive "$SCIENCE_COMMIT" | tar -x -C "$science_root"
+          test -s "$science_root/src/gunw_reader.py"
+          test -s "$science_root/requirements.txt"
+          echo "NISAR_LEGACY_SCIENCE_PIN=PASS"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.13"
+          check-latest: false
+      - name: Install pinned science and Earthdata dependencies
+        env:
+          SCIENCE_ROOT: ${{ runner.temp }}/nisar-legacy-science
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r "$SCIENCE_ROOT/requirements.txt"
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 earthaccess==0.16.0
+      - name: Query bounded GUNW results without downloading
+        shell: bash
+        env:
+          SCIENCE_ROOT: ${{ runner.temp }}/nisar-legacy-science
+        run: |
+          set -euo pipefail
+          test -n "$EARTHDATA_USERNAME"
+          test -n "$EARTHDATA_PASSWORD"
+          python - <<'PY'
+          import earthaccess
+          import json
+          import os
+          import sys
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          science_root = Path(os.environ["SCIENCE_ROOT"])
+          sys.path.insert(0, str(science_root / "src"))
+          import gunw_reader
+
+          start = "2026-06-17"
+          end = datetime.now(timezone.utc).date().isoformat()
+          try:
+              ring = gunw_reader.AOIS["source"]
+              lons = [point[0] for point in ring]
+              lats = [point[1] for point in ring]
+              bbox = (min(lons), min(lats), max(lons), max(lats))
+              auth = earthaccess.login(strategy="environment")
+              if not auth:
+                  raise RuntimeError("Earthdata authentication returned no session")
+              results = earthaccess.search_data(
+                  short_name="NISAR_L2_GUNW_PROVISIONAL_V1",
+                  temporal=(start, end),
+                  bounding_box=bbox,
+                  count=10,
+              )
+              usable = []
+              for item in results:
+                  try:
+                      if item.get_data_links():
+                          umm = item.get("umm", {})
+                          usable.append(Path(str(umm.get("GranuleUR", "unavailable"))).name)
+                  except Exception:
+                      continue
+              if not results or not usable:
+                  raise RuntimeError("No usable GUNW catalogue result with data access link")
+              out = Path(os.environ["RUNNER_TEMP"]) / "nisar-gunw-discovery.json"
+              out.write_text(json.dumps({
+                  "status": "PASS",
+                  "science_repository": "Sagormodak/SARGuardian",
+                  "science_commit": os.environ["SCIENCE_COMMIT"],
+                  "collection": "NISAR_L2_GUNW_PROVISIONAL_V1",
+                  "temporal_start": start,
+                  "temporal_end": end,
+                  "source_aoi_bbox": bbox,
+                  "catalogue_result_count": len(results),
+                  "downloadable_result_count": len(usable),
+                  "selected_product": usable[0],
+                  "catalogue_only": True,
+                  "raw_download_performed": False,
+                  "observed_at_utc": datetime.now(timezone.utc).isoformat(),
+              }, indent=2) + "\n", encoding="utf-8")
+              print("NISAR_GUNW_EARTHACCESS_DISCOVERY=PASS")
+              print(f"RESULT_COUNT={len(results)}")
+              print(f"DOWNLOADABLE_RESULT_COUNT={len(usable)}")
+              print(f"SCIENCE_COMMIT={os.environ['SCIENCE_COMMIT']}")
+              print("RAW_DOWNLOAD_PERFORMED=no")
+          except Exception as exc:
+              print("NISAR_GUNW_EARTHACCESS_DISCOVERY=FAIL")
+              print(f"SAFE_ERROR_TYPE={type(exc).__name__}")
+              sys.exit(1)
+          PY
+      - name: Upload catalogue-only result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: nisar-gunw-discovery-${{ github.run_id }}
+          path: ${{ runner.temp }}/nisar-gunw-discovery.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: State the diagnostic scope
+        if: always()
+        run: |
+          {
+            echo "## NISAR GUNW discovery"
+            echo "- Science pin: 77cc9646cfa46d3aff3669d351912f984cf67aa3"
+            echo "- Catalogue only; no raw HDF5 download, processing or Drive upload."
+          } >> "$GITHUB_STEP_SUMMARY"
