@@ -14,7 +14,7 @@
 
 ## Initial triage and reviewed false positives
 
-The first full-history scan produced 20 `generic-api-key` findings. All were in test files:
+The initial full-history scan produced 20 `generic-api-key` findings in test files:
 - deterministic `idempotency-key-001`-style test IDs;
 - `displacement-test-001`-style test IDs;
 - explicit Google Maps test environment/header stubs and a corresponding test URL assertion.
@@ -23,29 +23,27 @@ The historical source lines were inspected without exposing the literal values i
 
 ## Narrow false-positive handling
 
-The root `.gitleaksignore` contains exactly the 20 reviewed `commit:path:rule:line` fingerprints. It does **not** ignore:
+The root `.gitleaksignore` contains exactly 21 reviewed `commit:path:rule:line` fingerprints: 20 synthetic test fixtures plus one exact documentation-only prose false positive from the migration scope checklist (commit c246f3b, line 43). That documentation line listed credential classes but contained no credential value; it has since been reworded. The scanner finding was a generic-api-key heuristic, not evidence that a secret value was committed. It does **not** ignore:
 - all files in test directories;
 - the `generic-api-key` rule;
 - any whole source repository or snapshot path;
 - new commits, changed lines, or new test values.
 
 `tools/validate_gitleaks_allowlist.py` enforces:
-- exactly 20 entries;
+- exactly 21 entries: 20 test-fixture fingerprints and one predeclared exact documentation fingerprint;
 - unique fingerprints;
 - the `generic-api-key` rule only;
-- test-file paths only;
+- test-file paths for all synthetic fixtures;
+- the single documentation exception at exactly one commit, path, rule and line;
 - exact commit and line coordinates.
 
 The allowlist is checked by [Migration Metadata Validation](../.github/workflows/migration-metadata.yml). A new value or changed line receives a new fingerprint and fails the scan until separately reviewed.
 
 ## Latest result
 
-- Latest full-history scan workflow: [run 41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586).
-- Result: **PASS** on the latest migration branch head `25aa5c76f04b1b1e3a7588a24ff3b29317ebc54c`.
-- Gitleaks unignored finding count: **0**.
-- The RiverShift candidate workflow and its validator were included in this scanned commit.
-- Allowlist validator: **PASS** in metadata-validation CI.
-- No raw report artifact retained.
+- Prior complete scan [run 41964029586](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/41964029586) passed before the Known Place scope documentation was added.
+- A subsequent scan identified one generic-api-key heuristic match on a documentation-only checklist line in commit c246f3b; the line was inspected, did not contain a secret value, and was reworded in the current tree.
+- The exact historical fingerprint is now narrowly allowlisted, with the validator accepting only that one documentation exception plus the 20 previously reviewed test fixtures. A fresh full-history scan is required to confirm the corrected allowlist.
 
 A passing Gitleaks scan means no unreviewed finding was detected in the scanned Git history. It does not prove that a provider credential is active, inactive, or never leaked outside this repository. If a future scan points to a probable real credential:
 1. stop merge/cutover;
