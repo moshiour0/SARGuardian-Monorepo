@@ -31,3 +31,34 @@ def test_reusable_workflow_pin_matches_worker_and_discovery_tool_pins() -> None:
 
     assert f"SCIENCE_COMMIT: {EXPECTED_SCIENCE_COMMIT}" in worker
     assert f'SCIENCE_COMMIT = "{EXPECTED_SCIENCE_COMMIT}"' in discovery
+
+
+
+def test_discovery_and_dashboard_use_separate_pinned_git_checkout_for_provenance() -> None:
+    workflow = yaml.load(ENGINE_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+    text = ENGINE_WORKFLOW.read_text(encoding="utf-8")
+
+    manifest_steps = workflow["jobs"]["manifest"]["steps"]
+    dashboard_steps = workflow["jobs"]["dashboard"]["steps"]
+
+    def pinned_checkout(steps: list[dict]) -> dict:
+        matches = [
+            step for step in steps
+            if step.get("uses", "").startswith("actions/checkout@")
+            and step.get("with", {}).get("repository") == "moshiour0/SARGuardian"
+        ]
+        assert len(matches) == 1
+        checkout = matches[0]["with"]
+        assert checkout["ref"] == EXPECTED_SCIENCE_COMMIT
+        assert checkout["path"] == "science-source"
+        assert checkout["persist-credentials"] == "false"
+        return matches[0]
+
+    pinned_checkout(manifest_steps)
+    pinned_checkout(dashboard_steps)
+
+    assert text.count("git -C science-source rev-parse HEAD") == 2
+    assert text.count('echo "SCIENCE_GIT_CHECKOUT_VERIFIED=$actual"') == 2
+    assert text.count('--science-root "$PWD/science-source"') == 2
+    assert text.count("-r science-source/requirements.txt") == 2
+    assert 'science_root = "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd"' not in text

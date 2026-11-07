@@ -182,6 +182,27 @@ jobs:
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
           echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
+      - name: Checkout pinned NISAR science source for discovery
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: moshiour0/SARGuardian
+          ref: 006d4cd1485cf80e509eaf8717c12e9c6390ac09
+          path: science-source
+          persist-credentials: false
+
+      - name: Verify pinned science checkout for discovery
+        shell: bash
+        env:
+          EXPECTED_SCIENCE_COMMIT: ${{ env.SCIENCE_COMMIT }}
+        run: |
+          set -euo pipefail
+          actual="$(git -C science-source rev-parse HEAD)"
+          test "$actual" = "${EXPECTED_SCIENCE_COMMIT:?}"
+          test -s science-source/requirements.txt
+          test -s science-source/src/gunw_reader.py
+          test -s science-source/src/goff_reader.py
+          echo "SCIENCE_GIT_CHECKOUT_VERIFIED=$actual"
+
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -192,7 +213,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r science-source/requirements.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r engines/find-displacements/tools/requirements-retention.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 rasterio matplotlib pyproj
 
@@ -209,7 +230,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/sarguardian-aoi/manifest"
           python engines/find-displacements/tools/discover_aoi_products.py \
-            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" \
+            --science-root "$PWD/science-source" \
             --start-date "$START_DATE" --end-date "$END_DATE" \
             --date-filter-mode "$DATE_FILTER_MODE" \
             --run-profile "$RUN_PROFILE" --retention-profile "$RETENTION_PROFILE" \
@@ -398,6 +419,27 @@ jobs:
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
           echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
+      - name: Checkout the same pinned NISAR science source for dashboard provenance
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: moshiour0/SARGuardian
+          ref: 006d4cd1485cf80e509eaf8717c12e9c6390ac09
+          path: science-source
+          persist-credentials: false
+
+      - name: Verify pinned science checkout for dashboard assembly
+        shell: bash
+        env:
+          EXPECTED_SCIENCE_COMMIT: ${{ env.SCIENCE_COMMIT }}
+        run: |
+          set -euo pipefail
+          actual="$(git -C science-source rev-parse HEAD)"
+          test "$actual" = "${EXPECTED_SCIENCE_COMMIT:?}"
+          test -s science-source/requirements.txt
+          test -s science-source/src/gunw_reader.py
+          test -s science-source/src/goff_reader.py
+          echo "SCIENCE_GIT_CHECKOUT_VERIFIED=$actual"
+
       - name: Verify dashboard code matches the product manifest revision
         shell: bash
         run: |
@@ -416,7 +458,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r migration/source-snapshots/nisar-pins/006d4cd/requirements.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r science-source/requirements.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 -r engines/find-displacements/tools/requirements-retention.txt
           python -m pip install --disable-pip-version-check --no-cache-dir --retries 5 --timeout 45 rasterio matplotlib
 
@@ -444,7 +486,7 @@ jobs:
           python dashboard-source/engines/find-displacements/tools/aggregate_aoi_run.py \
             --manifest "$root/manifest/manifest.json" \
             --artifact-root "$root/product-artifacts" \
-            --science-root "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" \
+            --science-root "$PWD/science-source" \
             --out-root "$root/dashboard" 2>&1 | tee "$root/dashboard-build.log" || status=$?
           echo "script_exit=$status" >> "$GITHUB_OUTPUT"
           if [[ -s "$root/dashboard/aoi-run-summary.json" ]]; then
