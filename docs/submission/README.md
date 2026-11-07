@@ -8,7 +8,7 @@
 
 ## Project in one paragraph
 
-SARGuardian is an interactive NISAR surface-change exploration platform. A user selects an area and observation period, then follows a workflow suited to the question: target-free displacement-candidate discovery for landslide and glacier-movement screening; two-polygon measurement for a known place; or a separate GCOV-based river-water and channel-transition screen. The platform preserves the distinction between radar observations, derived measurements, visual map layers and scientific interpretation. Results are traceable to their acquisition dates and source products.
+SARGuardian is a live, AOI-driven NISAR processing platform—not a static result demo. A user selects a place and time window; the application searches the public archive for compatible observations and routes the request to the matching processing path. It supports target-free displacement-candidate discovery, two-polygon known-place measurement and a separate GCOV river-screening engine. Its geographic applicability follows the NISAR observation plan and the products actually available in the archive: it does not claim data for every place/date. Results, including insufficient-coverage states, remain traceable to source acquisitions and processing evidence.
 
 ## Four workflows
 
@@ -33,7 +33,11 @@ SARGuardian is an interactive NISAR surface-change exploration platform. A user 
 4. [Known Place Analysis guide](features/known-place-analysis.md) — two-polygon measurements and the separate author-exact P05023 research path.
 5. [RiverShift guide](features/river-shift.md) — GCOV workflow, Jamuna demonstration and reproducibility evidence.
 6. [Project-page draft](SARGuardian_PROJECT_PAGE_DRAFT.md) — copy-ready public narrative with team/submission fields clearly marked for completion.
-7. [Video storyboard draft](VIDEO_STORYBOARD_DRAFT.md) — team working script for a concise product demonstration.
+7. [Four-minute film + short demo script](VIDEO_STORYBOARD_DRAFT.md) — full 4:00 story arc, feature-specific narration, 0:30 teaser, 0:45 alternative and evidence-safe recording checklist.
+
+## NISAR coverage and data-release context
+
+The initial public provisional L-band release began on **20 July 2026** and included acquisitions from **17 June 2026 onward**. New products are added as processing completes; data maturity and product availability must be checked for each request. The mission's observation plan and public archive—not the application—determine whether a requested AOI/date has a compatible acquisition. SARGuardian is designed to process any selected AOI for which the required compatible products are available, and to report insufficient coverage when they are not. This must not be described as continuous daily global coverage. Sources: [ASF release notice](https://asf.alaska.edu/notices/nisar-l-band-data-now-publicly-available/) · [ASF availability guide](https://hyp3-docs.asf.alaska.edu/nisar-docs/availability-overview/).
 
 ## NISAR is the measurement source
 
@@ -56,7 +60,7 @@ A passing workflow proves the workflow reached its declared terminal state. Unit
 
 ## Score-sheet audit and action plan
 
-- [Criterion-by-criterion score audit (Bangla)](SCORE_SHEET_AUDIT_BN_2026-11-07.md) — current score for all 11 rubric rows, evidence rationale, score gap and the concrete work needed to improve each item.
+- [Revised criterion-by-criterion score audit (Bangla)](SCORE_SHEET_AUDIT_BN_2026-11-07.md) — revised 98/118 desk estimate, corrected NISAR data-availability framing, evidence rationale and score-improvement roadmap.
 
 ## Local judging rubric
 
