@@ -568,10 +568,18 @@
   --find-ink: #12324b;
   --find-muted: #48667c;
   --find-blue: #0878d1;
+  height: calc(100dvh - 78px);
   background: #d7eaf2;
 }
 
-.landslide-route-shell .map-main { background: #aacbd4; }
+.landslide-route-shell .map-main {
+  height: 100%;
+  background: #aacbd4;
+}
+
+.landslide-route-shell .landslide-page > .claude-nav-shell {
+  flex: 0 0 auto;
+}
 
 .landslide-route-shell .map-canvas-wrap::after {
   display: block;
@@ -723,6 +731,16 @@
   gap: 9px;
 }
 
+.landslide-route-shell .investigation-mode-cards:has(.find-displacement-primary) {
+  display: block;
+}
+
+.landslide-route-shell .find-displacement-primary {
+  width: 100%;
+  min-height: 48px;
+  font-size: 15px;
+}
+
 .landslide-route-shell .investigation-mode-card {
   min-height: 0;
   padding: 14px;
@@ -769,4 +787,5 @@
 
   .landslide-route-shell .investigation-mode-cards { grid-template-columns: 1fr; }
   .landslide-route-shell .time-actions { grid-template-columns: 1fr; }
+  .landslide-route-shell .landslide-page { height: calc(100dvh - 70px); }
 }

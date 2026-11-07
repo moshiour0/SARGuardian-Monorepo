@@ -13,6 +13,7 @@ import { scheduleErrorToastDismissal } from './errorToast';
 import { createAoiOverlayController } from './mapOverlays';
 import { loadLandslideSessionState, persistLandslideSessionState } from './sessionState';
 import { BrandLogo } from '../../src/components/BrandLogo';
+import { Header } from '../../src/components/Header';
 import type { Coordinate, InvestigationResult, LocationSelection } from '../engine/types';
 import './landslide.css';
 import './workspace.css';
@@ -1073,9 +1074,11 @@ function loadSubmittedHarmonyJobs(): SubmittedHarmonyLayerJob[] {
   }
 }
 
-export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnownPlaceAnalysis, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
+export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onKnownPlaceAnalysis, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
   user: User;
+  authState: 'idle' | 'loading' | 'ready' | 'error';
   onHome: () => void;
+  onSignIn: () => void;
   onResults: () => void;
   onBackToMap: () => void;
   onDisplacementTaskActivityChange: (active: boolean) => void;
@@ -2160,11 +2163,13 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
 
   const renderMapPage = () => (
     <div className="landslide-page">
-      {renderWorkspaceHeader(
-        isKnownPlaceSetupPage ? 'KNOWN PLACE ANALYSIS' : 'FIND DISPLACEMENT',
-        isKnownPlaceSetupPage ? 'Select an outer AOI and date window before defining the two polygons' : 'Screen an area for surface change, then inspect the evidence',
-        'Home', onHome
-      )}
+      <Header
+        user={user}
+        authState={authState}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        isArchivePage
+      />
 
       <main className="map-main">
         <MapCanvas
@@ -2271,7 +2276,7 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
               </div>
 
               <section className="investigation-modes" aria-labelledby="investigation-mode-title">
-                <h2 id="investigation-mode-title">{isKnownPlaceSetupPage ? 'Known Place Analysis · AOI setup' : 'Choose an analysis'}</h2>
+                {isKnownPlaceSetupPage && <h2 id="investigation-mode-title">Known Place Analysis · AOI setup</h2>}
                 <div className="investigation-mode-cards">
                   {isKnownPlaceSetupPage ? (
                     <article className="investigation-mode-card known-place-mode">
@@ -2283,23 +2288,9 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
                       </button>
                     </article>
                   ) : (
-                    <>
-                      <article className="investigation-mode-card archive-mode">
-                        <span className="mode-icon" aria-hidden="true"><Icon name="layers" /></span>
-                        <h3>Single Product Investigation</h3>
-                        <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)} onClick={() => void runCatalogPreflight()}>{isCatalogLoading ? 'Checking ASF...' : 'Explore NISAR Archive'}</button>
-                      </article>
-                      <article className="investigation-mode-card displacement-mode">
-                        <span className="mode-icon" aria-hidden="true"><Icon name="locate" /></span>
-                        <h3>Find displacement</h3>
-                        <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>{isDisplacementSubmitting ? 'Starting processing…' : 'Find displacement'}</button>
-                      </article>
-                      <article className="investigation-mode-card known-place-mode">
-                        <span className="mode-icon" aria-hidden="true"><Icon name="locate" /></span>
-                        <h3>Known Place Analysis</h3>
-                        <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)} onClick={onKnownPlaceAnalysis}>Known Place Analysis</button>
-                      </article>
-                    </>
+                    <button className="investigate-button find-displacement-primary" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>
+                      {isDisplacementSubmitting ? 'Starting processing…' : 'Find displacements'}
+                    </button>
                   )}
                 </div>
               </section>

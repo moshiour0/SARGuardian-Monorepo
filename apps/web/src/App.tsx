@@ -282,6 +282,8 @@ function App() {
       <LandslidePage
         key={user.uid}
         user={user}
+        authState={authState}
+        onSignIn={handleSignIn}
         onHome={() => navigateTo('/')}
         isResultsPage={isLandslideResultsRoute(pathname)}
         isDisplacementPage={isLandslideDisplacementRoute(pathname)}
