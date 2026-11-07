@@ -31,7 +31,7 @@ function rate(pair: KnownPlacePairResult): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
-function rateInterval(pair: KnownPlacePairResult): [number, number] | null {
+export function rateInterval(pair: Pick<KnownPlacePairResult, 'median_horizontal_displacement_rate_95pct_interval_m_per_day'>): [number, number] | null {
   const value = pair.median_horizontal_displacement_rate_95pct_interval_m_per_day;
   return Array.isArray(value) && value.length === 2
     && Number.isFinite(value[0]) && Number.isFinite(value[1]) && value[0] <= value[1]
@@ -39,7 +39,7 @@ function rateInterval(pair: KnownPlacePairResult): [number, number] | null {
     : null;
 }
 
-function rateUncertaintyLabel(pair: KnownPlacePairResult): string {
+export function rateUncertaintyLabel(pair: Pick<KnownPlacePairResult, 'median_horizontal_displacement_rate_95pct_interval_m_per_day' | 'spatial_uncertainty_status' | 'spatial_uncertainty_valid_block_count' | 'spatial_uncertainty_minimum_blocks_required'>): string {
   const interval = rateInterval(pair);
   if (interval) {
     return `Conditional spatial bootstrap 95%: ${interval[0].toFixed(3)}–${interval[1].toFixed(3)} m/day`;
