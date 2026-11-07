@@ -360,11 +360,12 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/KnownPlaceResultsDashboard.tsx",
       "destination_path": "apps/web/landslide/ui/KnownPlaceResultsDashboard.tsx",
       "source_blob_sha": "1502f365a96d672615d7e50a30e707084323d5ad",
-      "destination_blob_sha": "6e24138b866c43356dad9e4b1b8cea298f8e9e3c",
+      "destination_blob_sha": "ccfab990b48bbc4e6471a0ed8f513fca576a9cd9",
       "reason": "Display conditional spatial block-bootstrap rate intervals in the public and deep-dive Known Place result views, explicitly withhold bounds when spatial block support is insufficient, and correct generic explanatory copy.",
       "implementation_commits": [
         "e80a190c0eb313be0be25daf3023060b3c2c9b15",
-        "79c946cc4afb280b316044129232c7c89cf7441a"
+        "79c946cc4afb280b316044129232c7c89cf7441a",
+        "1e3c239f5250c0ea7633737f4877d4ca0464ffd2"
       ],
       "verification_paths": [
         "apps/web/src/pages/DashboardPage.test.tsx"
