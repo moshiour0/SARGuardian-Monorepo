@@ -7,7 +7,7 @@
 
 ## The project
 
-SARGuardian turns NISAR radar observations into an accessible, evidence-linked way to explore surface change. The user begins with a place and a time window; the platform connects the selected question to the appropriate NISAR product family and exposes the resulting candidates or measurements with their source provenance.
+SARGuardian is a live, AOI-driven NISAR processing platform—not a static result demo. The user begins with a place and a time window; the deployed application searches the public archive for compatible observations, routes the request to the appropriate NISAR engine, and exposes resulting candidates or measurements with source provenance. Geographic applicability follows the NISAR observation plan and products actually available in the archive. No system can process a satellite observation that has not been acquired or released.
 
 The product combines three distinct scientific processing paths and four user-facing workflows:
 
@@ -17,6 +17,12 @@ The product combines three distinct scientific processing paths and four user-fa
 4. **RiverShift** — an independent GCOV workflow for observed-date open-water and persistent land/water-transition screening.
 
 The central idea is not to put radar imagery on a map. It is to make the NISAR observation chain explorable: acquisition discovery → product qualification → processing → measurement/candidate generation → provenance → interpretation.
+
+## Global applicability and data availability
+
+NISAR's observation plan provides the mission-wide acquisition framework. The first public provisional L-band release began on 20 July 2026 and included acquisitions from 17 June 2026 onward; products are added as processing completes. A requested AOI/date may therefore return compatible acquisitions, partial coverage or no eligible product. These are distinct data-availability states—not automatically application failures. Conversely, a broken catalogue query, download, worker or result assembly is an application failure and must be reported as such.
+
+The precise claim is: **SARGuardian can process user-selected AOIs wherever compatible NISAR observations are available in the public archive.** It does not promise every place on every date, daily interpolation or uninterrupted global monitoring. Sources: [ASF release notice](https://asf.alaska.edu/notices/nisar-l-band-data-now-publicly-available/) · [ASF data availability guide](https://hyp3-docs.asf.alaska.edu/nisar-docs/availability-overview/).
 
 ## Why it fits Dancing with the SARs
 
@@ -86,9 +92,12 @@ Landslide and Glacier Movement are two entry contexts for Find Displacements, no
 
 ## What makes the platform useful
 
+- **Live processing, not a static demo:** a user can initiate a real AOI/date request from the deployed application; the catalogue and worker process actual eligible products.
+- **Availability-aware reach:** the same request pattern is usable wherever the NISAR public archive contains compatible observations; absent upstream data is reported honestly rather than invented.
 - **Target-free discovery:** a user can scan an AOI without identifying a target point first.
 - **Method-specific processing:** each scientific question uses the NISAR product family suited to the measurement.
 - **Reproducible evidence:** source IDs, observation dates, checksums, quality gates and workflow reports remain traceable.
+- **Three audience depths:** Public, Explorer and Scientific dashboard views present the same underlying evidence at different levels of complexity.
 - **Accessible communication:** the map, layer controls and actual-date playback help non-specialists explore the observations.
 - **Research continuity:** a known-place workflow supports focused polygon comparison and a separate author-selected paper-benchmark path.
 
@@ -105,7 +114,7 @@ Landslide and Glacier Movement are two entry contexts for Find Displacements, no
 
 SARGuardian presents a candidate when the observation supports a candidate, a measurement when the method supports a measurement and a validation score only when a suitable reference comparison exists. Missing data is not silently converted to zero. A passing software test or processing workflow is reported as engineering/reproducibility evidence, not as proof of geophysical accuracy.
 
-The result is a platform for exploring and communicating NISAR evidence—not an automated disaster prediction or emergency-warning service.
+The result is a live platform for exploring and processing available NISAR evidence—not an automated disaster prediction or emergency-warning service. Its value proposition is: **start with a place, not a known target; discover candidate change; measure a selected area where the method supports it; and trace the result back to the satellite observations.**
 
 
 ## Validation and verification
