@@ -125,12 +125,12 @@ def test_enabled_river_shift_actions_accept_valid_https_callback_configuration()
     assert config.validate_production_settings(settings) is settings
 
 
-def test_known_place_workflow_targets_keep_backend_compatibility_defaults() -> None:
+def test_known_place_workflow_targets_default_to_monorepo_root() -> None:
     settings = config.get_settings({})
-    assert settings.known_place_github_actions_repository == "moshiour0/SARGuardian-backend"
+    assert settings.known_place_github_actions_repository == "moshiour0/SARGuardian-Monorepo"
     assert settings.known_place_github_actions_workflow == "know-place-aoi-dispatcher.yml"
     assert settings.known_place_github_actions_ref == "main"
-    assert settings.known_place_paper_github_actions_repository == "moshiour0/SARGuardian-backend"
+    assert settings.known_place_paper_github_actions_repository == "moshiour0/SARGuardian-Monorepo"
     assert settings.known_place_paper_github_actions_workflow == "know-place-paper-reproduction-dispatcher.yml"
     assert settings.known_place_paper_github_actions_ref == "main"
 
