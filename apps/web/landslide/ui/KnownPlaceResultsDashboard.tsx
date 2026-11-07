@@ -3,7 +3,6 @@ import type { User } from 'firebase/auth';
 import {
   downloadKnownPlaceAnalysisBundle,
   getKnownPlaceAnalysisResults,
-  rateInterval,
   rateUncertaintyLabel,
   type KnownPlaceAnalysisResults,
   type KnownPlacePairResult,
