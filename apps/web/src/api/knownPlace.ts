@@ -202,6 +202,12 @@ export type KnownPlacePairResult = {
   vector_rate_acceleration_m_per_day_squared: number | null;
   rate_change_block_reason: string | null;
   spatial_uncertainty_status: string | null;
+  spatial_uncertainty_method: string | null;
+  spatial_uncertainty_valid_block_count: number | null;
+  spatial_uncertainty_minimum_blocks_required: number | null;
+  median_horizontal_displacement_95pct_interval_m: [number, number] | null;
+  median_horizontal_displacement_rate_95pct_interval_m_per_day: [number, number] | null;
+  spatial_uncertainty_scope: string | null;
   risk_score: number | null;
   risk_score_status: string;
   detection_status: string;
