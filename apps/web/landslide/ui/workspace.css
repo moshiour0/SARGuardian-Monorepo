@@ -799,6 +799,16 @@
   background: linear-gradient(135deg, rgba(45, 157, 235, .48), rgba(35, 108, 198, .46));
 }
 
+.landslide-route-shell .map-search:focus-within,
+.landslide-route-shell .map-search > button:focus,
+.landslide-route-shell .map-search > button:focus-visible,
+.landslide-route-shell .map-search input:focus,
+.landslide-route-shell .map-search input:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .landslide-route-shell .action-bar {
   height: 184px;
   min-height: 184px;
