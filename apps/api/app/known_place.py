@@ -26,8 +26,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from .config import RuntimeSettings
 from science_adapter.geometry import validate_wkt
 
-# Generic two-polygon measurement runs in the scientific backend repository.
-KNOWN_PLACE_REPOSITORY = "moshiour0/SARGuardian-backend"
+# Generic two-polygon measurement runs use the Monorepo root workflow.
+KNOWN_PLACE_REPOSITORY = "moshiour0/SARGuardian-Monorepo"
 KNOWN_PLACE_WORKFLOW = "know-place-aoi-dispatcher.yml"
 KNOWN_PLACE_REF = "main"
 KNOWN_PLACE_WORKFLOW_PAGE = (
@@ -35,8 +35,8 @@ KNOWN_PLACE_WORKFLOW_PAGE = (
 )
 
 # The fixed author-exact paper launcher remains separate from the generic AOI workflow,
-# but its entry point lives in the backend repository covered by the server Actions token.
-KNOWN_PLACE_PAPER_REPOSITORY = "moshiour0/SARGuardian-backend"
+# and is also dispatched through its dedicated Monorepo root workflow.
+KNOWN_PLACE_PAPER_REPOSITORY = "moshiour0/SARGuardian-Monorepo"
 KNOWN_PLACE_PAPER_WORKFLOW = "know-place-paper-reproduction-dispatcher.yml"
 KNOWN_PLACE_PAPER_REF = "main"
 KNOWN_PLACE_PAPER_WORKFLOW_PAGE = (
