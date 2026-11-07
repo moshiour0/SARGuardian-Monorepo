@@ -10,9 +10,10 @@ type HeaderProps = {
   onOpenArchive?: () => void;
   onOpenHowItWorks?: () => void;
   isArchivePage?: boolean;
+  hideProfile?: boolean;
 };
 
-export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false }: HeaderProps) {
+export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false, hideProfile = false }: HeaderProps) {
   return (
     <header className={`claude-nav-shell${isArchivePage ? ' is-archive' : ''}`}>
       <div className="claude-nav-inner">
@@ -27,11 +28,11 @@ export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, on
               <button className="claude-archive-button" type="button" onClick={onOpenArchive}>Archive</button>
             </>
           )}
-          {user ? <ProfileControl user={user} onSignOut={onSignOut} /> : !isArchivePage && (
+          {!hideProfile && user ? <ProfileControl user={user} onSignOut={onSignOut} /> : !hideProfile ? (
             <button className="claude-signin-button" type="button" onClick={onSignIn} disabled={authState === 'loading'}>
               {authState === 'loading' ? 'Signing in…' : 'Sign in'}
             </button>
-          )}
+          ) : null}
         </nav>
       </div>
     </header>
