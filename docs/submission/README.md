@@ -54,6 +54,10 @@ ASF DAAC / NASA Earthdata and NASA CMR are used for product discovery and access
 
 A passing workflow proves the workflow reached its declared terminal state. Unit tests, provenance checks and replay reproducibility are different forms of evidence; none should be relabelled as independent geophysical validation.
 
+## Score-sheet audit and action plan
+
+- [Criterion-by-criterion score audit (Bangla)](SCORE_SHEET_AUDIT_BN_2026-11-07.md) — current score for all 11 rubric rows, evidence rationale, score gap and the concrete work needed to improve each item.
+
 ## Local judging rubric
 
 The uploaded local score sheet assigns:
