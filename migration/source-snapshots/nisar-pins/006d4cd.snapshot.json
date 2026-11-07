@@ -1,0 +1,7 @@
+{
+  "schema_version": "sarguardian-pinned-source-snapshot/1.0",
+  "repository": "moshiour0/SARGuardian",
+  "commit": "006d4cd1485cf80e509eaf8717c12e9c6390ac09",
+  "tree_sha": "bd8f1e3543c4361c5d32f8a90a15739373777344",
+  "note": "The imported directory is an exact Git-tree copy of this upstream commit. Keep this sidecar outside the snapshot directory so its tree SHA remains unchanged."
+}
