@@ -360,12 +360,13 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/KnownPlaceResultsDashboard.tsx",
       "destination_path": "apps/web/landslide/ui/KnownPlaceResultsDashboard.tsx",
       "source_blob_sha": "1502f365a96d672615d7e50a30e707084323d5ad",
-      "destination_blob_sha": "ccfab990b48bbc4e6471a0ed8f513fca576a9cd9",
+      "destination_blob_sha": "f7cec4c25afaadf3a131e325a4568fe9177c4d87",
       "reason": "Display conditional spatial block-bootstrap rate intervals in the public and deep-dive Known Place result views, explicitly withhold bounds when spatial block support is insufficient, and correct generic explanatory copy.",
       "implementation_commits": [
         "e80a190c0eb313be0be25daf3023060b3c2c9b15",
         "79c946cc4afb280b316044129232c7c89cf7441a",
-        "1e3c239f5250c0ea7633737f4877d4ca0464ffd2"
+        "1e3c239f5250c0ea7633737f4877d4ca0464ffd2",
+        "688ee644cb167c46c2496ae09bc51925cb41eac8"
       ],
       "verification_paths": [
         "apps/web/src/pages/DashboardPage.test.tsx"
@@ -394,10 +395,11 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/knownPlace.ts",
       "destination_path": "apps/web/src/api/knownPlace.ts",
       "source_blob_sha": "5f437d0b48bf84374d2a4983a161a27e369884b0",
-      "destination_blob_sha": "dd27397b4dc05b88d84cb08fca6edc9fb3a289c6",
+      "destination_blob_sha": "608225c67c0fcaa071350e502c94ff47e43aa0aa",
       "reason": "Extend the Known Place API result type with spatial bootstrap statistics and finite two-value displacement and interval-rate bounds returned by the API parser.",
       "implementation_commits": [
-        "833133f66fe8f528bd1900db5e24681c2920fccd"
+        "833133f66fe8f528bd1900db5e24681c2920fccd",
+        "a122594055eaf17b4f5f3a964a8bebaa82c5e63e"
       ],
       "verification_paths": [
         "apps/web/src/pages/DashboardPage.test.tsx"
@@ -410,10 +412,11 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/pages/DashboardPage.test.tsx",
       "destination_path": "apps/web/src/pages/DashboardPage.test.tsx",
       "source_blob_sha": "1e3fc95825eea1fd9df9583d664825e725a44d5f",
-      "destination_blob_sha": "5182cd4a141dfc7c90d1dd4bcd253e0c4793187e",
+      "destination_blob_sha": "48a30bf9622f4ef76cab5c97482535b75e2ca04e",
       "reason": "Add frontend regression cases proving conditional spatial bootstrap rate intervals are displayed in metres per day and insufficient independent spatial blocks never produce numeric bounds.",
       "implementation_commits": [
-        "e2c5cf458e928618294cf78adafee58e00c07104"
+        "e2c5cf458e928618294cf78adafee58e00c07104",
+        "28abf8219addeb708a4117dae3da6f3d0ee427eb"
       ],
       "verification_paths": [
         "apps/web/src/pages/DashboardPage.test.tsx"
