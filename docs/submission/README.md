@@ -79,3 +79,14 @@ The [score-sheet evidence matrix](score-sheet-evidence-matrix.md) maps each crit
 - **Not measured** is never represented as zero.
 
 Use the feature guides for the precise method and result context. Use the source repositories and linked workflow runs for implementation and reproducibility evidence.
+
+
+## Validation guides
+
+- [Whole-project validation protocol](PROJECT_VALIDATION_PROTOCOL.md) — cross-engine evidence register and release checklist.
+- [Find Displacements validation](validation/find-displacements.md) — shared Landslide/Glacier Movement engine.
+- [Glacier Movement validation](validation/glacier-movement.md) — glacier-context use of the shared engine.
+- [Known Place validation](validation/known-place-analysis.md) — two-polygon workflow and separate P05023 benchmark path.
+- [RiverShift validation](validation/river-shift.md) — GCOV processing, retained-data reproduction and score semantics.
+
+Use these protocols when checking the method and run evidence. The judge-facing feature guides remain the concise product narrative.
