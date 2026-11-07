@@ -186,19 +186,20 @@
   width: min(380px, calc(100% - 40px));
   padding: 10px 12px;
   gap: 8px;
-  border: 1px solid rgba(255, 100, 116, .82);
+  border: 1px solid rgba(221, 74, 92, .56);
   border-left-width: 3px;
   border-radius: 7px;
-  background: rgba(75, 15, 27, .96);
-  color: #fff2f3;
-  box-shadow: 0 8px 18px rgba(39, 4, 14, .24);
+  background: rgba(255, 236, 239, .9);
+  color: #7b1d2c;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 12px 28px rgba(39, 4, 14, .16);
+  backdrop-filter: blur(18px) saturate(145%);
   font-size: 13px;
   line-height: 1.35;
   justify-self: end;
 }
-.landslide-route-shell .validation-alert-icon { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #ff465d; color: #360711; font-size: 12px; font-weight: 800; line-height: 1; }
+.landslide-route-shell .validation-alert-icon { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #df4055; color: #fff; font-size: 12px; font-weight: 800; line-height: 1; }
 .landslide-route-shell .validation-toast-message { min-width: 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
-.landslide-route-shell .validation-toast-close { width: 22px; height: 22px; border: 1px solid rgba(255, 242, 243, .62); border-radius: 50%; background: rgba(255, 100, 116, .18); color: #fff2f3; cursor: pointer; font-size: 16px; line-height: 1; flex: 0 0 auto; }
+.landslide-route-shell .validation-toast-close { width: 22px; height: 22px; border: 1px solid rgba(160, 39, 58, .28); border-radius: 50%; background: rgba(255,255,255,.46); color: #8f2334; cursor: pointer; font-size: 16px; line-height: 1; flex: 0 0 auto; }
 .landslide-route-shell .validation-toast-close:hover,
 .landslide-route-shell .validation-toast-close:focus-visible { background: #ff465d; color: #360711; outline: 2px solid #fff2f3; outline-offset: 1px; }
 .landslide-route-shell .nisar-results-page { background: linear-gradient(150deg, var(--sg-navy), var(--sg-deep)); overflow: visible; }

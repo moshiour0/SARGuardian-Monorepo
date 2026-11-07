@@ -1,27 +1,23 @@
 type HeroProps = {
   onStartExploring: () => void;
+  onOpenHowItWorks: () => void;
 };
 
-export function Hero({ onStartExploring }: HeroProps) {
+export function Hero({ onStartExploring, onOpenHowItWorks }: HeroProps) {
   return (
-    <section className="hero-stage" id="home" aria-labelledby="hero-title">
-      <div className="hero-copy-block">
-        <p className="hero-kicker">NISAR-BASED EARTH OBSERVATION</p>
-        <h1 id="hero-title"><b>SAR</b>Guardian</h1>
-        <p className="hero-subtitle">Observe change. Examine evidence.</p>
-        <p className="hero-description">
-          Explore where the Earth's surface may be changing using NISAR radar observations.
-          Select an area, review the available evidence and understand what the data can—and cannot—tell us.
-        </p>
-        <div className="hero-actions">
-          <button className="hero-primary-action" type="button" onClick={onStartExploring}>Start exploring <span aria-hidden="true">→</span></button>
-          <a className="hero-secondary-action" href="#how-it-works">How it works</a>
+    <header className="claude-hero" id="home">
+      <div className="claude-rings" aria-hidden="true"><i /><i /><i /><i /></div>
+      <div className="claude-wrap claude-hero-copy">
+        <h1>
+          <span>Observe change.</span>
+          <span className="claude-hero-emphasis">Examine evidence.</span>
+        </h1>
+        <p>See where the Earth&rsquo;s surface may be moving, using NISAR radar.</p>
+        <div className="claude-actions">
+          <button className="claude-button primary" type="button" onClick={onStartExploring}>Start exploring</button>
+          <button className="claude-button ghost" type="button" onClick={onOpenHowItWorks}>How it works</button>
         </div>
       </div>
-      <div className="hero-side-note" aria-hidden="true">
-        <span className="hero-side-rule" />
-        <span>EARTH OBSERVATION<br />SURFACE CHANGE<br />SCIENTIFIC EVIDENCE</span>
-      </div>
-    </section>
+    </header>
   );
 }

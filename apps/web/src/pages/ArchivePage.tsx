@@ -38,7 +38,7 @@ export function ArchivePage({ user, authState, onSignIn, onSignOut, onOpenWorksp
         </div>
         <ArchiveSection user={user} onSignIn={onSignIn} onOpenWorkspace={onOpenWorkspace} />
       </main>
-      <Footer isArchivePage />
+      <Footer />
     </div>
   );
 }

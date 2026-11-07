@@ -12,6 +12,7 @@ import { countCatalogGranules, type GranuleCounts } from './processingStatus';
 import { scheduleErrorToastDismissal } from './errorToast';
 import { createAoiOverlayController } from './mapOverlays';
 import { loadLandslideSessionState, persistLandslideSessionState } from './sessionState';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import type { Coordinate, InvestigationResult, LocationSelection } from '../engine/types';
 import './landslide.css';
 import './workspace.css';
@@ -1982,8 +1983,7 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
     return (
       <header className="map-header workspace-header">
         <button className="brand-lockup workspace-brand" type="button" onClick={onHome} aria-label="SARGuardian home">
-          <span className="brand-mark" aria-hidden="true"><span className="brand-mountain" /><span className="brand-water" /></span>
-          <span className="brand-copy"><strong><b>SAR</b>Guardian</strong><small>EARTH IN SIGHT</small></span>
+          <BrandLogo className="workspace-brand-logo" compact />
         </button>
         <div className="map-title"><span>{title}</span><small>{subtitle}</small></div>
         <nav className="map-header-actions" aria-label="Workspace navigation">

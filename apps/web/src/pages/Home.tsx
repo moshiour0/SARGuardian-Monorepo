@@ -1,13 +1,12 @@
+import type { User } from 'firebase/auth';
 import type { Engine } from '../data/engineData';
 import { engines } from '../data/engineData';
-import { EngineCard } from '../components/EngineCard';
+import { BrandLogo } from '../components/BrandLogo';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
 import { Hero } from '../components/Hero';
 import { HomeSections } from './HomeSections';
-import { apiConnectionNotice } from '../authGating';
-
-import type { User } from 'firebase/auth';
+import { useGlassPointer } from '../useGlassPointer';
 
 type HomeProps = {
   user: User | null;
@@ -23,64 +22,126 @@ type HomeProps = {
   onSignOut: () => void;
   onSelectEngine: (engine: Engine) => void;
   onOpenWorkspace: () => void;
+  onOpenArchive: () => void;
+  onOpenHowItWorks: () => void;
 };
 
-export function Home({ user, authState, authError, apiConnectionStatus, apiConnectionError, firebaseConfigured, missingFirebaseConfig, showAuthModal = false, onCloseAuthModal, onSignIn, onSignOut, onSelectEngine, onOpenWorkspace }: HomeProps) {
-  const handleEngineSelect = (engine: Engine) => onSelectEngine(engine);
+type WorkflowCardProps = {
+  title: string;
+  description: string;
+  action?: string;
+  image: string;
+  onClick?: () => void;
+  comingSoon?: boolean;
+  wide?: boolean;
+};
+
+function WorkflowCard({ title, description, action, image, onClick, comingSoon = false, wide = false }: WorkflowCardProps) {
+  const content = (
+    <>
+      <img src={image} alt="" aria-hidden="true" />
+      <span className="claude-workflow-shade" aria-hidden="true" />
+      <span className="claude-workflow-copy">
+        <strong>{title}</strong>
+        <span>{description}</span>
+        {comingSoon ? <em>Coming soon</em> : <b>{action}</b>}
+      </span>
+    </>
+  );
+
+  if (comingSoon) {
+    return <div className={`claude-workflow-card is-soon${wide ? ' is-wide' : ''}`} aria-disabled="true" data-glass-pointer>{content}</div>;
+  }
+
+  return <button className={`claude-workflow-card${wide ? ' is-wide' : ''}`} type="button" onClick={onClick} data-glass-pointer>{content}</button>;
+}
+
+export function Home({
+  user,
+  authState,
+  authError,
+  showAuthModal = false,
+  onCloseAuthModal,
+  onSignIn,
+  onSignOut,
+  onSelectEngine,
+  onOpenWorkspace,
+  onOpenArchive,
+  onOpenHowItWorks,
+}: HomeProps) {
+  useGlassPointer();
+  const displacement = engines.find((engine) => engine.id === 'landslide')!;
+  const knownPlace = engines.find((engine) => engine.id === 'known-place')!;
+  const riverShift = engines.find((engine) => engine.id === 'river-shift')!;
 
   return (
-    <div className="home-page">
-      <div className="environment-layer" aria-hidden="true" />
-      <div className="ambient-vignette" aria-hidden="true" />
-      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} />
-      <main className="home-main">
-        {!firebaseConfigured && (
-          <section className="setup-banner" role="status">
-            Local sign-in setup required. Missing: {missingFirebaseConfig.join(', ')}.
-          </section>
-        )}
-        {user && apiConnectionStatus !== 'idle' && (
-          <section
-            className={apiConnectionStatus === 'error' ? 'error-banner' : 'setup-banner'}
-            role={apiConnectionStatus === 'error' ? 'alert' : 'status'}
-            aria-live="polite"
-          >
-            {apiConnectionNotice(apiConnectionStatus, apiConnectionError)}
-          </section>
-        )}
-        <Hero onStartExploring={onOpenWorkspace} />
-        <section className="engine-section" id="analysis-tools" aria-labelledby="engines-title">
-          <div className="engine-section-heading">
-            <div>
-              <p className="section-eyebrow">ANALYSIS WORKFLOWS</p>
-              <h2 id="engines-title">Choose what you want to investigate</h2>
+    <div className="home-page claude-home">
+      <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
+      <Header
+        user={user}
+        authState={authState}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        onOpenArchive={onOpenArchive}
+        onOpenHowItWorks={onOpenHowItWorks}
+      />
+
+      <main>
+        <Hero onStartExploring={onOpenWorkspace} onOpenHowItWorks={onOpenHowItWorks} />
+
+        <section className="claude-workflows" id="workflows">
+          <div className="claude-wrap">
+            <h2>What do you want to investigate?</h2>
+            <div className="claude-workflow-grid">
+              <WorkflowCard
+                title="Find displacement"
+                description="Screen a whole area for surface change, then inspect what the data supports."
+                action="Open area analysis"
+                image="/scenery/mountain-forest.jpg"
+                onClick={() => onSelectEngine(displacement)}
+              />
+              <WorkflowCard
+                title="Flood analysis"
+                description="Map where water has spread after heavy rain."
+                image="/scenery/flood-valley.jpg"
+                comingSoon
+              />
+              <WorkflowCard
+                title="Known place"
+                description="Draw a measurement area and a reference area for focused analysis."
+                action="Select an area"
+                image="/scenery/night-ridge.jpg"
+                onClick={() => onSelectEngine(knownPlace)}
+              />
+              <WorkflowCard
+                title="River shift"
+                description="Find where rivers and land are trading places."
+                action="Open River Shift"
+                image="/scenery/forest-river.jpg"
+                onClick={() => onSelectEngine(riverShift)}
+              />
             </div>
-            <p>Each workflow begins with an area and an observation window. The evidence shown depends on the data available for that selection.</p>
-          </div>
-          <div className="engine-grid">
-            {engines.map((engine) => <EngineCard key={engine.id} engine={engine} onSelect={handleEngineSelect} />)}
           </div>
         </section>
-        {authState === 'error' && <section className="error-banner" role="alert">{authError}</section>}
-        <HomeSections onOpenWorkspace={onOpenWorkspace} />
+
+        <HomeSections />
       </main>
 
       {showAuthModal && !user && (
-        <div className="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-          <div className="auth-modal glass-panel">
-            <button className="auth-modal-close" type="button" onClick={onCloseAuthModal} aria-label="Close authentication prompt">×</button>
-            <div className="auth-modal-header">
-              <span className="brand-mark" aria-hidden="true"><span className="brand-mountain" /><span className="brand-water" /></span>
-              <span id="auth-modal-title">Continue to SARGuardian</span>
-            </div>
+        <div className="auth-modal-backdrop claude-auth-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+          <div className="claude-auth-modal">
+            <button className="claude-auth-close" type="button" onClick={onCloseAuthModal} aria-label="Close authentication prompt">&times;</button>
+            <BrandLogo className="claude-auth-logo" />
+            <h2 id="auth-modal-title">Continue to SARGuardian</h2>
             <p>Sign in with Google to open the analysis workspace.</p>
-            <button className="sign-in-button large" onClick={onSignIn} type="button" disabled={authState === 'loading'}>
-              <span className="google-mark" aria-hidden="true">G</span>
-              {authState === 'loading' ? 'Signing in...' : 'Sign in with Google'}
+            {authError && <p className="claude-auth-error" role="alert">{authError}</p>}
+            <button className="claude-button primary claude-sign-in" onClick={onSignIn} type="button" disabled={authState === 'loading'}>
+              {authState === 'loading' ? 'Signing in…' : 'Sign in with Google'}
             </button>
           </div>
         </div>
       )}
+
       <Footer />
     </div>
   );

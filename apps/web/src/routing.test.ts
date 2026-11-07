@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, HOW_IT_WORKS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -8,6 +8,14 @@ describe('client-side route recognition', () => {
     expect(isArchiveRoute('/archive?state=ready')).toBe(true);
     expect(isArchiveRoute('/')).toBe(false);
     expect(isLandslideRoute('/archive')).toBe(false);
+  });
+
+  it('recognizes How it works as a dedicated page route', () => {
+    expect(HOW_IT_WORKS_PATH).toBe('/how-it-works');
+    expect(isHowItWorksRoute('/how-it-works')).toBe(true);
+    expect(isHowItWorksRoute('/how-it-works?from=home')).toBe(true);
+    expect(isHowItWorksRoute('/')).toBe(false);
+    expect(isLandslideRoute('/how-it-works')).toBe(false);
   });
 
   it('normalizes query strings and hashes without changing the route', () => {

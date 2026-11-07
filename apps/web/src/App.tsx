@@ -3,13 +3,14 @@ import type { Engine } from './data/engineData';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { listDisplacementJobs } from './api/catalog';
 import { Home } from './pages/Home';
+import { HowItWorksPage } from './pages/HowItWorksPage';
 import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { parseDashboardView } from './dashboardDocument';
 import { LandslidePage } from '../landslide/ui/LandslidePage';
 import { RiverShiftPage } from './pages/RiverShiftPage';
 import { auth, firebaseConfigured, googleProvider, missingFirebaseConfig } from './firebase';
-import { isArchiveRoute, isDashboardRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, LANDSLIDE_PATH, LANDSLIDE_RESULTS_PATH, navigatePath, normalizePathname } from './routing';
+import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, LANDSLIDE_PATH, LANDSLIDE_RESULTS_PATH, navigatePath, normalizePathname } from './routing';
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
@@ -161,6 +162,24 @@ function App() {
     navigateTo(LANDSLIDE_PATH);
   }, [navigateTo, user]);
 
+  const handleOpenArchive = useCallback(() => {
+    navigateTo('/archive');
+  }, [navigateTo]);
+
+  const handleOpenHowItWorks = useCallback(() => {
+    navigateTo('/how-it-works');
+  }, [navigateTo]);
+
+  const handleStartFromHowItWorks = useCallback(() => {
+    if (!user) {
+      setPendingRoute(LANDSLIDE_PATH);
+      setAuthModalOpen(true);
+      navigateTo('/');
+      return;
+    }
+    navigateTo(LANDSLIDE_PATH);
+  }, [navigateTo, user]);
+
   if (isDashboardRoute(pathname)) {
     const searchParams = new URLSearchParams(window.location.search);
     return (
@@ -187,6 +206,19 @@ function App() {
     );
   }
 
+  if (isHowItWorksRoute(pathname)) {
+    return (
+      <HowItWorksPage
+        user={user}
+        authState={authState}
+        onHome={() => navigateTo('/')}
+        onStart={handleStartFromHowItWorks}
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   if (isRiverShiftRoute(pathname)) {
     if (!user) {
       return (
@@ -204,6 +236,8 @@ function App() {
           onSignOut={handleSignOut}
           onSelectEngine={handleSelectEngine}
           onOpenWorkspace={handleOpenWorkspace}
+          onOpenArchive={handleOpenArchive}
+          onOpenHowItWorks={handleOpenHowItWorks}
         />
       );
     }
@@ -238,6 +272,8 @@ function App() {
           onSignOut={handleSignOut}
           onSelectEngine={handleSelectEngine}
           onOpenWorkspace={handleOpenWorkspace}
+          onOpenArchive={handleOpenArchive}
+          onOpenHowItWorks={handleOpenHowItWorks}
         />
       );
     }
@@ -283,7 +319,9 @@ function App() {
       onSignIn={handleSignIn}
       onSignOut={handleSignOut}
       onSelectEngine={handleSelectEngine}
-          onOpenWorkspace={handleOpenWorkspace}
+      onOpenWorkspace={handleOpenWorkspace}
+      onOpenArchive={handleOpenArchive}
+      onOpenHowItWorks={handleOpenHowItWorks}
     />
   );
 }

@@ -1,4 +1,5 @@
 export const ARCHIVE_PATH = '/archive';
+export const HOW_IT_WORKS_PATH = '/how-it-works';
 export const DASHBOARD_PATH = '/dashboard';
 export const RIVER_SHIFT_PATH = '/river-shift';
 export const LANDSLIDE_PATH = '/landslide';
@@ -18,6 +19,10 @@ export function isRiverShiftRoute(pathname: string): boolean {
 
 export function isArchiveRoute(pathname: string): boolean {
   return normalizePathname(pathname) === ARCHIVE_PATH;
+}
+
+export function isHowItWorksRoute(pathname: string): boolean {
+  return normalizePathname(pathname) === HOW_IT_WORKS_PATH;
 }
 
 export function isLandslideDisplacementRoute(pathname: string): boolean {

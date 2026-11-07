@@ -8,6 +8,7 @@ import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRi
 import { formatWktPolygon, parseWktPolygon, type Wgs84Point } from '../riverShift/aoi';
 import { deriveGeneralChangeMarkers } from '../riverShift/generalChangeMarkers';
 import { deriveImpactMapPoints, parseImpactExposureGeoJSON, parseOpenStreetMapImpactResponse, summarizeImpactExposure, type ImpactExposurePointCollection } from '../riverShift/impactContext';
+import { BrandLogo } from '../components/BrandLogo';
 import './river-shift.css';
 
 type Props = {
@@ -1275,7 +1276,7 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
       <header className="rs-header">
         <button className="rs-back" onClick={onHome} type="button">← SARGuardian</button>
         <div className="rs-brand">
-          <span className="rs-brand-mark">RS</span>
+          <BrandLogo className="rs-brand-logo" compact />
           <div><strong>RiverShift</strong><small>GLOBAL NISAR RIVER-CHANGE WORKFLOW</small></div>
         </div>
         <div className="rs-header-actions">
