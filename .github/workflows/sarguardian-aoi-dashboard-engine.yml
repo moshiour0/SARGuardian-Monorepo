@@ -182,6 +182,8 @@ jobs:
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
           echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
+      # The vendored snapshot is the product-worker input. Discovery also needs
+      # a real upstream Git checkout so rev-parse HEAD cannot resolve to Monorepo HEAD.
       - name: Checkout pinned NISAR science source for discovery
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -419,6 +421,8 @@ jobs:
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
           echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
 
+      # Match the discovery provenance model: retain the vendor snapshot, but
+      # use the exact upstream Git checkout when the aggregator validates science HEAD.
       - name: Checkout the same pinned NISAR science source for dashboard provenance
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
