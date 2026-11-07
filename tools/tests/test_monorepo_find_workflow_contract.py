@@ -24,7 +24,7 @@ def test_find_displacements_engine_preserves_snapshot_and_pins_git_provenance_so
     # The source snapshot remains the immutable worker input and is verified
     # by the migration snapshot contract. Git-based diagnostics require a
     # real checkout, not a nested directory inside the Monorepo's .git tree.
-    assert text.count("repository: moshiour0/SARGuardian") == 2
+    assert text.count("repository: moshiour0/SARGuardian\n") == 2
     assert text.count(f"ref: {SCIENCE_COMMIT}") == 2
     assert text.count("path: science-source") == 2
     assert text.count('--science-root "$PWD/science-source"') == 2
