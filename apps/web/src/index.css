@@ -2047,6 +2047,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   opacity: .9;
 }
 
+.claude-nav-shell.is-archive .claude-nav-links {
+  margin-left: auto;
+}
+
 .claude-nav-shell .signout-popover .signout-profile-summary strong,
 .claude-nav-shell .signout-popover .profile-menu-email strong,
 .claude-nav-shell .signout-popover .signout-profile-summary span,

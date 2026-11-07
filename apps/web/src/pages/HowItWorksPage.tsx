@@ -116,7 +116,7 @@ export function HowItWorksPage({ user, authState, onHome, onStart, onSignIn, onS
   return (
     <div className="home-page claude-home claude-how-page">
       <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
-      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage />
+      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage hideProfile />
 
       <main className="claude-how-main">
         <div className="claude-wrap">
