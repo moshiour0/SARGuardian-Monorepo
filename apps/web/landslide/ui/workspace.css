@@ -765,7 +765,7 @@
 .landslide-route-shell .validation-toast {
   border: 1px solid rgba(255, 255, 255, .78);
   border-radius: 22px;
-  background: rgba(255, 248, 235, .86);
+  background: rgba(255, 248, 235, .60);
   color: #6a3b14;
   box-shadow: 0 16px 40px rgba(78, 60, 34, .2);
   backdrop-filter: blur(22px) saturate(150%);

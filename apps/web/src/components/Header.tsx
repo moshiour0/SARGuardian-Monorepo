@@ -21,6 +21,7 @@ export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, on
           <span className="claude-brand-mark"><BrandLogo className="claude-brand-logo" /></span>
           <span className="claude-brand-word"><b>SAR</b>Guardian</span>
         </a>
+        {isArchivePage && <span className="claude-nav-title">Find displacement</span>}
         <nav className="claude-nav-links" aria-label="Main navigation">
           {isArchivePage ? <a href="/">Home</a> : (
             <>

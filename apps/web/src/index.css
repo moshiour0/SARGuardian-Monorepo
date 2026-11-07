@@ -1098,12 +1098,23 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   -webkit-backdrop-filter: blur(28px) saturate(190%);
 }
 .claude-nav-inner {
+  position: relative;
   height: 58px;
   padding: 0 10px 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+}
+.claude-nav-title {
+  position: absolute;
+  left: 50%;
+  color: #102637;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 .claude-brand {
   display: flex;
@@ -2040,10 +2051,15 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .profile-menu-email strong,
 .workspace-header .profile-popover > strong,
 .workspace-header .profile-popover > span:not(.result-kicker) {
-  color: #05080b;
+  color: #05080b !important;
 }
 
 .profile-copy strong,
 .profile-copy small {
-  color: #05080b;
+  color: #05080b !important;
+}
+
+.signout-profile-summary span,
+.profile-menu-email span {
+  color: #05080b !important;
 }
