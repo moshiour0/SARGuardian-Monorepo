@@ -19,6 +19,7 @@ Landslide and Glacier Movement share **Find Displacements**. Known Place Analysi
 
 ## Start here
 
+- [Architecture and NISAR data-flow diagram](docs/submission/ARCHITECTURE_OVERVIEW.md)
 - [Whole-project judge guide](docs/submission/SARGuardian_JUDGE_GUIDE.md)
 - [Feature-by-feature judge guides](docs/submission/README.md#read-the-evidence-in-this-order)
 - [Score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md)
