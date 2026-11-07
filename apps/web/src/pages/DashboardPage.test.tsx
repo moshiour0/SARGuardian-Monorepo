@@ -1,4 +1,4 @@
-import { rateInterval, rateUncertaintyLabel } from '../../landslide/ui/KnownPlaceResultsDashboard';
+import { rateInterval, rateUncertaintyLabel } from '../api/knownPlace';
 
 describe('Known Place conditional spatial rate intervals', () => {
   it('formats a finite conditional bootstrap interval in metres per day', () => {
