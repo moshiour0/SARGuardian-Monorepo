@@ -769,6 +769,18 @@ def _known_place_map_preview(raw: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
+def _finite_two_value_interval(value: Any) -> list[float] | None:
+    """Return a finite ordered two-value interval, otherwise withhold it."""
+    if not isinstance(value, (list, tuple)) or len(value) != 2:
+        return None
+    if any(isinstance(item, bool) or not isinstance(item, (int, float)) for item in value):
+        return None
+    lower, upper = (float(item) for item in value)
+    if not (math.isfinite(lower) and math.isfinite(upper)) or lower > upper:
+        return None
+    return [lower, upper]
+
+
 def _known_place_pair_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
     raw_pairs = result.get("pairs")
     dynamics = result.get("motion_dynamics")
@@ -800,6 +812,31 @@ def _known_place_pair_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
                 feature = candidates[0]
         chain_id = str(raw_chain_id or feature.get("chain_id") or "")
         chain_parts = chain_id.split("-")
+        uncertainty = raw.get("spatial_block_bootstrap_uncertainty")
+        uncertainty = uncertainty if isinstance(uncertainty, dict) else {}
+        uncertainty_status = uncertainty.get("status") or feature.get("spatial_uncertainty_status")
+        uncertainty_stats = uncertainty.get("statistics")
+        uncertainty_stats = uncertainty_stats if isinstance(uncertainty_stats, dict) else {}
+        # Only expose numeric intervals emitted by a completed spatial block bootstrap.
+        # Insufficient block support must remain explicitly interval-free.
+        displacement_interval = (
+            _finite_two_value_interval(uncertainty_stats.get("median_horizontal_magnitude_95pct_interval_m"))
+            if uncertainty_status == "COMPUTED_EXPLORATORY" else None
+        )
+        interval_days = raw.get("interval_days")
+        valid_interval_days = (
+            float(interval_days)
+            if isinstance(interval_days, (int, float))
+            and not isinstance(interval_days, bool)
+            and math.isfinite(float(interval_days))
+            and float(interval_days) > 0
+            else None
+        )
+        rate_interval = (
+            [bound / valid_interval_days for bound in displacement_interval]
+            if displacement_interval is not None and valid_interval_days is not None
+            else None
+        )
         rows.append({
             "reference_date": raw.get("reference_date"),
             "secondary_date": raw.get("secondary_date"),
@@ -829,7 +866,16 @@ def _known_place_pair_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
             "vector_rate_change_magnitude_m_per_day": feature.get("vector_rate_change_magnitude_m_per_day"),
             "vector_rate_acceleration_m_per_day_squared": feature.get("vector_rate_acceleration_m_per_day_squared"),
             "rate_change_block_reason": feature.get("rate_change_block_reason"),
-            "spatial_uncertainty_status": feature.get("spatial_uncertainty_status"),
+            "spatial_uncertainty_status": uncertainty_status,
+            "spatial_uncertainty_method": uncertainty.get("method"),
+            "spatial_uncertainty_valid_block_count": uncertainty.get("valid_block_count"),
+            "spatial_uncertainty_minimum_blocks_required": uncertainty.get("minimum_blocks_required"),
+            "median_horizontal_displacement_95pct_interval_m": displacement_interval,
+            "median_horizontal_displacement_rate_95pct_interval_m_per_day": rate_interval,
+            "spatial_uncertainty_scope": (
+                "CONDITIONAL_SPATIAL_SAMPLING_ONLY_NOT_SYSTEMATIC_ERROR_BUDGET"
+                if displacement_interval is not None else None
+            ),
             "risk_score": feature.get("risk_score"),
             "risk_score_status": feature.get("risk_score_status", "NOT_CALIBRATED"),
             "detection_status": feature.get("detection_status", result.get("hazard_detection_status", "NOT_EVALUATED")),
