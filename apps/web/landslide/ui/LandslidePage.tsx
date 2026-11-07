@@ -101,7 +101,7 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
           zoom: DEFAULT_MAP_ZOOM,
           minZoom: MIN_MAP_ZOOM,
           maxZoom: 18,
-          mapTypeId: 'terrain',
+          mapTypeId: 'satellite',
           fullscreenControl: false,
           streetViewControl: false,
           mapTypeControl: false,
@@ -2161,8 +2161,8 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
   const renderMapPage = () => (
     <div className="landslide-page">
       {renderWorkspaceHeader(
-        isKnownPlaceSetupPage ? 'KNOWN PLACE ANALYSIS' : 'FIND DISPLACEMENTS',
-        isKnownPlaceSetupPage ? 'Select an outer AOI and date window before defining the two polygons' : 'AOI-wide surface-change screening',
+        isKnownPlaceSetupPage ? 'KNOWN PLACE ANALYSIS' : 'FIND DISPLACEMENT',
+        isKnownPlaceSetupPage ? 'Select an outer AOI and date window before defining the two polygons' : 'Screen an area for surface change, then inspect the evidence',
         'Home', onHome
       )}
 
@@ -2191,7 +2191,7 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
           </div>
           <button type="submit" disabled={isLocationSearching}>{isLocationSearching ? 'Searching…' : 'Search'}</button>
           {location && <span className="selected-place">{location.name}</span>}
-          <small role="status">{searchState || 'Find a location, then draw your area of interest.'}</small>
+          <small role="status">{searchState || 'Search a place, then draw your study area.'}</small>
         </form>
 
         <div className="map-tools glass-float" role="group" aria-label="Map controls" aria-disabled={!mapReady}>
@@ -2234,13 +2234,13 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
             <>
               {coordinates.length > 0 && (
                 <div className="geometry-summary" aria-live="polite">
-                  <span>Area selected</span>
+                  <span>Study area</span>
                   <strong>{coordinates.length} vertices</strong>
                   <small>{polygonAreaKm2.toFixed(2)} km²</small>
                 </div>
               )}
 
-              {coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>AREA OF INTEREST</span><strong>Select your study area</strong><small>Draw a polygon to begin</small></div>}
+              {coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
 
               <div className="draw-actions">
                 <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />Draw area</button>
@@ -2262,7 +2262,7 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
               </div>
 
               <div className="time-actions">
-                <span>Time window</span>
+                <span>Observation window</span>
                 <div className="date-range">
                   <input type="date" value={windowStart} max={today} onChange={(event) => handleWindowStartChange(event.target.value)} aria-label="Starting date" />
                   <span>to</span>
@@ -2271,7 +2271,7 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
               </div>
 
               <section className="investigation-modes" aria-labelledby="investigation-mode-title">
-                <h2 id="investigation-mode-title">{isKnownPlaceSetupPage ? 'Known Place Analysis · AOI setup' : 'Choose Investigation Mode'}</h2>
+                <h2 id="investigation-mode-title">{isKnownPlaceSetupPage ? 'Known Place Analysis · AOI setup' : 'Choose an analysis'}</h2>
                 <div className="investigation-mode-cards">
                   {isKnownPlaceSetupPage ? (
                     <article className="investigation-mode-card known-place-mode">
@@ -2291,8 +2291,8 @@ export function LandslidePage({ user, onHome, onResults, onDisplacements, onKnow
                       </article>
                       <article className="investigation-mode-card displacement-mode">
                         <span className="mode-icon" aria-hidden="true"><Icon name="locate" /></span>
-                        <h3>Find Displacements</h3>
-                        <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>{isDisplacementSubmitting ? 'Starting processing…' : 'Find Displacements'}</button>
+                        <h3>Find displacement</h3>
+                        <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>{isDisplacementSubmitting ? 'Starting processing…' : 'Find displacement'}</button>
                       </article>
                       <article className="investigation-mode-card known-place-mode">
                         <span className="mode-icon" aria-hidden="true"><Icon name="locate" /></span>
