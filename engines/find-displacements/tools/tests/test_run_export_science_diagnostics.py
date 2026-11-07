@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -117,6 +118,8 @@ def test_pixel_stack_runs_and_exports_both_common_mode_variants(tmp_path, monkey
     science_root = tmp_path / "science"
     pixel_script = science_root / "src" / "pixel_stack.py"
     pixel_script.parent.mkdir(parents=True)
+    # This fixture represents a genuine, separately checked-out science repo.
+    (science_root / ".git").mkdir()
     pixel_script.write_text("# fixture pixel stack entry point\n", encoding="utf-8")
     exports_root = tmp_path / "exports"
     exports_root.mkdir()
@@ -161,3 +164,86 @@ def test_pixel_stack_runs_and_exports_both_common_mode_variants(tmp_path, monkey
     assert report["common_mode_sensitivity"]["status"] == "COMPLETED_NO_DETECTION"
     written = (tmp_path / "diagnostics" / "science-diagnostics.json").read_text(encoding="utf-8")
     assert '"common_mode_sensitivity"' in written
+
+
+
+def test_vendored_snapshot_is_verified_by_its_tree_not_parent_head(tmp_path, monkeypatch):
+    repository_root = tmp_path / "monorepo"
+    science_root = repository_root / "migration" / "source-snapshots" / "nisar-pins" / "006d4cd"
+    science_root.mkdir(parents=True)
+    (repository_root / ".git").mkdir()
+    expected_commit = "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
+    expected_tree = "bd8f1e3543c4361c5d32f8a90a15739373777344"
+    manifest = science_root.parent / "006d4cd.snapshot.json"
+    manifest.write_text(
+        json.dumps({
+            "schema_version": "sarguardian-pinned-source-snapshot/1.0",
+            "repository": "moshiour0/SARGuardian",
+            "commit": expected_commit,
+            "tree_sha": expected_tree,
+        }),
+        encoding="utf-8",
+    )
+
+    calls = []
+    def fake_run(argv, **kwargs):
+        calls.append(list(argv))
+        if "--show-toplevel" in argv:
+            return SimpleNamespace(returncode=0, stdout=str(repository_root) + "\n")
+        if any(str(arg).startswith("HEAD:") for arg in argv):
+            return SimpleNamespace(returncode=0, stdout=expected_tree + "\n")
+        raise AssertionError("Snapshot verification must not read the parent repository HEAD.")
+
+    monkeypatch.setattr(science_diagnostics.subprocess, "run", fake_run)
+    result = science_diagnostics.resolve_science_revision(science_root)
+
+    assert result["commit"] == expected_commit
+    assert result["source"] == "IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
+    assert result["tree_sha"] == expected_tree
+    assert result["error"] is None
+    assert len(calls) == 2
+    assert calls[1][-1] == "HEAD:migration/source-snapshots/nisar-pins/006d4cd"
+
+
+def test_vendored_snapshot_tree_mismatch_fails_closed(tmp_path, monkeypatch):
+    repository_root = tmp_path / "monorepo"
+    science_root = repository_root / "migration" / "source-snapshots" / "nisar-pins" / "006d4cd"
+    science_root.mkdir(parents=True)
+    (repository_root / ".git").mkdir()
+    expected_commit = "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
+    expected_tree = "bd8f1e3543c4361c5d32f8a90a15739373777344"
+    actual_tree = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    (science_root.parent / "006d4cd.snapshot.json").write_text(
+        json.dumps({
+            "schema_version": "sarguardian-pinned-source-snapshot/1.0",
+            "repository": "moshiour0/SARGuardian",
+            "commit": expected_commit,
+            "tree_sha": expected_tree,
+        }),
+        encoding="utf-8",
+    )
+
+    def fake_run(argv, **kwargs):
+        if "--show-toplevel" in argv:
+            return SimpleNamespace(returncode=0, stdout=str(repository_root) + "\n")
+        if any(str(arg).startswith("HEAD:") for arg in argv):
+            return SimpleNamespace(returncode=0, stdout=actual_tree + "\n")
+        raise AssertionError("Unexpected git command.")
+
+    monkeypatch.setattr(science_diagnostics.subprocess, "run", fake_run)
+    result = science_diagnostics.resolve_science_revision(science_root)
+
+    assert result["error"] == "SCIENCE_SNAPSHOT_TREE_MISMATCH"
+    assert result["tree_sha"] == actual_tree
+
+
+def test_committed_006d_snapshot_matches_the_pinned_upstream_tree():
+    repository_root = Path(__file__).resolve().parents[4]
+    science_root = repository_root / "migration" / "source-snapshots" / "nisar-pins" / "006d4cd"
+
+    result = science_diagnostics.resolve_science_revision(science_root)
+
+    assert result["commit"] == "006d4cd1485cf80e509eaf8717c12e9c6390ac09"
+    assert result["source"] == "IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
+    assert result["tree_sha"] == "bd8f1e3543c4361c5d32f8a90a15739373777344"
+    assert result["error"] is None
