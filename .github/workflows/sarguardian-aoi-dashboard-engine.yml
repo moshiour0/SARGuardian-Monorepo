@@ -211,7 +211,8 @@ jobs:
           print("SCIENCE_SNAPSHOT_TREE_SHA=" + actual_tree)
           PY
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
-          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
+          echo "SCIENCE_REVISION_PROOF=EXACT_UPSTREAM_GIT_TREE_SHA"
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -458,7 +459,8 @@ jobs:
           print("SCIENCE_SNAPSHOT_TREE_SHA=" + actual_tree)
           PY
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
-          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
+          echo "SCIENCE_REVISION_PROOF=EXACT_UPSTREAM_GIT_TREE_SHA"
 
       - name: Verify dashboard code matches the product manifest revision
         shell: bash
