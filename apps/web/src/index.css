@@ -2047,11 +2047,13 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   opacity: .9;
 }
 
-.signout-profile-summary strong,
-.profile-menu-email strong,
+.claude-nav-shell .signout-popover .signout-profile-summary strong,
+.claude-nav-shell .signout-popover .profile-menu-email strong,
+.claude-nav-shell .signout-popover .signout-profile-summary span,
+.claude-nav-shell .signout-popover .profile-menu-email span,
 .workspace-header .profile-popover > strong,
 .workspace-header .profile-popover > span:not(.result-kicker) {
-  color: #05080b !important;
+  color: #000 !important;
 }
 
 .profile-copy strong,
