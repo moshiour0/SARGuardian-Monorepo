@@ -62,3 +62,35 @@ def test_discovery_and_dashboard_use_separate_pinned_git_checkout_for_provenance
     assert text.count('--science-root "$PWD/science-source"') == 2
     assert text.count("-r science-source/requirements.txt") == 2
     assert 'science_root = "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd"' not in text
+
+def test_pinned_science_git_checkout_is_verified_before_both_consumers() -> None:
+    workflow = yaml.load(ENGINE_WORKFLOW.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+
+    cases = (
+        (
+            workflow["jobs"]["manifest"]["steps"],
+            "Checkout pinned NISAR science source for discovery",
+            "Verify pinned science checkout for discovery",
+            "Validate WKT, search ASF exact polygon and build input manifest",
+        ),
+        (
+            workflow["jobs"]["dashboard"]["steps"],
+            "Checkout the same pinned NISAR science source for dashboard provenance",
+            "Verify pinned science checkout for dashboard assembly",
+            "Build dashboard, product table, quicklooks and result bundle",
+        ),
+    )
+
+    for steps, checkout_name, verify_name, consumer_name in cases:
+        names = [step.get("name") for step in steps]
+        checkout_index = names.index(checkout_name)
+        verify_index = names.index(verify_name)
+        consumer_index = names.index(consumer_name)
+
+        assert checkout_index < verify_index < consumer_index
+        verify_step = steps[verify_index]
+        consumer_step = steps[consumer_index]
+        assert "git -C science-source rev-parse HEAD" in verify_step["run"]
+        assert 'test "$actual" = "${EXPECTED_SCIENCE_COMMIT:?}"' in verify_step["run"]
+        assert '--science-root "$PWD/science-source"' in consumer_step["run"]
+
