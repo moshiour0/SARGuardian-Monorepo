@@ -107,7 +107,6 @@ function HardcodedMapDemo() {
     >
       <div ref={mapElement} className="claude-demo-map-canvas" aria-hidden="true" />
       <span className="claude-demo-location">Khumbu, Nepal · Satellite study area</span>
-      <svg viewBox="0 0 300 220" preserveAspectRatio="none" aria-hidden="true"><path d="M70 50 L210 38 L246 118 L176 178 L88 150 Z" /></svg>
     </div>
   );
 }

@@ -1945,24 +1945,27 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   box-shadow: inset 0 1px 0 rgba(255,255,255,.66);
 }
 .claude-how-page .claude-demo-line {
-  color: #123b51;
+  color: #062e46;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
 }
 .claude-how-page .claude-demo-line strong {
-  color: #1d5068;
+  color: #063d5a;
   font-size: .9rem;
-  font-weight: 800;
+  font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
 }
 .claude-how-page .claude-progress > span {
-  color: #123b51;
+  color: #062e46;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 850;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
 }
 .claude-how-page .claude-progress em {
-  color: #35677e;
+  color: #174e67;
   font-size: .9rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 .claude-how-page .claude-progress > i {
   height: 9px;
