@@ -22,6 +22,7 @@ Landslide and Glacier Movement share **Find Displacements**. Known Place Analysi
 - [Whole-project judge guide](docs/submission/SARGuardian_JUDGE_GUIDE.md)
 - [Feature-by-feature judge guides](docs/submission/README.md#read-the-evidence-in-this-order)
 - [Score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md)
+- [Whole-project validation protocol](docs/submission/PROJECT_VALIDATION_PROTOCOL.md)
 - [Project-page draft](docs/submission/SARGuardian_PROJECT_PAGE_DRAFT.md)
 - [Internal video storyboard draft](docs/submission/VIDEO_STORYBOARD_DRAFT.md)
 
