@@ -11,7 +11,7 @@ export type Engine = {
 export const engines: Engine[] = [
   {
     id: 'landslide',
-    name: 'Landslide',
+    name: 'Find displacement',
     status: 'AVAILABLE',
     description: 'Screen the full area for spatial change candidates, then inspect only measurements supported by the observations.',
     actionLabel: 'Open area analysis',

@@ -4,7 +4,7 @@ import { engines } from './engineData';
 describe('SARGuardian analysis entry points', () => {
   it('shows the four agreed homepage workflows in the agreed order', () => {
     expect(engines.map((engine) => engine.name)).toEqual([
-      'Landslide',
+      'Find displacement',
       'Glacier Movement',
       'Known Place Analysis',
       'River Shift',
