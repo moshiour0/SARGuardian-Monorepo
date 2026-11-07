@@ -218,6 +218,139 @@ def write_target_log(path: Path, measurements: list[dict[str, Any]]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def resolve_science_revision(science_root: Path) -> dict[str, str | None]:
+    """Resolve an independent science checkout or prove an immutable vendored snapshot.
+
+    A nested source snapshot has no .git directory of its own. Running git
+    rev-parse HEAD in that folder would return the parent Monorepo commit,
+    not the upstream science commit. For vendored snapshots, compare the
+    exact Git subtree object to the pinned upstream tree SHA stored beside it.
+    """
+    science_root = science_root.resolve()
+    if (science_root / ".git").exists():
+        rev = subprocess.run(
+            ["git", "-C", str(science_root), "rev-parse", "HEAD"],
+            text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            check=False, timeout=30,
+        )
+        actual = (rev.stdout or "").strip()
+        return {
+            "commit": actual,
+            "source": "INDEPENDENT_GIT_CHECKOUT",
+            "tree_sha": None,
+            "detail": (rev.stdout or "")[-600:],
+            "error": None if rev.returncode == 0 and actual else "SCIENCE_GIT_REVISION_READ_FAILED",
+        }
+
+    top = subprocess.run(
+        ["git", "-C", str(science_root), "rev-parse", "--show-toplevel"],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        check=False, timeout=30,
+    )
+    if top.returncode or not (top.stdout or "").strip():
+        return {
+            "commit": "",
+            "source": "UNVERIFIED_SOURCE_DIRECTORY",
+            "tree_sha": None,
+            "detail": (top.stdout or "")[-600:],
+            "error": "SCIENCE_GIT_CONTEXT_NOT_FOUND",
+        }
+
+    try:
+        repository_root = Path(top.stdout.strip()).resolve()
+        relative_path = science_root.relative_to(repository_root).as_posix()
+    except (OSError, ValueError):
+        return {
+            "commit": "",
+            "source": "UNVERIFIED_SOURCE_DIRECTORY",
+            "tree_sha": None,
+            "detail": "Science snapshot is not a child of its detected Git repository.",
+            "error": "SCIENCE_SNAPSHOT_PATH_OUTSIDE_REPOSITORY",
+        }
+
+    manifest_path = science_root.parent / (science_root.name + ".snapshot.json")
+    if not manifest_path.is_file():
+        return {
+            "commit": "",
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": None,
+            "detail": "Required adjacent snapshot manifest is missing: " + str(manifest_path),
+            "error": "SCIENCE_SNAPSHOT_MANIFEST_MISSING",
+        }
+
+    try:
+        metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        return {
+            "commit": "",
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": None,
+            "detail": type(exc).__name__ + ":" + str(exc)[:400],
+            "error": "SCIENCE_SNAPSHOT_MANIFEST_INVALID",
+        }
+
+    if not isinstance(metadata, dict):
+        metadata = {}
+    expected_commit = str(metadata.get("commit") or "").strip().lower()
+    expected_tree = str(metadata.get("tree_sha") or "").strip().lower()
+    repository = str(metadata.get("repository") or "").strip()
+    if metadata.get("schema_version") != "sarguardian-pinned-source-snapshot/1.0":
+        return {
+            "commit": expected_commit,
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": None,
+            "detail": "Unsupported or missing snapshot manifest schema.",
+            "error": "SCIENCE_SNAPSHOT_MANIFEST_SCHEMA_INVALID",
+        }
+    if repository != "moshiour0/SARGuardian":
+        return {
+            "commit": expected_commit,
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": None,
+            "detail": "Unexpected upstream repository: " + repository,
+            "error": "SCIENCE_SNAPSHOT_REPOSITORY_MISMATCH",
+        }
+    if not re.fullmatch(r"[0-9a-f]{40}", expected_commit) or not re.fullmatch(r"[0-9a-f]{40}", expected_tree):
+        return {
+            "commit": expected_commit,
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": None,
+            "detail": "Snapshot manifest must contain full 40-character Git commit and tree SHAs.",
+            "error": "SCIENCE_SNAPSHOT_MANIFEST_SHA_INVALID",
+        }
+
+    tree = subprocess.run(
+        ["git", "-C", str(repository_root), "rev-parse", "HEAD:" + relative_path],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        check=False, timeout=30,
+    )
+    actual_tree = (tree.stdout or "").strip().lower()
+    if tree.returncode or not re.fullmatch(r"[0-9a-f]{40}", actual_tree):
+        return {
+            "commit": expected_commit,
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": actual_tree or None,
+            "detail": (tree.stdout or "")[-600:],
+            "error": "SCIENCE_SNAPSHOT_TREE_READ_FAILED",
+        }
+    if actual_tree != expected_tree:
+        return {
+            "commit": expected_commit,
+            "source": "UNVERIFIED_MONOREPO_SNAPSHOT",
+            "tree_sha": actual_tree,
+            "detail": "Expected imported tree " + expected_tree + " but found " + actual_tree,
+            "error": "SCIENCE_SNAPSHOT_TREE_MISMATCH",
+        }
+
+    return {
+        "commit": expected_commit,
+        "source": "IMMUTABLE_MONOREPO_TREE_SNAPSHOT",
+        "tree_sha": actual_tree,
+        "detail": "Imported Git tree exactly matches the pinned upstream source commit tree.",
+        "error": None,
+    }
+
+
 def run_diagnostics(
     science_root: Path,
     exports_root: Path,
@@ -245,18 +378,19 @@ def run_diagnostics(
         "errors": [],
     }
 
-    rev = subprocess.run(
-        ["git", "-C", str(science_root), "rev-parse", "HEAD"],
-        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False, timeout=30,
-    )
-    actual = (rev.stdout or "").strip()
+    revision = resolve_science_revision(science_root)
+    actual = str(revision.get("commit") or "")
     report["actual_science_commit"] = actual
-    if rev.returncode or actual != expected_science_commit:
+    report["science_revision_source"] = revision.get("source")
+    report["science_snapshot_tree_sha"] = revision.get("tree_sha")
+    report["science_revision_detail"] = revision.get("detail")
+    revision_error = revision.get("error")
+    if revision_error or actual != expected_science_commit:
         report["errors"].append({
-            "problem": "SCIENCE_COMMIT_MISMATCH",
+            "problem": str(revision_error or "SCIENCE_COMMIT_MISMATCH"),
             "expected": expected_science_commit,
             "actual": actual,
-            "detail": (rev.stdout or "")[-600:],
+            "detail": revision.get("detail"),
         })
         report["status"] = "FAIL"
         (out_root / "science-diagnostics.json").write_text(
