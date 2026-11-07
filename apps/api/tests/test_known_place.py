@@ -341,6 +341,31 @@ def _known_place_test_artifact() -> bytes:
             "valid_aoi_fraction": 9 / 67 if direction == "D" else 65 / 67,
             "high_magnitude_flagged_pixels": 9 if direction == "D" else 0,
             "high_magnitude_threshold": 10,
+            "spatial_block_bootstrap_uncertainty": (
+                {
+                    "status": "COMPUTED_EXPLORATORY",
+                    "method": "non-overlapping raster-aligned spatial-block bootstrap",
+                    "valid_block_count": 12,
+                    "minimum_blocks_required": 8,
+                    "statistics": {
+                        "median_horizontal_magnitude_95pct_interval_m": [0.24, 0.36],
+                        "mean_vector_magnitude_95pct_interval_m": [0.20, 0.34],
+                        "mean_vector_azimuth_95pct_arc": {
+                            "start_deg_clockwise_from_north": 40.0,
+                            "end_deg_clockwise_from_north": 50.0,
+                            "width_deg": 10.0,
+                            "crosses_0_deg": False,
+                        },
+                    },
+                }
+                if direction == "D"
+                else {
+                    "status": "INSUFFICIENT_SPATIAL_BLOCKS",
+                    "method": "non-overlapping raster-aligned spatial-block bootstrap",
+                    "valid_block_count": 4,
+                    "minimum_blocks_required": 8,
+                }
+            ),
             "quality_gate_counts": {"valid": 9},
             "interval_coverage_warning": "Interval-averaged pairwise observation.",
             "epsg": 32645,
@@ -497,6 +522,12 @@ def test_known_place_result_parser_preserves_separate_chains_and_claim_gates() -
     assert result["pairwise_series_plan"]["cumulative_displacement_status"] == "SEPARATE_CHAINS_REVIEW_REQUIRED"
     assert {pair["track"] for pair in result["pairs"]} == {"048", "098"}
     assert result["pairs"][0]["median_horizontal_displacement_rate_m_per_day"] == 24.48
+    assert result["pairs"][0]["spatial_uncertainty_status"] == "COMPUTED_EXPLORATORY"
+    assert result["pairs"][0]["spatial_uncertainty_valid_block_count"] == 12
+    assert result["pairs"][0]["median_horizontal_displacement_95pct_interval_m"] == [0.24, 0.36]
+    assert result["pairs"][0]["median_horizontal_displacement_rate_95pct_interval_m_per_day"] == [0.02, 0.03]
+    assert result["pairs"][1]["spatial_uncertainty_status"] == "INSUFFICIENT_SPATIAL_BLOCKS"
+    assert result["pairs"][1]["median_horizontal_displacement_rate_95pct_interval_m_per_day"] is None
     assert result["pairs"][0]["map_preview"]["epsg"] == 32645
     assert result["pairs"][0]["map_preview"]["width"] == 2
     assert result["pairs"][0]["map_preview"]["east_values_m"][0][0] == 0.08
