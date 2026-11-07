@@ -52,7 +52,7 @@ export function rateUncertaintyLabel(pair: Pick<KnownPlacePairResult, 'median_ho
       : 'No interval: insufficient spatial blocks';
   }
   return pair.spatial_uncertainty_status
-    ? `Interval unavailable: ${pair.spatial_uncertainty_status.replaceAll('_', ' ').toLowerCase()}`
+    ? `Interval unavailable: ${pair.spatial_uncertainty_status.replace(/_/g, ' ').toLowerCase()}`
     : 'Spatial interval not reported';
 }
 
