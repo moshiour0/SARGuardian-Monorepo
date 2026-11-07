@@ -105,7 +105,9 @@
 .known-place-rate-track { height: 9px; overflow: hidden; border-radius: 30px; background: rgba(202, 229, 241, .11); }
 .known-place-rate-track span { display: block; height: 100%; min-width: 2px; border-radius: inherit; background: linear-gradient(90deg, #73d2cb, #9dcff3); }
 .known-place-rate-track span.is-caution { background: linear-gradient(90deg, #d3ac69, #fa8d72); }
-.known-place-rate-value { color: #e7f4fb; font: 700 10px 'Manrope', sans-serif; text-align: right; }
+.known-place-rate-value { display: grid; gap: 3px; min-width: 0; color: #e7f4fb; text-align: right; }
+.known-place-rate-value strong { font: 700 10px 'Manrope', sans-serif; }
+.known-place-rate-value small { color: rgba(200, 225, 239, .62); font-size: 7px; line-height: 1.35; white-space: normal; overflow-wrap: anywhere; }
 .known-place-public-cautions { margin-top: 13px; padding: 15px; border-left: 3px solid #e0b46f; background: rgba(224, 180, 111, .07); border-radius: 0 7px 7px 0; }
 .known-place-public-cautions p { margin: 8px 0 0; color: rgba(235, 232, 218, .78); font-size: 10px; line-height: 1.55; }
 .known-place-public-cautions b { color: #ffe0a8; }
@@ -173,7 +175,8 @@
   .known-place-answer { padding: 14px; }
   .known-place-rate-row { grid-template-columns: 100px minmax(48px, 1fr) 58px; gap: 6px; }
   .known-place-rate-label strong { font-size: 8px; }
-  .known-place-rate-value { font-size: 9px; }
+  .known-place-rate-value strong { font-size: 9px; }
+  .known-place-rate-value small { font-size: 6px; }
   .known-place-map-frame iframe { height: 540px; min-height: 440px; }
   .known-place-table-heading { align-items: flex-start; flex-direction: column; }
   .known-place-science-columns > section { padding: 11px; }
