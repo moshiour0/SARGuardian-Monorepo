@@ -2065,3 +2065,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .profile-menu-email span {
   color: #05080b !important;
 }
+
+.profile-value-black {
+  color: #000 !important;
+  text-shadow: none !important;
+}
