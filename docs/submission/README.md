@@ -21,6 +21,10 @@ SARGuardian is an interactive NISAR surface-change exploration platform. A user 
 
 **Architecture note:** Landslide and Glacier Movement are two use cases of the shared Find Displacements engine. Known Place Analysis is a separate, target-selected two-polygon workflow. RiverShift is an independent GCOV processing engine. These paths are not interchangeable.
 
+## Architecture
+
+- [Architecture and NISAR data-flow diagram](ARCHITECTURE_OVERVIEW.md)
+
 ## Read the evidence in this order
 
 1. [Whole-project judge guide](SARGuardian_JUDGE_GUIDE.md) — challenge fit, product architecture, shared NISAR data story and cross-feature evidence.
