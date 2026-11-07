@@ -202,6 +202,12 @@ export type KnownPlacePairResult = {
   vector_rate_acceleration_m_per_day_squared: number | null;
   rate_change_block_reason: string | null;
   spatial_uncertainty_status: string | null;
+  spatial_uncertainty_method: string | null;
+  spatial_uncertainty_valid_block_count: number | null;
+  spatial_uncertainty_minimum_blocks_required: number | null;
+  median_horizontal_displacement_95pct_interval_m: [number, number] | null;
+  median_horizontal_displacement_rate_95pct_interval_m_per_day: [number, number] | null;
+  spatial_uncertainty_scope: string | null;
   risk_score: number | null;
   risk_score_status: string;
   detection_status: string;
@@ -209,6 +215,39 @@ export type KnownPlacePairResult = {
   interval_coverage_warning: string | null;
   map_preview: KnownPlaceMapPreview | null;
 };
+
+export type KnownPlaceRateIntervalSource = Pick<
+  KnownPlacePairResult,
+  | 'median_horizontal_displacement_rate_95pct_interval_m_per_day'
+  | 'spatial_uncertainty_status'
+  | 'spatial_uncertainty_valid_block_count'
+  | 'spatial_uncertainty_minimum_blocks_required'
+>;
+
+export function rateInterval(pair: KnownPlaceRateIntervalSource): [number, number] | null {
+  const value = pair.median_horizontal_displacement_rate_95pct_interval_m_per_day;
+  return Array.isArray(value) && value.length === 2
+    && Number.isFinite(value[0]) && Number.isFinite(value[1]) && value[0] <= value[1]
+    ? value
+    : null;
+}
+
+export function rateUncertaintyLabel(pair: KnownPlaceRateIntervalSource): string {
+  const interval = rateInterval(pair);
+  if (interval) {
+    return `Conditional spatial bootstrap 95%: ${interval[0].toFixed(3)}–${interval[1].toFixed(3)} m/day`;
+  }
+  if (pair.spatial_uncertainty_status === 'INSUFFICIENT_SPATIAL_BLOCKS') {
+    const available = pair.spatial_uncertainty_valid_block_count;
+    const required = pair.spatial_uncertainty_minimum_blocks_required;
+    return available !== null && required !== null
+      ? `No interval: ${available}/${required} valid blocks`
+      : 'No interval: insufficient spatial blocks';
+  }
+  return pair.spatial_uncertainty_status
+    ? `Interval unavailable: ${pair.spatial_uncertainty_status.replace(/_/g, ' ').toLowerCase()}`
+    : 'Spatial interval not reported';
+}
 
 export type KnownPlaceChain = {
   chain_id: string;

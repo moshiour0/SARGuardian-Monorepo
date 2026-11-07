@@ -1,3 +1,31 @@
+import { rateInterval, rateUncertaintyLabel } from '../api/knownPlace';
+
+describe('Known Place conditional spatial rate intervals', () => {
+  it('formats a finite conditional bootstrap interval in metres per day', () => {
+    const pair = {
+      median_horizontal_displacement_rate_95pct_interval_m_per_day: [0.02, 0.03] as [number, number],
+      spatial_uncertainty_status: 'COMPUTED_EXPLORATORY',
+      spatial_uncertainty_valid_block_count: 12,
+      spatial_uncertainty_minimum_blocks_required: 8,
+    };
+
+    expect(rateInterval(pair)).toEqual([0.02, 0.03]);
+    expect(rateUncertaintyLabel(pair)).toBe('Conditional spatial bootstrap 95%: 0.020–0.030 m/day');
+  });
+
+  it('withholds interval bounds when spatial block support is insufficient', () => {
+    const pair = {
+      median_horizontal_displacement_rate_95pct_interval_m_per_day: null,
+      spatial_uncertainty_status: 'INSUFFICIENT_SPATIAL_BLOCKS',
+      spatial_uncertainty_valid_block_count: 4,
+      spatial_uncertainty_minimum_blocks_required: 8,
+    };
+
+    expect(rateInterval(pair)).toBeNull();
+    expect(rateUncertaintyLabel(pair)).toBe('No interval: 4/8 valid blocks');
+  });
+});
+
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from './DashboardPage';

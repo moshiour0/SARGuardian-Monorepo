@@ -28,15 +28,16 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/config.py",
       "destination_path": "apps/api/app/config.py",
       "source_blob_sha": "b2fed548e2a33c85707c01e8dfed3d7de89953ca",
-      "destination_blob_sha": "57e48ec42e217ffc5355cd6b07306fa8e2406659",
+      "destination_blob_sha": "173675325b6aeb783fd245111b5e90f95c30548b",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add separate generic and author-exact Known Place workflow destinations with legacy Backend defaults, plus strict repository, workflow filename and branch/ref validation for RiverShift dispatch targets.",
+      "reason": "Change generic and author-exact Known Place fallback dispatch targets to Monorepo root workflows so a missing production override cannot route migrated processing back to the legacy backend.",
       "implementation_commits": [
         "ff86cce2363c7aac7d0a41e6bf534f05d0f9ff3b",
         "1f6ed9adc873167bcae6dd65605274f1114d09b9",
         "50638a7e0a4ca6add8f56df57706007cc2cdd978",
-        "04563332b71bac770dacb1cbbbc325900b48e501"
+        "04563332b71bac770dacb1cbbbc325900b48e501",
+        "271bbd69ed002f1bd24393ea2bd835a2b2a43047"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py"
@@ -47,18 +48,19 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/known_place.py",
       "destination_path": "apps/api/app/known_place.py",
       "source_blob_sha": "4b5a36a0a88a7e46c27ba0b2f52b5925279de7fc",
-      "destination_blob_sha": "fca6e3324d5d9dd94a43f2bc929b0f05ee273be0",
+      "destination_blob_sha": "3b5f37d87356fc3df58cdfd84acfba2634987376",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Route generic two-polygon and author-exact P05023 dispatch, status and result retrieval through separate destinations; let the API supply a UUID already persisted to the Firebase owner ledger while preserving direct-call behavior.",
+      "reason": "Align the direct Known Place API fallback constants with the Monorepo generic and dedicated author-exact root workflow launchers while preserving explicit configured targets.",
       "implementation_commits": [
         "097243026e42fe9e09573046380be5c0d8c232d9",
         "62a8cec36a5bf4c30d5dccb17ffe2c0108e925a0",
         "796f978b9a80a96db92fb2e4ec3f359593bae0b4",
-        "dbdba91e266493ab094279595d7eee6ea4fb1355"
+        "dbdba91e266493ab094279595d7eee6ea4fb1355",
+        "ad8b1966df03db7e23c36aa8df6f408fa20d394c"
       ],
       "verification_paths": [
-        "apps/api/tests/test_main.py"
+        "apps/api/tests/test_known_place.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -66,14 +68,15 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_config.py",
       "destination_path": "apps/api/tests/test_config.py",
       "source_blob_sha": "17dd98c0fe943c7d8551663c1aa702f0ab7e5687",
-      "destination_blob_sha": "7a26278564d03691292fe27a39a6be21ff988d8a",
+      "destination_blob_sha": "be36bd3e9705330a548b1644c95739fef121fcb3",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add regression coverage for Known Place legacy defaults and independent destinations, plus rejection of unsafe Known Place and RiverShift repository, workflow filename and branch/ref settings.",
+      "reason": "Update default-routing regression tests to assert that both generic two-polygon and author-exact P05023 flows target the Monorepo root workflow repository.",
       "implementation_commits": [
         "41c3f15e2d4da58026b2e2229f8ad09c33919671",
         "db07a956493dc3eb4d09aa772e29642b4ae2c971",
-        "9f93dc1dd2681bd459ab91752e1bb38d8857d3a4"
+        "9f93dc1dd2681bd459ab91752e1bb38d8857d3a4",
+        "844d4a5c1c978a47701e93ee007210293f27d6c3"
       ],
       "verification_paths": [
         "apps/api/tests/test_config.py"
@@ -84,15 +87,17 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_known_place.py",
       "destination_path": "apps/api/tests/test_known_place.py",
       "source_blob_sha": "ea5e93ba91e548de8b86ff128b9145d34b78e5a6",
-      "destination_blob_sha": "63fe9b2b350aad7a4a963840eb32ecca6621d99f",
+      "destination_blob_sha": "4ad8d93f855c123195620fc3def779f5d29e9963",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add API regression coverage for generic and author-exact Known Place dispatch destinations, request-correlated run status, and artifact downloads from the configured repository.",
+      "reason": "Update default generic and author-exact workflow dispatch, request lookup and artifact fixture assertions to use Monorepo run URLs and add API coverage for valid and withheld spatial bootstrap intervals.",
       "implementation_commits": [
         "f2cca2b57ccd40ad93ff1ab41a5b862f41833b51",
         "f9a6695d8f5f52a75cda93d8df07c5565b29b5b9",
         "d0326df1f9517925114ec285a524de38a500f276",
-        "71a081e380bec8094a5aac6b5d7f34249b88d6fd"
+        "71a081e380bec8094a5aac6b5d7f34249b88d6fd",
+        "9b90b40b6440ab68c2ce5905403b67cfe971a2db",
+        "94f4dcec122565159406569c118e791bb170de48"
       ],
       "verification_paths": [
         "apps/api/tests/test_known_place.py"
@@ -349,6 +354,76 @@
       "verification_paths": [
         "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
       ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/KnownPlaceResultsDashboard.tsx",
+      "destination_path": "apps/web/landslide/ui/KnownPlaceResultsDashboard.tsx",
+      "source_blob_sha": "1502f365a96d672615d7e50a30e707084323d5ad",
+      "destination_blob_sha": "8e47e3e8be937a70b4f404510791d4b929a66d49",
+      "reason": "Display conditional spatial block-bootstrap rate intervals in the public and deep-dive Known Place result views, explicitly withhold bounds when spatial block support is insufficient, and correct generic explanatory copy.",
+      "implementation_commits": [
+        "e80a190c0eb313be0be25daf3023060b3c2c9b15",
+        "79c946cc4afb280b316044129232c7c89cf7441a",
+        "1e3c239f5250c0ea7633737f4877d4ca0464ffd2",
+        "688ee644cb167c46c2496ae09bc51925cb41eac8",
+        "3f1698ec6a12f8646de1e8886f1b7886f85abe50"
+      ],
+      "verification_paths": [
+        "apps/web/src/pages/DashboardPage.test.tsx"
+      ],
+      "mode": "100644",
+      "object_type": "blob"
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/knownPlaceResults.css",
+      "destination_path": "apps/web/landslide/ui/knownPlaceResults.css",
+      "source_blob_sha": "0fb85bab47ebd062672dffebb07f03c652485359",
+      "destination_blob_sha": "9cbda1d72d2a5339ac876c2062afa3b467b3fc7a",
+      "reason": "Style the additional interval line in the rate value block so the conditional uncertainty label remains readable and wraps safely on mobile layouts.",
+      "implementation_commits": [
+        "479518160e1dc581bb637d46e2c8d04b8b3756d1"
+      ],
+      "verification_paths": [
+        "apps/web/src/pages/DashboardPage.test.tsx"
+      ],
+      "mode": "100644",
+      "object_type": "blob"
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/knownPlace.ts",
+      "destination_path": "apps/web/src/api/knownPlace.ts",
+      "source_blob_sha": "5f437d0b48bf84374d2a4983a161a27e369884b0",
+      "destination_blob_sha": "608225c67c0fcaa071350e502c94ff47e43aa0aa",
+      "reason": "Extend the Known Place API result type with spatial bootstrap statistics and finite two-value displacement and interval-rate bounds returned by the API parser.",
+      "implementation_commits": [
+        "833133f66fe8f528bd1900db5e24681c2920fccd",
+        "a122594055eaf17b4f5f3a964a8bebaa82c5e63e"
+      ],
+      "verification_paths": [
+        "apps/web/src/pages/DashboardPage.test.tsx"
+      ],
+      "mode": "100644",
+      "object_type": "blob"
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/pages/DashboardPage.test.tsx",
+      "destination_path": "apps/web/src/pages/DashboardPage.test.tsx",
+      "source_blob_sha": "1e3fc95825eea1fd9df9583d664825e725a44d5f",
+      "destination_blob_sha": "48a30bf9622f4ef76cab5c97482535b75e2ca04e",
+      "reason": "Add frontend regression cases proving conditional spatial bootstrap rate intervals are displayed in metres per day and insufficient independent spatial blocks never produce numeric bounds.",
+      "implementation_commits": [
+        "e2c5cf458e928618294cf78adafee58e00c07104",
+        "28abf8219addeb708a4117dae3da6f3d0ee427eb"
+      ],
+      "verification_paths": [
+        "apps/web/src/pages/DashboardPage.test.tsx"
+      ],
+      "mode": "100644",
+      "object_type": "blob"
     }
   ]
 }

@@ -50,8 +50,8 @@ def test_known_place_request_rejects_bad_track_and_invalid_polygon() -> None:
 @pytest.mark.parametrize(
     "repository,workflow",
     [
-        ("moshiour0/SARGuardian-backend", "know-place-aoi-dispatcher.yml"),
-        ("moshiour0/SARGuardian-backend", "know-place-paper-reproduction-dispatcher.yml"),
+        ("moshiour0/SARGuardian-Monorepo", "know-place-aoi-dispatcher.yml"),
+        ("moshiour0/SARGuardian-Monorepo", "know-place-paper-reproduction-dispatcher.yml"),
     ],
 )
 def test_github_dispatch_403_explains_target_repository_permission(
@@ -87,7 +87,7 @@ def test_dry_run_dispatch_does_not_include_raw_download_consent(monkeypatch: pyt
     assert response.execute_downloads is False
     assert observed["method"] == "POST"
     assert observed["path"] == (
-        "/repos/moshiour0/SARGuardian-backend/actions/workflows/"
+        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/"
         "know-place-aoi-dispatcher.yml/dispatches"
     )
     assert observed["body"]["ref"] == "main"
@@ -112,7 +112,7 @@ def test_raw_analysis_dispatch_needs_confirmed_checkbox_and_sets_exact_marker(mo
 
     assert response.execute_downloads is True
     assert observed["method"] == "POST"
-    assert observed["path"].startswith("/repos/moshiour0/SARGuardian-backend/")
+    assert observed["path"].startswith("/repos/moshiour0/SARGuardian-Monorepo/")
     assert observed["path"].endswith("/know-place-aoi-dispatcher.yml/dispatches")
     assert observed["body"]["inputs"]["execute_downloads"] is True
     assert observed["body"]["inputs"]["consent_marker"] == "[run-know-place]"
@@ -123,7 +123,7 @@ def test_status_is_matched_by_random_request_id_and_workflow_identity(monkeypatc
 
     def fake_request(_settings, method, path, body=None):
         assert method == "GET"
-        assert "/repos/moshiour0/SARGuardian-backend/actions/workflows/know-place-aoi-dispatcher.yml/runs" in path
+        assert "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-dispatcher.yml/runs" in path
         return 200, {
             "workflow_runs": [
                 {
@@ -134,7 +134,7 @@ def test_status_is_matched_by_random_request_id_and_workflow_identity(monkeypatc
                     "event": "workflow_dispatch",
                     "status": "completed",
                     "conclusion": "success",
-                    "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/12345",
+                    "html_url": "https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/12345",
                     "created_at": "2026-10-28T00:00:00Z",
                     "updated_at": "2026-10-28T00:01:00Z",
                 },
@@ -208,7 +208,7 @@ def test_author_exact_paper_reproduction_dispatches_immutable_backend_pin_and_ex
     assert response.execute_downloads is True
     assert observed["method"] == "POST"
     assert observed["path"] == (
-        "/repos/moshiour0/SARGuardian-backend/actions/workflows/"
+        "/repos/moshiour0/SARGuardian-Monorepo/actions/workflows/"
         "know-place-paper-reproduction-dispatcher.yml/dispatches"
     )
     assert observed["body"]["ref"] == "main"
@@ -236,7 +236,7 @@ def test_author_exact_paper_reproduction_status_is_matched_by_request_and_workfl
                     "event": "workflow_dispatch",
                     "status": "completed",
                     "conclusion": "success",
-                    "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/54321",
+                    "html_url": "https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/54321",
                     "created_at": "2026-11-02T00:00:00Z",
                     "updated_at": "2026-11-02T00:30:00Z",
                 },
@@ -304,11 +304,11 @@ def test_gunw_candidate_cannot_be_sent_to_goff_known_place_measurement() -> None
         known_place.KnownPlaceAnalysisRequest(**(REQUEST | {"candidate_context": value}))
 
 
-def test_generic_known_place_dispatch_is_backend_owned_and_paper_reproduction_stays_separate() -> None:
-    assert known_place.KNOWN_PLACE_REPOSITORY == "moshiour0/SARGuardian-backend"
+def test_generic_known_place_dispatch_uses_monorepo_and_paper_stays_separate() -> None:
+    assert known_place.KNOWN_PLACE_REPOSITORY == "moshiour0/SARGuardian-Monorepo"
     assert known_place.KNOWN_PLACE_WORKFLOW == "know-place-aoi-dispatcher.yml"
     assert known_place.KNOWN_PLACE_REF == "main"
-    assert known_place.KNOWN_PLACE_PAPER_REPOSITORY == "moshiour0/SARGuardian-backend"
+    assert known_place.KNOWN_PLACE_PAPER_REPOSITORY == "moshiour0/SARGuardian-Monorepo"
     assert known_place.KNOWN_PLACE_PAPER_WORKFLOW == "know-place-paper-reproduction-dispatcher.yml"
     assert known_place.KNOWN_PLACE_PAPER_REF == "main"
     assert known_place.KNOWN_PLACE_PAPER_WORKFLOW != known_place.KNOWN_PLACE_WORKFLOW
@@ -341,6 +341,31 @@ def _known_place_test_artifact() -> bytes:
             "valid_aoi_fraction": 9 / 67 if direction == "D" else 65 / 67,
             "high_magnitude_flagged_pixels": 9 if direction == "D" else 0,
             "high_magnitude_threshold": 10,
+            "spatial_block_bootstrap_uncertainty": (
+                {
+                    "status": "COMPUTED_EXPLORATORY",
+                    "method": "non-overlapping raster-aligned spatial-block bootstrap",
+                    "valid_block_count": 12,
+                    "minimum_blocks_required": 8,
+                    "statistics": {
+                        "median_horizontal_magnitude_95pct_interval_m": [0.24, 0.36],
+                        "mean_vector_magnitude_95pct_interval_m": [0.20, 0.34],
+                        "mean_vector_azimuth_95pct_arc": {
+                            "start_deg_clockwise_from_north": 40.0,
+                            "end_deg_clockwise_from_north": 50.0,
+                            "width_deg": 10.0,
+                            "crosses_0_deg": False,
+                        },
+                    },
+                }
+                if direction == "D"
+                else {
+                    "status": "INSUFFICIENT_SPATIAL_BLOCKS",
+                    "method": "non-overlapping raster-aligned spatial-block bootstrap",
+                    "valid_block_count": 4,
+                    "minimum_blocks_required": 8,
+                }
+            ),
             "quality_gate_counts": {"valid": 9},
             "interval_coverage_warning": "Interval-averaged pairwise observation.",
             "epsg": 32645,
@@ -483,7 +508,7 @@ def test_known_place_result_parser_preserves_separate_chains_and_claim_gates() -
         "id": 77,
         "status": "completed",
         "conclusion": "success",
-        "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/77",
+        "html_url": "https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/77",
         "created_at": "2026-11-02T14:00:00Z",
         "updated_at": "2026-11-02T14:30:00Z",
         "head_sha": "a" * 40,
@@ -497,6 +522,12 @@ def test_known_place_result_parser_preserves_separate_chains_and_claim_gates() -
     assert result["pairwise_series_plan"]["cumulative_displacement_status"] == "SEPARATE_CHAINS_REVIEW_REQUIRED"
     assert {pair["track"] for pair in result["pairs"]} == {"048", "098"}
     assert result["pairs"][0]["median_horizontal_displacement_rate_m_per_day"] == 24.48
+    assert result["pairs"][0]["spatial_uncertainty_status"] == "COMPUTED_EXPLORATORY"
+    assert result["pairs"][0]["spatial_uncertainty_valid_block_count"] == 12
+    assert result["pairs"][0]["median_horizontal_displacement_95pct_interval_m"] == [0.24, 0.36]
+    assert result["pairs"][0]["median_horizontal_displacement_rate_95pct_interval_m_per_day"] == [0.02, 0.03]
+    assert result["pairs"][1]["spatial_uncertainty_status"] == "INSUFFICIENT_SPATIAL_BLOCKS"
+    assert result["pairs"][1]["median_horizontal_displacement_rate_95pct_interval_m_per_day"] is None
     assert result["pairs"][0]["map_preview"]["epsg"] == 32645
     assert result["pairs"][0]["map_preview"]["width"] == 2
     assert result["pairs"][0]["map_preview"]["east_values_m"][0][0] == 0.08
@@ -525,7 +556,7 @@ def test_known_place_result_lookup_requires_exact_generic_workflow_identity(monk
                     "event": "workflow_dispatch",
                     "status": "completed",
                     "conclusion": "success",
-                    "html_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/77",
+                    "html_url": "https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/77",
                     "created_at": "2026-11-02T14:00:00Z",
                     "updated_at": "2026-11-02T14:30:00Z",
                     "head_sha": "a" * 40,
