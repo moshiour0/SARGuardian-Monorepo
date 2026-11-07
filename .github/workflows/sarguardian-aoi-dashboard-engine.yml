@@ -177,6 +177,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
           python - "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" "$SCIENCE_COMMIT" <<'PY'
           import json
           import subprocess
@@ -425,6 +427,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
+          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
           python - "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" "$SCIENCE_COMMIT" <<'PY'
           import json
           import subprocess
