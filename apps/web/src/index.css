@@ -1376,7 +1376,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 
 .claude-nav-shell {
   border-color: rgba(255,255,255,.82);
-  background: rgba(238, 248, 251, .9);
+  background: rgba(238, 248, 251, .98);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.74), 0 14px 40px -18px rgba(0,8,18,.7);
 }
 .brand-logo-image.claude-brand-logo {
@@ -1742,7 +1742,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .signout-profile-summary span,
 .profile-menu-email span {
   display: block;
-  color: #607985;
+  color: #05080b;
   font-size: .7rem;
   font-weight: 700;
   letter-spacing: .04em;
@@ -2023,15 +2023,16 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .claude-nav-shell.is-archive .claude-nav-links > a {
   min-height: 38px;
   padding: 0 16px;
+  border: 1px solid rgba(255,255,255,.72);
   border-radius: 999px;
   color: #fff;
-  background: var(--claude-blue);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px -10px var(--claude-blue);
+  background: linear-gradient(135deg, #1689df, #075fb4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 24px rgba(8,104,190,.24);
   font-weight: 700;
 }
 .claude-nav-shell.is-archive .claude-nav-links > a:hover {
   color: #fff;
-  background: #0077ed;
+  background: linear-gradient(135deg, #2698ec, #086ac5);
   opacity: .9;
 }
 
@@ -2039,5 +2040,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 .profile-menu-email strong,
 .workspace-header .profile-popover > strong,
 .workspace-header .profile-popover > span:not(.result-kicker) {
+  color: #05080b;
+}
+
+.profile-copy strong,
+.profile-copy small {
   color: #05080b;
 }
