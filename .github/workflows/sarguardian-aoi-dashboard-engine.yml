@@ -177,10 +177,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
-          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
+          python - "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" "$SCIENCE_COMMIT" <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          science_root = Path(sys.argv[1]).resolve()
+          expected_commit = sys.argv[2].strip()
+          manifest_path = science_root.parent / (science_root.name + ".snapshot.json")
+          if not (science_root / "README.md").is_file() or not (science_root / "requirements.txt").is_file():
+              raise SystemExit("ERROR=IMMUTABLE_SCIENCE_SNAPSHOT_FILES_MISSING")
+          metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if metadata.get("schema_version") != "sarguardian-pinned-source-snapshot/1.0":
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_MANIFEST_SCHEMA_INVALID")
+          if metadata.get("repository") != "moshiour0/SARGuardian" or metadata.get("commit") != expected_commit:
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_UPSTREAM_PIN_MISMATCH")
+          top = subprocess.run(
+              ["git", "-C", str(science_root), "rev-parse", "--show-toplevel"],
+              text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True,
+          )
+          repository_root = Path(top.stdout.strip()).resolve()
+          relative_path = science_root.relative_to(repository_root).as_posix()
+          tree = subprocess.run(
+              ["git", "-C", str(repository_root), "rev-parse", "HEAD:" + relative_path],
+              text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True,
+          )
+          actual_tree = tree.stdout.strip().lower()
+          if actual_tree != str(metadata.get("tree_sha") or "").strip().lower():
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_TREE_MISMATCH expected={} actual={}".format(
+                  metadata.get("tree_sha"), actual_tree
+              ))
+          print("SCIENCE_SNAPSHOT_TREE_SHA=" + actual_tree)
+          PY
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
-          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -393,10 +424,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/README.md"
-          test -s "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd/requirements.txt"
+          python - "$GITHUB_WORKSPACE/migration/source-snapshots/nisar-pins/006d4cd" "$SCIENCE_COMMIT" <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          science_root = Path(sys.argv[1]).resolve()
+          expected_commit = sys.argv[2].strip()
+          manifest_path = science_root.parent / (science_root.name + ".snapshot.json")
+          if not (science_root / "README.md").is_file() or not (science_root / "requirements.txt").is_file():
+              raise SystemExit("ERROR=IMMUTABLE_SCIENCE_SNAPSHOT_FILES_MISSING")
+          metadata = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if metadata.get("schema_version") != "sarguardian-pinned-source-snapshot/1.0":
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_MANIFEST_SCHEMA_INVALID")
+          if metadata.get("repository") != "moshiour0/SARGuardian" or metadata.get("commit") != expected_commit:
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_UPSTREAM_PIN_MISMATCH")
+          top = subprocess.run(
+              ["git", "-C", str(science_root), "rev-parse", "--show-toplevel"],
+              text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True,
+          )
+          repository_root = Path(top.stdout.strip()).resolve()
+          relative_path = science_root.relative_to(repository_root).as_posix()
+          tree = subprocess.run(
+              ["git", "-C", str(repository_root), "rev-parse", "HEAD:" + relative_path],
+              text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True,
+          )
+          actual_tree = tree.stdout.strip().lower()
+          if actual_tree != str(metadata.get("tree_sha") or "").strip().lower():
+              raise SystemExit("ERROR=SCIENCE_SNAPSHOT_TREE_MISMATCH expected={} actual={}".format(
+                  metadata.get("tree_sha"), actual_tree
+              ))
+          print("SCIENCE_SNAPSHOT_TREE_SHA=" + actual_tree)
+          PY
           echo "SCIENCE_REVISION_VERIFIED=$SCIENCE_COMMIT"
-          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_SNAPSHOT"
+          echo "SCIENCE_REVISION_STORAGE=IMMUTABLE_MONOREPO_TREE_SNAPSHOT"
 
       - name: Verify dashboard code matches the product manifest revision
         shell: bash
