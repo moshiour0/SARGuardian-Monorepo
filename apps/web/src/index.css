@@ -1690,3 +1690,329 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   background: transparent;
   box-shadow: none;
 }
+
+/* Premium account menu and a lighter, quieter How it works presentation. */
+.claude-nav-shell .profile-control {
+  isolation: isolate;
+  padding: 4px 5px 4px 4px;
+  border-color: rgba(255,255,255,.82);
+  background: rgba(246,252,254,.7);
+  box-shadow: inset 0 1px 0 #fff, 0 8px 22px -17px rgba(0,25,38,.65);
+}
+.claude-nav-shell .profile-menu {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  place-items: center;
+  color: #173748;
+  background: rgba(255,255,255,.5);
+  transition: background .2s ease, transform .2s ease;
+}
+.claude-nav-shell .profile-menu svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.claude-nav-shell .profile-menu[aria-expanded='true'] { background: rgba(184,226,241,.64); transform: rotate(180deg); }
+.claude-nav-shell .signout-popover {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 14px);
+  right: -4px;
+  width: min(286px, calc(100vw - 32px));
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.92);
+  border-radius: 24px;
+  color: #102b3a;
+  background: linear-gradient(145deg, rgba(245,252,254,.9), rgba(215,239,247,.78));
+  box-shadow: inset 0 1px 0 #fff, 0 28px 70px -28px rgba(0,20,34,.52);
+  backdrop-filter: blur(30px) saturate(175%);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
+  transform-origin: top right;
+}
+.signout-profile-summary { display: flex; align-items: center; gap: 12px; padding: 4px 4px 14px; }
+.signout-profile-summary .profile-avatar { width: 44px; height: 44px; flex: 0 0 auto; box-shadow: 0 8px 22px -13px rgba(0,35,52,.72); }
+.signout-profile-summary > div { min-width: 0; }
+.signout-profile-summary span,
+.profile-menu-email span {
+  display: block;
+  color: #607985;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.signout-profile-summary strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #0b2938;
+  font-size: 1rem;
+  letter-spacing: -.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-menu-email { padding: 13px 4px; border-top: 1px solid rgba(53,111,136,.16); }
+.profile-menu-email strong { display: block; margin-top: 5px; overflow: hidden; color: #183c4d; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }
+.profile-signout-button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 3px;
+  padding: 0 14px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(69,139,166,.18);
+  border-radius: 14px;
+  color: #173b4c;
+  background: rgba(255,255,255,.5);
+  cursor: pointer;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 750;
+  transition: background .18s ease, transform .18s ease;
+}
+.profile-signout-button:hover { background: rgba(255,255,255,.84); transform: translateY(-1px); }
+
+.claude-how-page .claude-background {
+  background:
+    linear-gradient(180deg, rgba(5,18,28,.04), rgba(4,18,28,.34)),
+    url('/scenery/alpine-lake.jpg') center 46% / cover fixed no-repeat;
+}
+.claude-how-main { padding-top: 32px; }
+.claude-how-hero { padding: clamp(3.5rem, 10vh, 6.5rem) 0 clamp(3rem, 7vw, 5rem); }
+.claude-how-hero h1 {
+  background: linear-gradient(96deg, #fff 12%, #e7f8ff 64%, #b8e8fb 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.claude-how-hero p { color: rgba(246,252,255,.92); text-shadow: 0 2px 18px rgba(0,10,18,.42); }
+.claude-demo-row { gap: clamp(2.5rem, 7vw, 6rem); border-color: rgba(226,246,253,.36); }
+.claude-demo-copy > span {
+  color: #063b5a;
+  background: linear-gradient(145deg, #f8fdff 0%, #c9f1ff 48%, #71c8ed 100%);
+  box-shadow: inset 0 1px 0 #fff, 0 0 0 1px rgba(255,255,255,.52), 0 12px 28px -16px rgba(0,48,70,.82);
+  text-shadow: 0 1px 0 rgba(255,255,255,.72);
+}
+.claude-how-page .claude-demo-copy h2 {
+  background: linear-gradient(100deg, #ffffff 0%, #e9faff 48%, #9cdef6 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 14px rgba(0, 18, 32, .78));
+}
+.claude-how-page .claude-demo-copy p {
+  color: #f0fbff;
+  line-height: 1.65;
+  font-weight: 550;
+  text-shadow: 0 2px 5px rgba(0, 18, 32, .88), 0 0 16px rgba(3, 43, 61, .58);
+}
+.claude-demo-visual {
+  padding: 1.15rem;
+  border-color: rgba(255,255,255,.8);
+  background: linear-gradient(145deg, rgba(233,248,253,.65), rgba(185,224,239,.38));
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255,255,255,.22), 0 26px 62px -35px rgba(0,22,35,.72);
+  backdrop-filter: blur(30px) saturate(165%);
+  -webkit-backdrop-filter: blur(30px) saturate(165%);
+}
+.claude-demo-visual::after { opacity: .24; }
+.claude-demo-map { border-color: rgba(255,255,255,.72); background: #bdd8e3; box-shadow: inset 0 1px 0 rgba(255,255,255,.75); }
+.claude-demo-map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  filter: saturate(.82) contrast(.94) brightness(1.06);
+}
+.claude-demo-map::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(135deg, rgba(188,231,248,.18), rgba(6,55,76,.08)); }
+.claude-demo-map svg { z-index: 2; pointer-events: none; }
+.claude-demo-map path { fill: rgba(34,145,224,.22); stroke: #22a7ed; stroke-width: 3; filter: drop-shadow(0 2px 4px rgba(0,50,76,.25)); }
+.claude-demo-location {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  padding: .38rem .65rem;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 999px;
+  color: #10394b;
+  background: rgba(238,249,252,.82);
+  box-shadow: 0 8px 20px -14px rgba(0,31,47,.7);
+  backdrop-filter: blur(14px);
+  font-size: .72rem;
+  font-weight: 800;
+}
+.claude-demo-line {
+  min-height: 50px;
+  padding: .75rem .35rem;
+  border: 0;
+  border-bottom: 1px solid rgba(28,88,112,.16);
+  border-radius: 0;
+  color: #123747;
+  background: transparent;
+  font-weight: 650;
+}
+.claude-demo-line:last-child { border-bottom: 0; }
+.claude-demo-line strong { color: #315c6e; }
+.claude-demo-line strong.is-ok { color: #147b50; background: rgba(98,213,155,.19); }
+.claude-demo-line strong.is-info { color: #126b9f; background: rgba(74,176,228,.17); }
+.claude-demo-line strong.is-warn { color: #96610c; background: rgba(255,195,92,.24); }
+.claude-progress { border-color: rgba(255,255,255,.56); color: #123747; background: rgba(255,255,255,.34); }
+.claude-progress > span { color: #123747; }
+.claude-progress em { color: #426577; }
+.claude-progress > i { background: rgba(44,111,138,.14); }
+.claude-how-limits .claude-limits-grid article {
+  padding: .25rem clamp(1rem, 3vw, 2.25rem);
+  border: 0;
+  border-right: 1px solid rgba(220,244,252,.28);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.claude-how-limits .claude-limits-grid article:first-child { padding-left: 0; }
+.claude-how-limits .claude-limits-grid article:last-child { padding-right: 0; border-right: 0; }
+.claude-how-limits .claude-limits-grid article::after { display: none; }
+.claude-how-limits .claude-limits-grid h3 { color: #fff; font-size: 1.2rem; }
+.claude-how-limits .claude-limits-grid p { color: rgba(238,249,252,.84); line-height: 1.65; }
+
+@media (max-width: 700px) {
+  .claude-nav-shell .signout-popover { position: fixed; top: 76px; right: 14px; }
+  .claude-how-limits .claude-limits-grid { gap: 1.5rem; }
+  .claude-how-limits .claude-limits-grid article,
+  .claude-how-limits .claude-limits-grid article:first-child,
+  .claude-how-limits .claude-limits-grid article:last-child {
+    padding: 0 0 1.5rem;
+    border-right: 0;
+    border-bottom: 1px solid rgba(220,244,252,.3);
+  }
+  .claude-how-limits .claude-limits-grid article:last-child { padding-bottom: 0; border-bottom: 0; }
+}
+
+/* How It Works only: larger, quieter glass cards with stronger type. */
+.claude-how-page .claude-demo-visual {
+  min-height: 360px;
+  padding: clamp(1.35rem, 3vw, 2rem);
+  border-color: rgba(255,255,255,.62);
+  background: rgba(224, 242, 249, .29);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.82), 0 24px 58px -30px rgba(11,64,92,.42);
+}
+.claude-how-page .claude-demo-map {
+  min-height: 220px;
+  border-color: rgba(255,255,255,.72);
+  background:
+    linear-gradient(145deg, rgba(28,92,118,.14), rgba(151,207,225,.18)),
+    #315968 center / cover no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+.claude-how-page .claude-demo-map-canvas {
+  opacity: .94;
+  filter: saturate(.9) contrast(1.04) brightness(1.08);
+}
+.claude-how-page .claude-demo-map::after {
+  background: linear-gradient(145deg, rgba(205,239,250,.12), rgba(6,43,61,.16));
+}
+.claude-how-page .claude-demo-map path {
+  fill: rgba(47, 166, 242, .24);
+  stroke: #52baff;
+  stroke-width: 3.5;
+}
+.claude-how-page .claude-demo-location {
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #eaf8ff;
+  background: rgba(5, 48, 70, .62);
+  border-color: rgba(255,255,255,.5);
+}
+.claude-how-page .claude-demo-line,
+.claude-how-page .claude-progress {
+  min-height: 68px;
+  padding: 1.05rem 1.25rem;
+  border: 1px solid rgba(255,255,255,.54);
+  border-radius: 20px;
+  background: rgba(255,255,255,.17);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.66);
+}
+.claude-how-page .claude-demo-line {
+  color: #123b51;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.claude-how-page .claude-demo-line strong {
+  color: #1d5068;
+  font-size: .9rem;
+  font-weight: 800;
+}
+.claude-how-page .claude-progress > span {
+  color: #123b51;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.claude-how-page .claude-progress em {
+  color: #35677e;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.claude-how-page .claude-progress > i {
+  height: 9px;
+  background: rgba(27,104,137,.16);
+}
+.claude-how-page .claude-how-limits .claude-limits-grid article {
+  min-height: 170px;
+  padding: .5rem 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.claude-how-page .claude-how-limits .claude-limits-grid h3 {
+  font-size: 1.22rem;
+  font-weight: 800;
+  background: linear-gradient(100deg, #ffffff 0%, #e8faff 48%, #9de0f7 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 14px rgba(0, 22, 38, .82));
+}
+.claude-how-page .claude-how-limits .claude-limits-grid p {
+  font-size: 1rem;
+  font-weight: 550;
+  color: #f1fbff;
+  text-shadow: 0 2px 5px rgba(0, 20, 34, .9), 0 0 18px rgba(5, 43, 62, .68);
+}
+.claude-how-page .claude-how-limits > h2 {
+  background: linear-gradient(100deg, #ffffff 0%, #e1f8ff 52%, #8bd5f3 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(0, 24, 40, .78));
+}
+.claude-how-page .claude-nav-shell.is-archive .claude-nav-links > a {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--claude-blue);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 10px 28px -10px var(--claude-blue);
+  font-weight: 700;
+  transition: transform .12s ease-out, background .2s, opacity .2s;
+}
+.claude-how-page .claude-nav-shell.is-archive .claude-nav-links > a:hover {
+  color: #fff;
+  background: #0077ed;
+  opacity: .9;
+}
+.claude-how-page .claude-nav-shell.is-archive .claude-nav-links > a:active { transform: scale(.96); }

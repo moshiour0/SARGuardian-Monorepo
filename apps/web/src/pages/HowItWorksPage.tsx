@@ -1,8 +1,21 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { importLibrary } from '@googlemaps/js-api-loader';
 import type { User } from 'firebase/auth';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
+import { configureGoogleMaps } from '../googleMapsLoader';
 import { useGlassPointer } from '../useGlassPointer';
+
+const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim() ?? '';
+const KHUMBU_LOCATION = { lat: 27.9881, lng: 86.9250 };
+const KHUMBU_STUDY_POLYGON = [
+  { lat: 28.092, lng: 86.76 },
+  { lat: 28.118, lng: 87.02 },
+  { lat: 28.012, lng: 87.17 },
+  { lat: 27.858, lng: 87.06 },
+  { lat: 27.816, lng: 86.86 },
+  { lat: 27.894, lng: 86.72 },
+];
 
 type HowItWorksPageProps = {
   user: User | null;
@@ -47,6 +60,58 @@ function DemoLine({ label, value, tone }: { label: string; value: string; tone?:
   );
 }
 
+function HardcodedMapDemo() {
+  const mapElement = useRef<HTMLDivElement>(null);
+  const satellitePreviewUrl = GOOGLE_MAPS_KEY
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=${KHUMBU_LOCATION.lat},${KHUMBU_LOCATION.lng}&zoom=9&size=900x600&scale=2&maptype=satellite&key=${encodeURIComponent(GOOGLE_MAPS_KEY)}`
+    : '';
+
+  useEffect(() => {
+    if (!GOOGLE_MAPS_KEY || !mapElement.current) return undefined;
+    let cancelled = false;
+
+    configureGoogleMaps(GOOGLE_MAPS_KEY);
+    importLibrary('maps').then((library) => {
+      if (cancelled || !mapElement.current) return;
+      const maps = library as google.maps.MapsLibrary;
+      const map = new maps.Map(mapElement.current, {
+        center: KHUMBU_LOCATION,
+        zoom: 9,
+        mapTypeId: 'satellite',
+        disableDefaultUI: true,
+        gestureHandling: 'none',
+        keyboardShortcuts: false,
+        clickableIcons: false,
+      });
+      new google.maps.Polygon({
+        map,
+        paths: KHUMBU_STUDY_POLYGON,
+        fillColor: '#2798ee',
+        fillOpacity: 0.26,
+        strokeColor: '#62c1ff',
+        strokeOpacity: 0.98,
+        strokeWeight: 3,
+      });
+      new google.maps.Marker({ map, position: KHUMBU_LOCATION, title: 'Khumbu study area' });
+    }).catch(() => {
+      // The styled fallback remains visible when the browser key is unavailable.
+    });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <div
+      className="claude-demo-map"
+      style={satellitePreviewUrl ? { backgroundImage: `url("${satellitePreviewUrl}")` } : undefined}
+    >
+      <div ref={mapElement} className="claude-demo-map-canvas" aria-hidden="true" />
+      <span className="claude-demo-location">Khumbu, Nepal · Satellite study area</span>
+      <svg viewBox="0 0 300 220" preserveAspectRatio="none" aria-hidden="true"><path d="M70 50 L210 38 L246 118 L176 178 L88 150 Z" /></svg>
+    </div>
+  );
+}
+
 export function HowItWorksPage({ user, authState, onHome, onStart, onSignIn, onSignOut }: HowItWorksPageProps) {
   useGlassPointer();
   return (
@@ -56,16 +121,13 @@ export function HowItWorksPage({ user, authState, onHome, onStart, onSignIn, onS
 
       <main className="claude-how-main">
         <div className="claude-wrap">
-          <button className="claude-back" type="button" onClick={onHome}>&lsaquo; SARGuardian</button>
           <header className="claude-how-hero">
             <h1>How it works.</h1>
             <p>From a place on the map to evidence you can check, in four steps.</p>
           </header>
 
           <DemoRow number={1} title="Choose an area." description="Search for a place or draw a polygon on the map. Then pick your dates.">
-            <div className="claude-demo-map" aria-hidden="true">
-              <svg viewBox="0 0 300 220" preserveAspectRatio="none"><path d="M70 50 L210 38 L246 118 L176 178 L88 150 Z" /></svg>
-            </div>
+            <HardcodedMapDemo />
             <DemoLine label="Observation window" value="Jan – Mar" tone="info" />
           </DemoRow>
 
