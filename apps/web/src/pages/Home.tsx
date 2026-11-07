@@ -84,6 +84,7 @@ export function Home({
         onSignOut={onSignOut}
         onOpenArchive={onOpenArchive}
         onOpenHowItWorks={onOpenHowItWorks}
+        hideHowItWorks
       />
 
       <main>
