@@ -16,13 +16,19 @@ def test_find_displacements_callback_uses_the_promoted_monorepo_api_adapter():
     assert "db6472e1c304e21242f1ab1dfd671ccb21ba5697" not in text
 
 
-def test_find_displacements_engine_uses_the_immutable_local_nisar_snapshot():
+def test_find_displacements_engine_preserves_snapshot_and_pins_git_provenance_source():
     text = ENGINE.read_text(encoding="utf-8")
     assert f"{PIN}/requirements.txt" in text
     assert f"{PIN}/README.md" in text
     assert f"$GITHUB_WORKSPACE/{PIN}" in text
-    assert "science-source" not in text
-    assert f"ref: {SCIENCE_COMMIT}" not in text
+    # The source snapshot remains the immutable worker input and is verified
+    # by the migration snapshot contract. Git-based diagnostics require a
+    # real checkout, not a nested directory inside the Monorepo's .git tree.
+    assert text.count("repository: moshiour0/SARGuardian") == 2
+    assert text.count(f"ref: {SCIENCE_COMMIT}") == 2
+    assert text.count("path: science-source") == 2
+    assert text.count('--science-root "$PWD/science-source"') == 2
+    assert text.count("git -C science-source rev-parse HEAD") == 2
 
 
 def test_find_displacements_product_worker_has_no_external_science_checkout():
