@@ -349,6 +349,38 @@
       "verification_paths": [
         "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
       ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/run_export_science_diagnostics.py",
+      "destination_path": "engines/find-displacements/tools/run_export_science_diagnostics.py",
+      "source_blob_sha": "51b8720b8038a761a629fe7b7a9c80ee9b388ffc",
+      "destination_blob_sha": "a887b9a3270bcd55bbc474f02cebc53d292f6d20",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Correct the promoted diagnostics provenance gate for the Monorepo migration: independent science checkouts use their own Git HEAD, while vendored immutable snapshots must match the upstream pinned commit's exact Git subtree SHA instead of inheriting the parent Monorepo HEAD.",
+      "implementation_commits": [
+        "205a4b54acbf88242d2673071988deb836caf602"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py"
+      ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/tests/test_run_export_science_diagnostics.py",
+      "destination_path": "engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py",
+      "source_blob_sha": "d735e798b92948cbf73e16ae70794857a651637c",
+      "destination_blob_sha": "39b7231a05a1ecc28694ad5d3c073c55a585a60d",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add migration-specific regression tests for vendored source tree provenance, parent-HEAD confusion, snapshot tree mutation failure, exact upstream 006d tree identity and preservation of standalone Git checkout validation.",
+      "implementation_commits": [
+        "b2dd9c6ceaa2bd30b229b17729479f2f8a91070d"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_run_export_science_diagnostics.py"
+      ]
     }
   ]
 }
