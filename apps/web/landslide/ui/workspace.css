@@ -771,6 +771,37 @@
   backdrop-filter: blur(22px) saturate(150%);
 }
 
+.landslide-route-shell .map-search > button,
+.landslide-route-shell .map-tools button,
+.landslide-route-shell .draw-actions button,
+.landslide-route-shell .investigate-button {
+  border-color: rgba(104, 190, 245, .58);
+  background: linear-gradient(135deg, rgba(28, 137, 223, .30), rgba(32, 92, 175, .30));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px rgba(8, 77, 151, .14);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+.landslide-route-shell .map-search > button:hover:not(:disabled),
+.landslide-route-shell .map-tools button:hover,
+.landslide-route-shell .draw-actions button:hover:not(:disabled),
+.landslide-route-shell .investigate-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(45, 157, 235, .48), rgba(35, 108, 198, .46));
+}
+
+.landslide-route-shell .action-bar {
+  height: 184px;
+  min-height: 184px;
+  max-height: 184px;
+  padding: 14px 18px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.landslide-route-shell .find-displacement-primary {
+  min-height: 42px;
+}
+
 @media (max-width: 760px) {
   .landslide-route-shell .map-search {
     top: 70px;
@@ -786,7 +817,10 @@
     left: 16px;
     width: auto;
     transform: none;
-    padding: 16px;
+    height: 176px;
+    min-height: 176px;
+    max-height: 176px;
+    padding: 13px 15px;
     border-radius: 24px;
   }
 
