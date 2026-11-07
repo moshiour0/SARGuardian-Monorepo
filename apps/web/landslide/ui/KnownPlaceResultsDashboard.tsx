@@ -31,6 +31,31 @@ function rate(pair: KnownPlacePairResult): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function rateInterval(pair: KnownPlacePairResult): [number, number] | null {
+  const value = pair.median_horizontal_displacement_rate_95pct_interval_m_per_day;
+  return Array.isArray(value) && value.length === 2
+    && Number.isFinite(value[0]) && Number.isFinite(value[1]) && value[0] <= value[1]
+    ? value
+    : null;
+}
+
+function rateUncertaintyLabel(pair: KnownPlacePairResult): string {
+  const interval = rateInterval(pair);
+  if (interval) {
+    return `Conditional spatial bootstrap 95%: ${interval[0].toFixed(3)}–${interval[1].toFixed(3)} m/day`;
+  }
+  if (pair.spatial_uncertainty_status === 'INSUFFICIENT_SPATIAL_BLOCKS') {
+    const available = pair.spatial_uncertainty_valid_block_count;
+    const required = pair.spatial_uncertainty_minimum_blocks_required;
+    return available !== null && required !== null
+      ? `No interval: ${available}/${required} valid blocks`
+      : 'No interval: insufficient spatial blocks';
+  }
+  return pair.spatial_uncertainty_status
+    ? `Interval unavailable: ${pair.spatial_uncertainty_status.replaceAll('_', ' ').toLowerCase()}`
+    : 'Spatial interval not reported';
+}
+
 function trackLabel(pair: Pick<KnownPlacePairResult, 'track' | 'direction'>): string {
   const track = pair.track || 'Unknown';
   const direction = pair.direction === 'A' ? 'Ascending' : pair.direction === 'D' ? 'Descending' : 'Unknown direction';
@@ -225,9 +250,10 @@ export function KnownPlaceResultsDashboard({
                   <span className="result-kicker">DIRECT ANSWER</span>
                   <h3>Measurements were computed, but this run does not yet establish a reliable site-wide movement rate.</h3>
                   <p>
-                    All {allPairs.length} intervals have pairwise GOFF metrics, but none has enough spatially independent
-                    blocks for a valid bootstrap uncertainty interval. The largest reported pair rate is shown below
-                    with its valid-pixel coverage and outlier flags so it is not mistaken for a confirmed site velocity.
+                    All {allPairs.length} intervals have pairwise GOFF metrics. A conditional spatial bootstrap interval
+                    is shown only where enough independent blocks are available; otherwise its bounds are withheld.
+                    The largest reported pair rate is shown below with valid-pixel coverage and outlier flags so it is
+                    not mistaken for a confirmed site velocity.
                     There are {result.pairwise_series_plan.chain_count} separate observation chain(s):
                     {' '}{chainLabels.map((chain) => chain.label).join('; ')}. They are not combined into one cumulative series.
                   </p>
@@ -303,7 +329,9 @@ export function KnownPlaceResultsDashboard({
                   <span className="known-place-chart-unit">metres per day · interval average</span>
                 </div>
                 <p className="known-place-chart-note">
-                  Each bar belongs to one acquisition pair. Bar lengths use a logarithmic visual scale so lower-rate intervals remain visible beside flagged high values.
+                  Each bar belongs to one acquisition pair. Bar lengths use a logarithmic visual scale. The conditional
+                  95% spatial block-bootstrap interval is shown when support is sufficient; it excludes systematic errors
+                  and is not a hazard probability.
                 </p>
                 <div className="known-place-rate-chart">
                   {allPairs.map((pair) => {
@@ -319,7 +347,10 @@ export function KnownPlaceResultsDashboard({
                         <div className="known-place-rate-track" role="img" aria-label={`${number(value, 3)} metres per day, ${supportLabel(pair)}`}>
                           <span className={caution ? 'is-caution' : ''} style={{ width: `${barWidth}%` }} />
                         </div>
-                        <strong className="known-place-rate-value">{number(value, 3)}</strong>
+                        <div className="known-place-rate-value">
+                          <strong>{number(value, 3)}</strong>
+                          <small>{rateUncertaintyLabel(pair)}</small>
+                        </div>
                       </div>
                     );
                   })}
@@ -420,7 +451,10 @@ export function KnownPlaceResultsDashboard({
                       {filteredPairs.map((pair) => (
                         <tr key={`${pair.chain_id}-${pair.reference_date}`}>
                           <td><strong>{pairTitle(pair)}</strong><small>{trackLabel(pair)}</small></td>
-                          <td>{number(rate(pair), 3)} m/day</td>
+                          <td>
+                            <strong>{number(rate(pair), 3)} m/day</strong>
+                            <small>{rateUncertaintyLabel(pair)}</small>
+                          </td>
                           <td>{supportLabel(pair)} <small>({percent(pair.valid_aoi_fraction)})</small></td>
                           <td>{pair.high_magnitude_flagged_pixels ?? '—'}</td>
                           <td>{number(pair.median_directional_coherence_R, 3)}</td>
