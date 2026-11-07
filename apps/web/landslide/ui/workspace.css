@@ -607,6 +607,7 @@
   left: 24px;
   width: min(460px, calc(100% - 112px));
   border-radius: 22px;
+  border: 0;
   padding: 8px 10px;
 }
 
@@ -619,11 +620,15 @@
   border: 0;
   border-radius: 14px;
   background: rgba(255, 255, 255, .48);
-  color: var(--find-ink);
+  color: #0b2233;
+  font-weight: 650;
 }
 
 .landslide-route-shell .workspace-search-input input::placeholder,
-.landslide-route-shell .google-place-autocomplete input::placeholder { color: var(--find-muted); }
+.landslide-route-shell .google-place-autocomplete input::placeholder {
+  color: #29475b;
+  opacity: 1;
+}
 
 .landslide-route-shell .map-search > button,
 .landslide-route-shell .investigate-button {
@@ -636,7 +641,11 @@
 
 .landslide-route-shell .map-search > button { min-height: 40px; padding-inline: 16px; }
 .landslide-route-shell .map-search small,
-.landslide-route-shell .selected-place { color: var(--find-ink); }
+.landslide-route-shell .selected-place {
+  color: #0b2233;
+  font-weight: 650;
+}
+.landslide-route-shell .map-search small { color: #173c54; font-weight: 650; }
 
 .landslide-route-shell .map-tools {
   top: 76px;
@@ -776,7 +785,8 @@
 .landslide-route-shell .draw-actions button,
 .landslide-route-shell .investigate-button {
   border-color: rgba(104, 190, 245, .58);
-  background: linear-gradient(135deg, rgba(28, 137, 223, .30), rgba(32, 92, 175, .30));
+  background: linear-gradient(135deg, #1689df, #075fb4);
+  color: #fff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px rgba(8, 77, 151, .14);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
