@@ -102,7 +102,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins(),
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["DELETE", "GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-SARGuardian-Google-Maps-Key"],
 )
 
@@ -587,10 +587,25 @@ def create_displacement_job(request: CreateDisplacementJobRequest, user: dict = 
 @app.get("/api/displacement-jobs", response_model=list[DisplacementJobResponse])
 def list_displacement_jobs(user: dict = Depends(get_current_user)) -> list[DisplacementJobResponse]:
     try:
-        records = _require_store().list_displacement_jobs(_required_owner_uid(user))
+        store = _require_store()
+        purge_expired = getattr(store, "purge_expired_displacement_jobs", None)
+        if callable(purge_expired):
+            purge_expired()
+        records = store.list_displacement_jobs(_required_owner_uid(user), limit=100)
     except PersistenceError:
         raise HTTPException(status_code=503, detail="Could not list displacement jobs.") from None
     return [_displacement_response(record) for record in records]
+
+
+@app.delete("/api/displacement-jobs/{job_id}", status_code=204)
+def delete_displacement_job(job_id: UUID, user: dict = Depends(get_current_user)) -> Response:
+    try:
+        deleted = _require_store().delete_displacement_job(_required_owner_uid(user), job_id)
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not delete the displacement job.") from None
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Only failed or cancelled jobs can be deleted.")
+    return Response(status_code=204)
 
 
 def _cancel_active_displacement_job(owner_uid: str, job_id: UUID, store) -> dict:

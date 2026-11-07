@@ -114,6 +114,8 @@ class JobStore(Protocol):
     def find_active_displacement_job(self, owner_uid: str, aoi_wkt: str, start_date: str, end_date: str) -> dict[str, Any] | None: ...
     def get_displacement_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...
     def get_displacement_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None: ...
+    def delete_displacement_job(self, owner_uid: str, job_id: UUID) -> bool: ...
+    def purge_expired_displacement_jobs(self, retention_days: int = 60) -> int: ...
     def update_displacement_job(self, job_id: UUID, values: dict[str, Any], *, expected_state: str | None = None, expected_sequence: int | None = None) -> dict[str, Any]: ...
     def create_known_place_request(self, values: dict[str, Any]) -> dict[str, Any]: ...
     def get_known_place_request(self, owner_uid: str, request_id: UUID, request_kind: str) -> dict[str, Any] | None: ...
@@ -317,6 +319,36 @@ class SupabaseJobStore:
             raise PersistenceError("Could not read the displacement job.") from None
         rows = self._data(response)
         return rows[0] if rows else None
+
+    def delete_displacement_job(self, owner_uid: str, job_id: UUID) -> bool:
+        try:
+            response = (
+                self.client.table("displacement_jobs")
+                .delete()
+                .eq("owner_uid", owner_uid)
+                .eq("id", str(job_id))
+                .in_("state", ["failed", "cancelled"])
+                .select("id")
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not delete the displacement job.") from None
+        return bool(self._data(response))
+
+    def purge_expired_displacement_jobs(self, retention_days: int = 60) -> int:
+        cutoff = (datetime.now(UTC) - timedelta(days=retention_days)).isoformat()
+        try:
+            response = (
+                self.client.table("displacement_jobs")
+                .delete()
+                .lt("created_at", cutoff)
+                .in_("state", ["failed", "cancelled", "succeeded"])
+                .select("id")
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not purge expired displacement jobs.") from None
+        return len(self._data(response))
 
     def update_displacement_job(self, job_id: UUID, values: dict[str, Any], *, expected_state: str | None = None, expected_sequence: int | None = None) -> dict[str, Any]:
         try:

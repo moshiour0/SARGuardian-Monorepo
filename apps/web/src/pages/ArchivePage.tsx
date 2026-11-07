@@ -22,6 +22,7 @@ export function ArchivePage({ user, authState, onSignIn, onSignOut, onOpenWorksp
         onSignIn={onSignIn}
         onSignOut={onSignOut}
         isArchivePage
+        hideSignIn
       />
       <main className="home-main archive-main">
         <div className="archive-page-heading">
@@ -36,7 +37,7 @@ export function ArchivePage({ user, authState, onSignIn, onSignOut, onOpenWorksp
             </button>
           )}
         </div>
-        <ArchiveSection user={user} onSignIn={onSignIn} onOpenWorkspace={onOpenWorkspace} />
+        <ArchiveSection user={user} onOpenWorkspace={onOpenWorkspace} />
       </main>
       <Footer />
     </div>

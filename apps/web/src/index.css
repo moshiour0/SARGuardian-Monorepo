@@ -512,6 +512,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 }
 .archive-state-succeeded { border-color: rgba(135,205,177,.42); color: #bce7d4; }
 .archive-state-failed { border-color: rgba(228,151,151,.42); color: #ffc3c3; }
+.archive-failure-message { display: block; color: #ffc3c3 !important; }
+.archive-retention-note { margin: 0 0 10px; color: rgba(213,231,234,.67); font-size: 11px; }
+.archive-delete-action { border-color: rgba(228,151,151,.55); color: #ffd1d1; background: rgba(105,28,34,.45); }
+.archive-delete-action:hover { background: rgba(135,37,44,.68); color: #fff; }
 .archive-job-id, .archive-item small { color: rgba(213,231,234,.67); font-size: 10px; }
 .archive-item h3 { margin: 8px 0 3px; color: #f6fbfc; font-size: 14px; font-weight: 700; }
 .archive-item p { margin: 0 0 4px; color: rgba(227,241,243,.82); font-size: 11px; }
@@ -2082,6 +2086,9 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 }
 
 .claude-nav-shell.is-archive .claude-nav-links {
+  margin-left: auto;
+}
+.claude-nav-shell.is-archive .archive-home-link {
   margin-left: auto;
 }
 

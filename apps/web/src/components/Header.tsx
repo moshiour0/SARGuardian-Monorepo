@@ -13,9 +13,10 @@ type HeaderProps = {
   hideProfile?: boolean;
   showPageTitle?: boolean;
   hideHowItWorks?: boolean;
+  hideSignIn?: boolean;
 };
 
-export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false, hideProfile = false, showPageTitle = false, hideHowItWorks = false }: HeaderProps) {
+export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false, hideProfile = false, showPageTitle = false, hideHowItWorks = false, hideSignIn = false }: HeaderProps) {
   return (
     <header className={`claude-nav-shell${isArchivePage ? ' is-archive' : ''}`}>
       <div className="claude-nav-inner">
@@ -25,13 +26,13 @@ export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, on
         </a>
         {showPageTitle && <span className="claude-nav-title">Find displacement</span>}
         <nav className="claude-nav-links" aria-label="Main navigation">
-          {isArchivePage ? <a href="/">Home</a> : (
+          {isArchivePage ? <a className="archive-home-link" href="/">Home</a> : (
             <>
               {!hideHowItWorks && <button className="claude-nav-how claude-how-button" type="button" onClick={onOpenHowItWorks}>How it works</button>}
               <button className="claude-archive-button" type="button" onClick={onOpenArchive}>Archive</button>
             </>
           )}
-          {!hideProfile && user ? <ProfileControl user={user} onSignOut={onSignOut} /> : !hideProfile ? (
+          {!hideProfile && user ? <ProfileControl user={user} onSignOut={onSignOut} /> : !hideProfile && !hideSignIn ? (
             <button className="claude-signin-button" type="button" onClick={onSignIn} disabled={authState === 'loading'}>
               {authState === 'loading' ? 'Signing in…' : 'Sign in'}
             </button>

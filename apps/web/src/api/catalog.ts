@@ -416,6 +416,17 @@ export async function listDisplacementJobs(user: Pick<User, 'getIdToken'> | null
   );
 }
 
+export async function deleteDisplacementJob(jobId: string, user: Pick<User, 'getIdToken'> | null): Promise<void> {
+  const safeId = jobId.trim();
+  if (!safeId) throw new Error('A displacement job ID is required.');
+  await readAuthenticatedPayload<DisplacementJob>(
+    `${API_BASE}/api/displacement-jobs/${encodeURIComponent(safeId)}`,
+    user,
+    'Could not delete the failed displacement job.',
+    { method: 'DELETE' },
+  );
+}
+
 export async function resubmitDisplacementJob(
   jobId: string,
   idempotencyKey: string,

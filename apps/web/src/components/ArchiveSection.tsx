@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { listDisplacementJobs, type DisplacementJob } from '../api/catalog';
+import { deleteDisplacementJob, listDisplacementJobs, type DisplacementJob } from '../api/catalog';
 import { ScientificResults } from '../../landslide/ui/ScientificResults';
 import { hasScientificResultOutputs } from '../../landslide/ui/resultAvailability';
 
@@ -11,11 +11,17 @@ function formatDate(value: string): string {
     : date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function retentionDate(createdAt: string): string {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return 'after 60 days';
+  return formatDate(new Date(created.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString());
+}
 
-export function ArchiveJobCard({ job, user, onOpenWorkspace }: {
+export function ArchiveJobCard({ job, user, onOpenWorkspace, onDeleted }: {
   job: DisplacementJob;
   user: User;
   onOpenWorkspace: () => void;
+  onDeleted: (jobId: string) => void;
 }) {
   const isActive = ['queued', 'dispatching', 'running'].includes(job.state);
   const hasResults = job.state === 'succeeded' && hasScientificResultOutputs(job);
@@ -30,6 +36,12 @@ export function ArchiveJobCard({ job, user, onOpenWorkspace }: {
         <h3>{job.place_name || 'AOI-wide displacement analysis'}</h3>
         <p>{formatDate(job.start_date)} – {formatDate(job.end_date)}</p>
         <small>Updated {formatDate(job.updated_at)} · {job.stage}</small>
+        <small>Archive retention until {retentionDate(job.created_at)}</small>
+        {job.state === 'failed' && (
+          <small className="archive-failure-message">
+            Failed: {job.error_message || job.error_code || 'The analysis did not complete.'}
+          </small>
+        )}
       </div>
       <div className="archive-item-actions">
         {isActive && (
@@ -38,6 +50,31 @@ export function ArchiveJobCard({ job, user, onOpenWorkspace }: {
         {hasResults && <span className="archive-result-ready">Verified outputs ready</span>}
         {job.state === 'succeeded' && !hasResults && (
           <span className="archive-result-unavailable">No verified result bundle</span>
+        )}
+        {hasResults && (
+          <a
+            className="section-action"
+            href={`/dashboard?jobId=${encodeURIComponent(job.id)}&view=public`}
+          >
+            Open interactive dashboard
+          </a>
+        )}
+        {job.state === 'failed' && (
+          <button
+            className="section-action archive-delete-action"
+            type="button"
+            onClick={() => {
+              if (window.confirm('Delete this failed analysis from your archive?')) {
+                void deleteDisplacementJob(job.id, user)
+                  .then(() => onDeleted(job.id))
+                  .catch((error: unknown) => {
+                    window.alert(error instanceof Error ? error.message : 'Could not delete this failed analysis.');
+                  });
+              }
+            }}
+          >
+            Delete failed job
+          </button>
         )}
       </div>
       {hasResults && (
@@ -58,9 +95,8 @@ export function ArchiveJobCard({ job, user, onOpenWorkspace }: {
   );
 }
 
-export function ArchiveSection({ user, onSignIn, onOpenWorkspace }: {
+export function ArchiveSection({ user, onOpenWorkspace }: {
   user: User | null;
-  onSignIn: () => void;
   onOpenWorkspace: () => void;
 }) {
   const [jobs, setJobs] = useState<DisplacementJob[]>([]);
@@ -102,7 +138,6 @@ export function ArchiveSection({ user, onSignIn, onOpenWorkspace }: {
         <div className="archive-empty">
           <strong>Sign in to view your analysis history.</strong>
           <p>Only jobs belonging to your account are shown here.</p>
-          <button className="section-action" type="button" onClick={onSignIn}>Sign in</button>
         </div>
       )}
       {state === 'loading' && <p className="section-status" role="status">Loading account analysis history…</p>}
@@ -121,8 +156,11 @@ export function ArchiveSection({ user, onSignIn, onOpenWorkspace }: {
       )}
       {state === 'ready' && jobs.length > 0 && (
         <div className="archive-list">
-          {jobs.slice(0, 5).map((job) => (
-            <ArchiveJobCard key={job.id} job={job} user={user!} onOpenWorkspace={onOpenWorkspace} />
+          <p className="archive-retention-note">Failed and completed jobs are automatically removed 60 days after creation.</p>
+          {jobs.map((job) => (
+            <ArchiveJobCard key={job.id} job={job} user={user!} onOpenWorkspace={onOpenWorkspace} onDeleted={(jobId) => {
+              setJobs((current) => current.filter((item) => item.id !== jobId));
+            }} />
           ))}
         </div>
       )}
