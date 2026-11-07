@@ -28,6 +28,10 @@ The challenge asks teams to use NISAR radar data to make Earth's changing surfac
 
 These quantities are different. Keeping their units, geometry and interpretation separate is part of the design.
 
+## Architecture at a glance
+
+The [architecture diagram](ARCHITECTURE_OVERVIEW.md) shows how the four user-facing workflows connect to the three NISAR measurement paths and the shared evidence layer.
+
 ## The user experience
 
 A first-time user should understand the core sequence:
