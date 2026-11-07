@@ -1,345 +1,287 @@
-# SARGuardian — Local Score Sheet Audit
-## প্রতিটি criterion-এর score, evidence এবং score বাড়ানোর কাজ
+# SARGuardian — Revised Local Score-Sheet Audit
+## Evidence, corrected impact framing, revised scores and judge-facing strategy
 
-**তারিখ:** ৭ নভেম্বর ২০২৬  
+**Review date:** ৭ নভেম্বর ২০২৬  
 **Project:** SARGuardian — Earth in Sight  
 **Challenge:** Dancing with the SARs  
 **Category:** Earth Science  
-**Rubric:** Project Library-এর Score Sheet.md  
-**ধরন:** Evidence-based desk review; এটি official judge score নয়।
+**Rubric:** Project Library-এর supplied Score Sheet.md  
+**Review type:** Evidence-based desk estimate; official NASA judge score নয়।
 
-> **বর্তমান মূল্যায়ন: ৯০ / ১১৮ (৭৬.৩%) — bonus-এর আগে।**
-> Headline criteria: **৭৯ / ১০০**। Additional criteria: **১১ / ১৮**।
-> Women participation bonus যোগ করা হয়নি, কারণ registered team roster যাচাই করা হয়নি।
+> **Revised evidence-based estimate: ৯৮ / ১১৮ (৮৩.১%) — bonus-এর আগে।**  
+> Headline criteria: **৮৬ / ১০০**। Additional criteria: **১২ / ১৮**।  
+> এই revision-এ NISAR data-release limitation-কে SARGuardian-এর failure হিসেবে গণনা করা হয়নি। Teamwork score contribution graph/CSV ও member-level evidence যাচাই না হওয়া পর্যন্ত provisional রাখা হয়েছে।
 
-Score sheet-এ ১১টি criterion আছে। নিচে প্রতিটি criterion-এর বর্তমান score, তার পক্ষে প্রমাণ, কেন পূর্ণ নম্বর দেওয়া হয়নি এবং কী করলে score বাড়বে তা আলাদা করে দেওয়া হয়েছে। Planned work-কে completed evidence হিসেবে গণনা করা হয়নি।
+## ১. Revised score summary
 
-## ১. Score summary
+| # | Criterion | Maximum | Revised estimate | কেন |
+|---:|---|---:|---:|---|
+| 1 | Impact | 20 | **18** | চারটি workflow, target-free AOI discovery, live AOI-driven processing এবং NISAR observation-plan coverage যেখানে available—global applicability শক্তিশালী |
+| 2 | Creativity | 20 | **18** | discovery → candidate traceability → user-defined measurement → evidence chain; সঙ্গে পৃথক GCOV RiverShift engine |
+| 3 | Validity | 20 | **16** | product-specific measurement semantics, real NISAR runs, provenance/quality gates, regression ও reproducibility; independent physical validation এখনও সীমিত |
+| 4 | Relevance | 20 | **19** | NISAR GUNW/GOFF/GCOV-ই মূল measurement input |
+| 5 | Presentation | 20 | **15** | product ও evidence শক্তিশালী; final 4-minute video, short cut এবং public submission media এখনও তৈরি/প্রকাশের অপেক্ষায় |
+| 6 | Teamwork | 5 | **1 provisional** | user-reported two-person contribution ও graph evidence এখনও member-level ভাবে এই review-তে verify করা যায়নি |
+| 7 | User experience | 5 | **4** | Public, Explorer এবং Scientific audience অনুযায়ী তিন স্তরের dashboard; first-time-user/accessibility validation এখনও নেই |
+| 8 | NASA data usage | 5 | **5** | NISAR measurement data + NASA/ASF discovery; third-party/contextual sources role-separated |
+| 9 | Challenge category identified | 1 | **1** | “Dancing with the SARs” / “Earth Science” চিহ্নিত |
+| 10 | Repository access | 1 | **1** | Backend, Dynamic ও Monorepo public |
+| 11 | Project page complete | 1 | **0** | draft আছে; official submission complete/confirmed হওয়ার evidence নেই |
+|  | **TOTAL** | **118** | **98** | **83.1%** |
 
-| # | Criterion | Maximum | Current | Gap | সংক্ষিপ্ত কারণ |
-|---:|---|---:|---:|---:|---|
-| 1 | Impact | 20 | **16** | 4 | গুরুত্বপূর্ণ use case ও চারটি entry point আছে; independent real-world impact ও case breadth সীমিত |
-| 2 | Creativity | 20 | **16** | 4 | AOI-first, multi-engine ও evidence workflow মৌলিক; নতুন independently validated algorithm দাবি করা যায় না |
-| 3 | Validity | 20 | **13** | 7 | engineering/provenance/reproducibility শক্তিশালী; independent physical validation ও held-out detection evidence অসম্পূর্ণ |
-| 4 | Relevance | 20 | **19** | 1 | Challenge-এর সঙ্গে সরাসরি সামঞ্জস্য; NISAR মূল measurement source |
-| 5 | Presentation | 20 | **15** | 5 | live product ও technical documents আছে; final public video ও submitted project page নেই |
-| 6 | Teamwork | 5 | **1** | 4 | role plan আছে; inspected GitHub history-তে অন্য সদস্যদের attributable contribution দেখা যায়নি |
-| 7 | User experience | 5 | **3** | 2 | workflow guidance আছে; first-time-user study/accessibility evidence নেই |
-| 8 | NASA data usage | 5 | **5** | 0 | NISAR GUNW/GOFF/GCOV মূল data; third-party context/source roles আলাদা |
-| 9 | Challenge category identified | 1 | **1** | 0 | challenge ও category চিহ্নিত |
-| 10 | Repository access | 1 | **1** | 0 | তিনটি GitHub repository public |
-| 11 | Project page complete | 1 | **0** | 1 | draft আছে; official submission এখনো খোলেনি, submitted state নেই |
-|  | **TOTAL** | **118** | **90** | **28** | **76.3%** |
+এটি আগের ৯০/১১৮ desk estimate থেকে **+৮ points** সংশোধন। এটি judge guarantee নয়; বিচারকরা নিজস্ব interpretation প্রয়োগ করবেন।
 
-### Bonus
+### Local bonus
 
-Score sheet অনুযায়ী registered team-এ এক বা একাধিক নারী সদস্য থাকলে aggregate score-এর উপর ৫% bonus। এটি এখন যোগ করা হয়নি।
+Supplied local score sheet-এ registered team-এ এক বা একাধিক নারী সদস্য থাকলে aggregate-এর উপর +৫% বলা আছে। Registered roster verify না হওয়ায় এটি যোগ করা হয়নি। Eligibility প্রমাণিত হলে ৯৮ × ১.০৫ = **১০২.৯**।
 
-- Eligible হলে বর্তমান ৯০ × ১.০৫ = **৯৪.৫**।
-- Eligibility না থাকলে score **৯০/১১৮**।
-- নাম বা profile দেখে অনুমান নয়; registered team roster যাচাই করতে হবে।
-
-NASA-এর official 2026 page অনুযায়ী Project submission খুলবে **১৪ নভেম্বর ২০২৬ সকাল ৯টা** এবং বন্ধ হবে **১৫ নভেম্বর রাত ১১:৫৯ local time**। তাই এখন Project Page Complete-এ ০/১; এটি feature ঘাটতি নয়, submission এখনো খোলেনি বলেই। Project page পূরণ, submit এবং confirmation পাওয়ার পরই ১ নম্বর হবে।  
-Official schedule: https://www.spaceappschallenge.org/2026/  ( <https://www.spaceappschallenge.org/2026/> )
+NASA official 2026 submission window: **১৪ নভেম্বর ২০২৬ সকাল ৯টা থেকে ১৫ নভেম্বর ২০২৬ রাত ১১:৫৯ local time**। Submission সম্পন্ন ও confirmation পাওয়া ছাড়া Project Page Complete = ১ হবে না।
 
 ---
 
-## ২. Headline criteria: ৭৯ / ১০০
+## ২. Corrected global-impact framing: data availability ≠ product coverage failure
 
-### 1 — Impact: ১৬ / ২০
+এই পার্থক্যটি judge-facing narrative-এ স্পষ্ট রাখতে হবে।
 
-**Rubric:** সমস্যার scale/significance এবং সমাধান কতদূর পৌঁছায়।
+NASA/ASF-এর প্রকাশিত তথ্য অনুযায়ী:
+- NISAR provisional L-band public release শুরু হয়েছে **২০ জুলাই ২০২৬**।
+- ওই provisional release-এ **১৭ জুন ২০২৬ বা তার পরের acquisition** অন্তর্ভুক্ত।
+- নতুন acquisition-এর L1–L3 products processing-এর পর archive-এ যোগ হতে থাকে; product maturity-ও প্রকাশ করতে হয়।
+- data coverage/reference observation plan mission-এর; user-এর AOI-তে উপযুক্ত acquisition না থাকলে application নতুন satellite observation তৈরি করতে পারে না।
 
-**যে evidence ১৬ নম্বর সমর্থন করে**
-- Landslide, Glacier Movement, Known Place Analysis ও RiverShift—চারটি user-facing workflow।
-- Landslide এবং Glacier Movement একই target-free AOI-wide Find Displacements engine ব্যবহার করে; ব্যবহারকারীকে আগেই target coordinate জানতে হয় না।
-- RiverShift AOI ও date window নিয়ে কাজ করার মতো global-first workflow।
-- Jamuna–Chowhali demonstration-এ ছয়টি বাস্তব NISAR GCOV acquisition date প্রক্রিয়া হয়েছে।
-- Run #36-এর candidate-area output পরে checksum-bound retrospective replay-তে retained six COG থেকে পুনরুৎপাদিত হয়েছে।
-- OpenStreetMap building/facility context আলাদা layer হিসেবে দেখানো যায়; এটিকে confirmed damage inventory বলা হয় না।
+অতএব সঠিক product claim:
 
-**Evidence**
-- Find Displacements run #42097077601: https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601
-- RiverShift Run #36 #41803576163: https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163
-- RiverShift replay #41926490047: https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926490047
+> **“SARGuardian is AOI-driven and globally applicable wherever compatible NISAR acquisitions are available in the public archive. It discovers the available products for the selected place and time, runs the matching processing path, and reports when coverage or product compatibility is insufficient.”**
 
-**কেন ২০ নয়**
-- বিস্তারিত public real-data case প্রধানত একটি RiverShift example-এ কেন্দ্রীভূত।
-- Global-first architecture থাকলেই সব অঞ্চলে validated operational coverage প্রমাণ হয় না।
-- বর্তমান outputs screening candidates; confirmed house damage, affected population, lives saved, sediment volume বা field-measured bank migration নয়।
-- Glacier-specific independently validated physical case একই evidence level-এ নেই।
-- কোনো user/adopter কত সময় বাঁচাল বা কোন decision বদলাল—তার documented evidence নেই।
+এটি বলা যাবে না:
+- “Every place has data for every date.”
+- “Continuous global monitoring.”
+- “Daily measurements everywhere.”
+- “No data means SARGuardian failed.”
 
-**কী করলে বাড়বে**
-1. Landslide, Glacier Movement এবং RiverShift—প্রতি workflow-এ অন্তত একটি reproducible case study প্রকাশ করুন: exact AOI, acquisition IDs/dates, source manifest, result map ও validation status।
-2. প্রতিটি case-এ dated exposure context যোগ করুন; building/facility context-কে complete asset inventory বা confirmed damage বলবেন না।
-3. একটি নির্দিষ্ট decision-support outcome দেখান—যেমন evidence-ভিত্তিক inspection prioritisation। বাস্তবে প্রমাণ না থাকলে lives saved/damage prevented দাবি করবেন না।
-4. কোন অঞ্চল ও date window-তে compatible NISAR data পাওয়া যায় তা প্রকাশ করুন; continuous global monitoring বলবেন না।
+Data না পাওয়া, acquisition না থাকা, product এখনও release না হওয়া, অথবা product compatibility না থাকা—এগুলো আলাদা state। UI-তে স্পষ্ট NO_DATA / INSUFFICIENT_COVERAGE বা equivalent state থাকলে সেটি স্বচ্ছতার প্রমাণ। তবে ভুল AOI/date handling, broken catalogue query, failed download বা failed worker হলো application-side failure—সেগুলোকে NASA data constraint বলে চালানো যাবে না।
 
-**Target:** ১৮–১৯/২০, যদি নতুন case ও impact evidence পাওয়া যায়।
+**Official references:**  
+- [ASF: NISAR L-band data now publicly available — 21 July 2026](https://asf.alaska.edu/notices/nisar-l-band-data-now-publicly-available/)  
+- [ASF NISAR data availability and maturity guide](https://hyp3-docs.asf.alaska.edu/nisar-docs/availability-overview/)  
+- [NASA NISAR mission overview](https://science.nasa.gov/mission/nisar/)
 
-### 2 — Creativity: ১৬ / ২০
+## ৩. Headline criteria: ৮৬ / ১০০
 
-**Rubric:** ধারণা ও execution-এর originality।
+### 1 — Impact: ১৮ / ২০
 
-**যে evidence ১৬ নম্বর সমর্থন করে**
-- AOI-first discovery; আগে থেকে anomaly coordinate দিতে হয় না।
-- Landslide ও Glacier Movement একই shared discovery engine-এর contextual entry point।
-- Known Place-এ Measurement Polygon এবং Reference Polygon আলাদা।
-- RiverShift স্বতন্ত্র GCOV engine; এটি Landslide workflow-এর rename নয়।
-- Acquisition discovery, পৃথক result layers, observed-date playback, provenance ও quality states এক user journey-তে আনা হয়েছে।
-- GOFF, GUNW ও GCOV আলাদা measurement semantics-এ রাখা হয়েছে।
+**Why 18 is defensible**
 
-**কেন ২০ নয়**
-- মূল measurement primitives প্রতিষ্ঠিত NISAR product usage; originality প্রধানত integration ও evidence workflow-এ, নতুন independently validated science algorithm-এ নয়।
-- চারটি feature card আসলে কয়টি processing engine—তা judge-কে দ্রুত বোঝাতে হবে।
-- End-to-end discovery-to-measurement demonstration-এর final public video নেই।
-- Conventional manual workflow-এর তুলনায় কী নতুন সুবিধা, তার documented comparison নেই।
+SARGuardian-এর impact claim শুধু satellite imagery map-এ দেখানো নয়। ব্যবহারকারী কোনো আগাম target coordinate না জেনেও একটি area ও date window দিয়ে অনুসন্ধান শুরু করতে পারে; available compatible NISAR products থেকে system candidate/measurement তৈরি করে এবং তা evidence-এর সঙ্গে যুক্ত রাখে।
 
-**কী করলে বাড়বে**
-1. AOI scan → GOFF candidate → suggested Measurement Polygon → user-edited Measurement + Reference Polygon → Known Place result—পুরো chain বাস্তব run দিয়ে দেখান।
-2. GOFF ও GUNW কেন পৃথক, একটি উদাহরণে ব্যাখ্যা করুন।
-3. মূল differentiator স্পষ্ট করুন: “Start with an area, not a known target; trace every candidate to the observations that produced it.”
-4. Manual বনাম SARGuardian workflow-এর steps ও evidence তুলনা করুন; সময় না মাপলে speed claim করবেন না।
+চারটি user-facing workflow:
+1. **Landslide screening:** target-free Find Displacements AOI scan।
+2. **Glacier Movement screening:** একই displacement engine glacier/ice study context-এ।
+3. **Known Place Analysis:** Measurement Polygon বনাম আলাদা Reference Polygon-এ pairwise measurement।
+4. **RiverShift:** স্বাধীন GCOV river-water ও land/water-transition screening engine।
 
-**Target:** ১৮/২০।
-
-### 3 — Validity: ১৩ / ২০
-
-**Rubric:** scientific soundness, technical feasibility ও usability।
-
-**যে evidence ১৩ নম্বর সমর্থন করে**
-- GUNW phase/LOS, GOFF offsets এবং GCOV covariance/backscatter তাদের নিজস্ব ভূমিকার জন্য ব্যবহার করা হয়।
-- Source-product provenance, acquisition date এবং product/geometry/valid-support checks আছে।
-- Find Displacements AOI run-এ processing, failed-only GUNW retry, dashboard assembly ও terminal callback সম্পন্ন হয়েছে।
-- RiverShift Run #36 ছয়টি বাস্তব GCOV date প্রক্রিয়া করেছে; retrospective checksum-bound replay তিনটি candidate-area output পুনরুৎপাদন করেছে।
-- RiverShift full-resolution source-mask overlap QA এবং preview geometry diagnostics আলাদাভাবে রাখে।
-- Backend RiverShift worker suite-এর 259 tests এবং Known Place PR #8 head-এর Monorepo Snapshot Regression সফল হওয়ার evidence আছে।
-- Public wording structural/provenance PASS এবং independent validation-কে আলাদা রাখে।
+Global reach-এর সঠিক ব্যাখ্যা হলো: user-defined AOI, global observation-plan footprint এবং public archive-এ available compatible acquisitions-এর intersection। NISAR-এর সব location/date archive-এ একসঙ্গে থাকা SARGuardian-এর পূর্বশর্ত নয়; system-এর কাজ হলো যা available সেটি খুঁজে উপযুক্ত workflow চালানো এবং যা নেই সেটি স্পষ্টভাবে জানানো।
 
 **Evidence**
-- Find Displacements: https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601
-- RiverShift worker tests: https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926825076
-- RiverShift Run #36: https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163
-- RiverShift replay: https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926490047
-- Known Place generic run #42321054100: https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42321054100
-- Known Place regression #42327901627: https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42327901627
+- [Find Displacements live processing run #42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601)
+- [RiverShift Run #36 — six actual GCOV dates](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163)
+- [RiverShift retained-data replay #41926490047](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926490047)
+- [Live SARGuardian application](https://sar-guardian-dynamic-lilac.vercel.app)
 
-**কেন বেশি নয়**
-- Software regression ও reproducibility independent physical validation নয়।
-- Find Displacements GOFF ফল exploratory offset-anomaly candidate; held-out positive/control AOI দিয়ে operational precision, recall, false-alarm rate ও sensitivity প্রতিষ্ঠিত হয়নি।
-- GUNW LOS-only; এটি নিজে থেকে 3-D বা downslope velocity নয় এবং compatible network/reference support দরকার।
-- Known Place generic run #42321054100-এর status ছিল PARTIAL_SCIENTIFIC_METRICS; সব pair/track পর্যাপ্ত reference support পায়নি।
-- Reference Polygon আঁকলেই stable প্রমাণ হয় না।
-- Bhote Koshi P05023 path-এর headline numerical agreement প্রায় ০.৯৬ m / ৪ cm/day; কিন্তু exact editable author crown geometry ও author-side null/control-generation details পুরোপুরি মেলেনি। Complete paper reproduction বলা যাবে না।
-- PR #8-এ conditional spatial block-bootstrap interval-এর কাজ আছে, কিন্তু PR এখনো Draft/Open; এটি production-এ deployed বলে গণনা করা হয়নি।
-- RiverShift Run #36 independent reference status PROVISIONAL / NO_MATCH_NO_SCORE; কোনো F1/IoU score নেই। এটি zero accuracy নয়, eligible reference অনুপস্থিত।
-- RiverShift low-backscatter water screening এবং persistent land/water transition candidate method; field-confirmed geomorphic change নয়।
+**Why not 20 yet**
+- Public case studies ও decision-support impact আরও বিস্তৃতভাবে দেখাতে হবে।
+- Platform global AOI-driven হলেও প্রতিটি continent/terrain-এ একই level-এর successful physical case প্রমাণ করা হয়নি।
+- Candidate outputs-কে confirmed damage, lives saved, field-measured erosion বা emergency warning বলা যায় না।
+- User/adopter outcome—যেমন inspection prioritisation-এর documented use—এখনও সীমিত।
 
-**কী করলে বাড়বে**
-1. Find Displacements-এর জন্য frozen held-out validation set তৈরি করুন—positive event ও non-event/control AOI দুটোই থাকবে। Detection rate, precision, recall, false-alarm rate, minimum detectable signal, spatial-block uncertainty ও failure cases প্রকাশ করুন। Held-out data দিয়ে threshold tune করবেন না।
-2. GOFF-এ component-specific uncertainty, correlation-peak/SNR diagnostics এবং multi-resolution consistency যাচাই করুন।
-3. GUNW-এর AOI-wide common-reference strategy ও independent stability assessment প্রকাশ করুন; LOS result GOFF থেকে আলাদা রাখুন।
-4. Known Place-এ reference valid pixel/fraction, median, spread, outlier ও support ratio প্রকাশ করুন; Measurement Polygon-কে reference sample থেকে বাদ দিন; support কম হলে result/interval withhold করুন।
-5. RiverShift-এর জন্য suitable date-matched external water reference বা independently reviewed water/non-water mask আনুন এবং common-support gate পাস হলে confusion matrix, precision, recall, F1, IoU, area bias ও spatial uncertainty দিন।
-6. Signed bank migration claim করতে comparable water stage-এ dated banklines এবং oriented transect দরকার।
-7. NO_MATCH_NO_SCORE gate দুর্বল করবেন না; score বাড়াতে fabricated PASS/accuracy দেবেন না।
+**How to earn 19–20**
+- তিনটি engine path জুড়ে বহু-region real-data case cards; প্রতিটিতে AOI, acquisition date, product ID, run link, actual output এবং interpretation boundary।
+- কোথায় data available/insufficient ছিল—দুই ধরনের case-ই দেখান; এটি coverage transparency প্রমাণ করে।
+- বাস্তব user story দেখান: কোন analyst বা researcher কীভাবে candidate review বা inspection priority বদলেছেন। অনুমান নয়, documented feedback।
+- প্রতিটি workflow-এর public result page-এ source manifest ও reproducibility link রাখুন।
 
-**Target:** held-out ও independent validation বাস্তবে সম্পন্ন হলে ১৬–১৮/২০; রিপোর্ট ছাড়া বাড়তি নম্বর দাবি করা যাবে না।
+### 2 — Creativity: ১৮ / ২০
+
+**মূল creative differentiator**
+
+এটিকে চারটি menu card বা “একটি AI map” হিসেবে উপস্থাপন করবেন না। সবচেয়ে গুরুত্বপূর্ণ originality হলো একটি connected evidence workflow:
+
+**AOI-first discovery → no-target candidate search → candidate-to-source traceability → user-controlled Measurement/Reference geometry → method-specific measurement → provenance and quality evidence.**
+
+তার সঙ্গে RiverShift একটি পৃথক GCOV engine হিসেবে চলে; GUNW, GOFF এবং GCOV-কে এক synthetic metric-এ মেশানো হয় না।
+
+**Creative system elements**
+- User-কে আগে থেকে anomaly coordinate দিতে হয় না।
+- Find Displacements AOI scan থেকে পাওয়া candidate-কে Known Place-এর suggested Measurement Polygon workflow-তে নিয়ে যাওয়ার পথ আছে; geometry simplify/validate হয়, unsupported geometry নীরবে বাদ যায় না।
+- Known Place-এ Measurement Polygon ও Reference Polygon-এর ভূমিকা আলাদা; user selection ও reference support প্রকাশিত হয়।
+- RiverShift-এর আলাদা GCOV method actual acquisition dates, observed water এবং persistent transition candidates আলাদা করে।
+- তিন স্তরের dashboard একই underlying evidence-কে audience অনুযায়ী উপস্থাপন করে: Public / Explorer / Scientific।
+
+**Judge-facing one-liner**
+
+> **“Start with a place, not a known target. Discover candidate change, measure a selected area against an explicit reference, and trace every result back to the NISAR observations that produced it.”**
+
+**Why not 20 yet**
+- অন্য কোনো team বা product-এরই এমন system নেই—এমন universal priority claim করতে comparative market/research review হয়নি।
+- Creativity-র বড় অংশ orchestration, workflow design, measurement provenance ও usability integration-এ; নতুন radar physics বা independently validated algorithm claim করা হচ্ছে না।
+- পুরো chain-এর একটি uninterrupted real-data demonstration final video-তে এখনও নেই।
+
+**How to earn 19–20**
+- AOI → source catalog → candidate → suggested measurement geometry → user-edited two polygons → measured output → evidence manifest—একই real run-এ দেখান।
+- Manual conventional workflow-এর সঙ্গে steps/required expertise/evidence traceability তুলনা করুন; time-saving number মাপা ছাড়া বলবেন না।
+- Explain করুন কেন GUNW, GOFF এবং GCOV-কে আলাদা রাখা বৈজ্ঞানিকভাবে জরুরি।
+- Public, Explorer, Scientific modes-এ একই result-এর তিনটি explanatory depth দেখান।
+
+### 3 — Validity: ১৬ / ২০
+
+**এই ১৬ নম্বরের ভিত্তি**
+
+Validity মানে শুধু external accuracy score নয়। Local rubric-এর তিনটি অংশ হলো scientific soundness, technical feasibility এবং usability। SARGuardian-এর science claims product-specific; actual NISAR inputs, geometry/support checks, provenance, run history এবং regression tests দিয়ে technical feasibility দেখানো যায়।
+
+**Evidence**
+- GUNW = relative line-of-sight displacement diagnostic; GOFF = pairwise range/along-track offsets; GCOV = covariance/backscatter-based river screening।
+- GOFF candidate ও GUNW LOS এক metric-এ fuse করা হয় না।
+- Find Displacements actual AOI run #42097077601-এর processing, failed-only recovery, result assembly ও terminal callback record আছে।
+- RiverShift Run #36 ছয়টি actual GCOV acquisition date process করেছে; checksum-bound replay তিনটি candidate-area output পুনরুৎপাদন করেছে।
+- RiverShift worker suite-এর 259 tests-এর successful run record আছে।
+- Known Place regression run #42327901627 PR #8 head-এ successful; generic AOI run #42321054100 result PARTIAL_SCIENTIFIC_METRICS—পূর্ণ pair/track support নয়।
+- PASS, physical validation, candidate, measurement, replay এবং independent reference score আলাদা state হিসেবে রাখা হয়েছে।
+
+**Independent validation still limits the ceiling**
+- GOFF anomaly candidate কোনো confirmed landslide/glacier event নয়।
+- GUNW LOS component একা 3-D/downslope velocity নয়।
+- Known Place Reference Polygon geometric ভাবে আলাদা হলেই stable প্রমাণ হয় না।
+- Bhote Koshi P05023 path-এর প্রায় 0.96 m / 4 cm/day headline agreement complete author-exact paper replication নয়; exact editable crown geometry ও author-side null/control details অসম্পূর্ণ।
+- RiverShift Run #36-এর reference status NO_MATCH_NO_SCORE / PROVISIONAL; উপযুক্ত external match না থাকায় F1/IoU দেওয়া হয়নি।
+
+**Why ১৬ rather than ১৩**
+
+১৩-র আগের estimate software reproducibility ও method-specific quality controls-কে তুলনামূলকভাবে কম weight দিয়েছিল। বাস্তব NISAR products process, source lineage trace, product-appropriate measurement semantics বজায় রাখা, failed item recovery, checksum replay এবং 259 worker tests—এসব technical feasibility ও method implementation-এর বাস্তব evidence। এগুলো external geophysical validation-এর বিকল্প নয়; কিন্তু validity score-এর গুরুত্বপূর্ণ অংশ।
+
+**How to reach ১৭–১৮**
+1. Find Displacements-এর frozen positive + negative/control AOI set, held-out evaluation, precision/recall/false-alarm rate এবং spatial-block uncertainty।
+2. GOFF-এ component-specific uncertainty, correlation-peak/SNR এবং multi-resolution consistency diagnostics।
+3. GUNW-এ compatible network, common-reference strategy এবং reference stability diagnostic।
+4. Known Place-এ reference support fraction, median/spread/outlier diagnostics এবং insufficient-support withholding।
+5. RiverShift-এ date-matched external water reference যখন বাস্তবে পাওয়া যায়, common-support mask পাস করে তখনই confusion matrix/F1/IoU/area bias।
+6. External reference unavailable থাকলে NO_MATCH_NO_SCORE বজায় রাখুন। Missing reference কখনো 0 accuracy নয়।
 
 ### 4 — Relevance: ১৯ / ২০
 
-**Rubric:** challenge alignment এবং NASA data কতটা core-এ।
+NISAR GUNW, GOFF ও GCOV প্রকৃত measurement path; NASA Earthdata/CMR ও ASF DAAC acquisition/product discovery-তে ব্যবহৃত। অন্য source—OPERA, Sentinel-2, OpenStreetMap, Google basemap—তাদের নিজস্ব contextual/reference ভূমিকা অনুযায়ী আলাদা।
 
-**যে evidence ১৯ নম্বর সমর্থন করে**
-- Project “Dancing with the SARs” / Earth Science challenge-এর সঙ্গে সরাসরি সম্পর্কিত।
-- NISAR L2 measurement products: GUNW relative LOS diagnostics; GOFF pairwise range/along-track offsets; GCOV RiverShift water/land screening।
-- NASA Earthdata/CMR এবং ASF DAAC catalogue discovery ও access-এ ব্যবহৃত।
-- Other data-এর ভূমিকা পৃথক: OPERA DSWx-S1 সম্ভাব্য cross-sensor water reference; Sentinel-2 optional optical comparison; OpenStreetMap exposure context; Google Maps basemap।
+**২০-এর জন্য:** প্রতিটি demo screen-এ product, granule, acquisition date, maturity/CRID, measurement family ও source role দেখান। Optional reference-কে successful validation বলে দেখাবেন না।
 
-**কেন ২০ নয়**
-- Judge-কে data role technical document ঘেঁটে বুঝতে হতে পারে।
-- কিছু external source optional বা attempted reference; retained case-এ সফল validation source নয়।
-- প্রতিটি feature result-এ granule ID, date, CRID/maturity, parameters ও measured quantity এক জায়গায় দেখানো গেলে আরও পরিষ্কার হবে।
+### 5 — Presentation: ১৫ / ২০ (video delivery-এর পর target ১৮)
 
-**কী করলে বাড়বে**
-1. প্রতিটি demo path-এ NASA data panel দেখান: product, granule ID, acquisition dates, maturity ও measured quantity।
-2. NASA/ASF catalogue discovery দেখান; catalogue footprint intersection মানেই valid raster support নয়—এটি বলুন।
-3. Source legend দিন: NISAR measurement / agency reference / third-party context / basemap।
-4. NASA/ASF official product documentation project page-এ cite করুন।
+**বর্তমান evidence**
+- Production application: [sar-guardian-dynamic-lilac.vercel.app](https://sar-guardian-dynamic-lilac.vercel.app)
+- চারটি workflow, map-based AOI, result layers, acquisition dates ও source/evidence documents আছে।
+- Scientific interpretation guardrails ও workflow-specific judge guide প্রস্তুত।
 
-**Target:** ২০/২০।
+**১৫ কেন:** final 4-minute video, concise 30-second cut, polished screenshot pack এবং non-technical first-viewer walkthrough এখনও final media হিসাবে প্রকাশিত নয়। Script প্রস্তুত করা video publish করার সমতুল্য নয়।
 
-### 5 — Presentation: ১৫ / ২০
+**ভিডিওর core story**
+1. Earth পরিবর্তিত হয়; trustworthy evidence দরকার।
+2. NISAR কী observation দিয়েছে এবং archive-এ কোন data available।
+3. SARGuardian কোনো static map demo নয়—বাস্তব catalogue ও processing path-এ AOI-driven request চালায়।
+4. চারটি use case, কিন্তু তিনটি পৃথক measurement path।
+5. তিন audience view: Public, Explorer, Scientific।
+6. Result থেকে source acquisition, QA ও run evidence-এ ফিরে যাওয়া যায়।
 
-**Rubric:** clarity, structure, storytelling এবং broad audience-এ পৌঁছানো।
-
-**যে evidence ১৫ নম্বর সমর্থন করে**
-- Production web deployment Vercel-এ READY; production alias sar-guardian-dynamic-lilac.vercel.app। যাচাইকৃত commit: 42d977b5abd186866ac0d78454239563eebb18d2।
-- Home page-এ চারটি workflow card এবং area → observations → processing → evidence review ধাপ আছে।
-- GUNW/GOFF ব্যাখ্যা এবং candidate-not-confirmation, LOS-not-3D, withheld-not-zero guardrail আছে।
-- RiverShift map layers, observed-date framing, provenance ও spatial QA panel দেখায়।
-- Whole-project guide, feature guide, score-sheet matrix, project-page draft, architecture overview ও video storyboard PR #9-এ আছে।
-
-**Evidence**
-- Dynamic main frontend CI #41941335970: https://github.com/moshiour0/SARGuardian_Dynamic/actions/runs/41941335970
-- Judge package PR #9: https://github.com/moshiour0/SARGuardian-Monorepo/pull/9
-
-**কেন ২০ নয়**
-- Final 2-minute public demo video ও screenshot set-এর প্রমাণ নেই।
-- Official NASA project page পূরণ/submit হয়নি।
-- Judge pack Draft PR #9-এ; draft branch judge-visible official page নয়।
-- Simulated progress বা invented run ID-কে live NISAR processing হিসেবে দেখানো চলবে না।
-- Vercel metadata READY দেখায়, কিন্তু full external signed-out user walkthrough ও recorded first-time-user demo এই review-তে করা হয়নি।
-
-**গুরুত্বপূর্ণ prototype safeguard**
-Project Library-তে থাকা 31 October-এর HTML prototype-এ “Fast-Forward to 100%” button আছে। এর JavaScript স্থানীয় progress 100% করে এবং PASS/result-bundle toast দেখায়। এটি prototype simulation, real processing evidence নয়। Final judge video-তে এটিকে live processing হিসেবে দেখাবেন না। Recording-এর আগে production app-এ এমন control নেই তা নিশ্চিত করুন।
-
-**কী করলে বাড়বে**
-1. Real-data 2-minute video করুন: Home → Landslide AOI/date discovery → source-linked candidate → Known Place polygons → RiverShift actual-date GCOV result।
-2. প্রতিটি workflow-এ বাস্তব run ID ও acquisition date দেখান।
-3. ৫–৭টি screenshot রাখুন: workflow, AOI, catalogue, map, two polygons, provenance, validation state।
-4. Plain-language narration ও subtitle দিন; শেষে challenge name/repository links দেখান।
-5. Judge guide/evidence index main branch বা official NASA project page-এ প্রকাশ করুন CI শেষে।
-6. Laptop/mobile signed-out walkthrough record করুন; attribution ও limitations রাখুন।
-
-**Target:** video/project page সম্পন্ন হলে ১৮–১৯/২০।
+**১৮–২০-এর জন্য**
+- 4-minute video-তে real app থেকে নতুন/retained real run, real data IDs ও actual acquisition dates।
+- 30-second teaser-এ শুধু core differentiation; fake processing animation নয়।
+- ৫–৭টি high-resolution screenshots, caption/subtitle, sources/credits এবং signed-out link test।
+- ৪ মিনিটের video script: [VIDEO_STORYBOARD_DRAFT.md](VIDEO_STORYBOARD_DRAFT.md)।
 
 ---
 
-## ৩. Additional criteria: ১১ / ১৮
+## ৪. Additional criteria
 
-### 6 — Teamwork: ১ / ৫
+### 6 — Teamwork: ১ / ৫ (pending verification)
 
-**বর্তমান evidence**
-- Master Execution Plan-এ lead + তিন teammate-এর team model এবং interface, API/data reliability, source audit ও submission role পরিকল্পিত।
-- Backend, Dynamic ও Monorepo—প্রতিটির সর্বশেষ ১০০টি commit এবং ১০০টি PR inspect করা হয়েছে। ওই inspected history-তে visible author/PR author ছিল moshiour0।
-- Role plan মানেই বাস্তব contribution নয়। অন্য মাধ্যমে collaboration থাকলে তার evidence এখনও review করা হয়নি।
+আপনার বক্তব্য অনুযায়ী দুইজনের substantial contribution আছে এবং GitHub graph-এ ৩০–৪০ হাজারের মতো added lines/contributions দেখা যায়। সেটি যাচাই করা গেলে Teamwork score-এ বড় revision যুক্তিযুক্ত।
 
-**কী করলে বাড়বে**
-1. Registered team member-দের সঠিক নাম ও কাজ NASA Project Page-এ লিখুন।
-2. প্রত্যেকের commit/PR/issue/design/test/report/research/video contribution link দিন।
-3. Contribution table: member → owned task → artifact → date → reviewer।
-4. Joint review, reviewed PR, issue discussion, meeting note বা team demo-এর evidence রাখুন।
-5. কেউ করেনি এমন কাজ contributor-কে দেবেন না।
+এই review-তে তিনটি repository-র প্রতিটিতে latest 100 commit-এর author field একাই moshiour0 ছিল; inspected commit messages-এ Co-authored-by trailer-ও পাওয়া যায়নি। এটি শুধু latest-100 commit window—পূর্ণ history, contributor graph, merged earlier contribution বা off-GitHub teamwork-এর প্রমাণ/অপ্রমাণ নয়। GitHub-এর contributor graph default-branch commit attribution অনুযায়ী কাজ করে; merged history ও verified author email গুরুত্বপূর্ণ।
 
-**Target:** genuine contribution evidence থাকলে ৪–৫/৫।
+**যা লাগবে:** তিন repo-র Insights → Contributors graph-এর CSV/PNG বা view-as-table export; contributor GitHub IDs; কোন feature/file/test/research/design/video কাজ কে করেছে তার contribution register। অন্য সদস্যের কাজকে lead-এর নামে দেখাবেন না। Evidence মিলে গেলে **৪–৫/৫** পুনর্মূল্যায়ন করা হবে।
 
-### 7 — User experience: ৩ / ৫
+### 7 — User experience: ৪ / ৫
 
-**বর্তমান evidence**
-- Home page-এ চারটি labelled workflow card।
-- “How SARGuardian works” area selection থেকে evidence review পর্যন্ত ব্যাখ্যা করে।
-- Landslide/Glacier AOI-first; Known Place-এ two polygons; RiverShift-এ আলাদা AOI/date/catalogue flow।
-- Firebase sign-in, saved-results Archive এবং map/result interface আছে।
-- Routing, authentication gate, AOI geometry, result layer ও dashboard retrieval-এর automated tests আছে।
+তিনটি audience layer UX-কে শক্তিশালী করে:
+- **Public view:** সাধারণ ব্যবহারকারী—কোথায় কী ধরনের candidate/result, সহজ ভাষায় কী বোঝায়, next action কী।
+- **Explorer view:** আগ্রহী user/student—AOI, date, acquisition, layers, observed-date playback, candidate inspection।
+- **Scientific view:** researcher—product/CRID, geometry, valid support, metric, uncertainty, provenance, processing state ও limitations।
 
-**কেন ৫ নয়**
-- AOI geometry, acquisition eligibility, product type এবং Known Place-এ দুই polygon বোঝা লাগে।
-- GOFF/GUNW/LOS/GCOV/valid support নতুন user-এর কাছে কঠিন হতে পারে।
-- First-time-user study, accessibility audit ও signed-out mobile test evidence নেই।
-- Frontend test pass হলেই non-expert user একা কাজ সম্পন্ন করতে পারবেন—এটি প্রমাণ হয় না।
+এতে একই system novice ও technical audience-কে একই জটিলতায় আটকে রাখে না। এজন্য ৩ থেকে ৪-এ revision যুক্তিযুক্ত।
 
-**কী করলে বাড়বে**
-1. অন্তত পাঁচজন product না-বানানো first-time user দিয়ে test করুন।
-2. Task দিন: workflow নির্বাচন, AOI আঁকা, catalogue support বোঝা, candidate/measurement/validation status আলাদা করে ফল ব্যাখ্যা করা।
-3. Completion, সময়, error, help request ও misunderstanding নথিভুক্ত করুন; coaching দেবেন না।
-4. Common blocker অনুযায়ী tooltip, next-step prompt, AOI/date example ও glossary উন্নত করুন।
-5. Mobile, keyboard navigation, focus state, map controls ও screen-reader test করে UX report প্রকাশ করুন।
-
-**Target:** ৪–৫/৫।
+**৫/৫-এর জন্য:** পাঁচজন first-time user দিয়ে নির্দিষ্ট tasks সম্পন্ন করান; time, completion, error, help request, misunderstanding রেকর্ড করুন। Mobile, keyboard-only, focus order, contrast, map-control এবং screen-reader audit সংরক্ষণ করুন। Mode-এর নাম সুন্দর হলেই ৫ নয়; user independently কাজ শেষ করতে পারেন কি না সেটিই প্রমাণ।
 
 ### 8 — NASA data usage: ৫ / ৫
 
-**Rubric-এর ৫ নম্বরের সংজ্ঞা:** NASA open data এবং অন্য agency বা third-party sources স্পষ্টভাবে দেখানো।
+NISAR L2 GUNW/GOFF/GCOV হলো measurement inputs; NASA Earthdata/CMR ও ASF DAAC discovery/access; external/contextual layers আলাদা। ৫-এর বেশি নেই; attribution ও role clarity বজায় রাখতে হবে।
 
-**কেন পূর্ণ ৫**
-- NISAR L2 GUNW, GOFF, GCOV প্রকৃত measurement source।
-- NASA Earthdata/CMR ও ASF DAAC discovery/access-এ ব্যবহৃত।
-- OPERA DSWx-S1 সম্ভাব্য water reference; Sentinel-2 optional optical comparison; OpenStreetMap exposure context; Google Maps basemap context।
-- Retained case-এ বাস্তবে ব্যবহৃত source, optional/contextual source এবং eligible reference না পাওয়া source আলাদা করে উপস্থাপন করা হয়েছে।
+### 9–11 — Binary criteria
 
-**কী করলে পূর্ণ নম্বর থাকবে**
-1. Demo ও project page-এ source-role panel দৃশ্যমান রাখুন।
-2. প্রতিটি ব্যবহৃত product-এর official source/product guide cite করুন।
-3. Run #36-এর missing OPERA reference-কে successful validation বলবেন না।
-4. Screenshot/video-তে third-party attribution ও licensing রাখুন।
-
-**বর্তমান score: ৫/৫।** বেশি source যোগ করলেই ৫-এর বেশি হবে না; সঠিক attribution বজায় রাখাই লক্ষ্য।
-
-### 9 — Challenge category identified: ১ / ১
-
-**Evidence:** project materials-এ “Dancing with the SARs” এবং “Earth Science” চিহ্নিত।
-
-**কী করলে ধরে থাকবে:** NASA project page এবং video-তে exact challenge/category label দিন; submission form-এও মিলিয়ে নিন।
-
-### 10 — Repository access: ১ / ১
-
-**Evidence:** GitHub metadata-তে তিনটি repository-ই public:
-- https://github.com/moshiour0/SARGuardian_Dynamic
-- https://github.com/moshiour0/SARGuardian-backend
-- https://github.com/moshiour0/SARGuardian-Monorepo
-
-**কী করলে ধরে থাকবে:** submission-এর আগে signed-out browser-এ তিনটি link খুলুন; README-তে setup/data/license/reproduce instructions রাখুন; Monorepo-তে secret-history/private-data review করুন। Public flag থাকা security review-এর বিকল্প নয়।
-
-### 11 — Project page complete: ০ / ১
-
-**বর্তমান অবস্থা:** project-page draft তৈরি, কিন্তু submitted state-এর evidence নেই।
-
-NASA-এর official 2026 page অনুযায়ী submission ১৪ নভেম্বর ২০২৬ সকাল ৯টা থেকে ১৫ নভেম্বর রাত ১১:৫৯ local time পর্যন্ত খোলা থাকবে।
-
-**১ নম্বর পাওয়ার ধাপ**
-1. Submission window-তে team page-এর Project tab খুলুন।
-2. Title, summary, challenge/category, description, NASA data, other data, sources, links ও team member fields পূরণ করুন।
-3. Public demo video ও screenshots যুক্ত করুন।
-4. App ও repository links sign-in ছাড়াই খোলে নিশ্চিত করুন।
-5. Submit করুন এবং official confirmation state-এর screenshot সংরক্ষণ করুন। শুধু draft save যথেষ্ট নয়।
+- Challenge category: **১/১**.
+- Repository access: **১/১**, submission-এর আগে signed-out check আবার করতে হবে।
+- Project page: **০/১** যতক্ষণ official page submitted/confirmed নয়। Draft পূর্ণ হলেও সেটি submission নয়।
 
 ---
 
-## ৪. Score বাড়ানোর কাজ—অগ্রাধিকার অনুযায়ী
+## ৫. Updated improvement roadmap
 
-| Priority | কাজ | Current gap | সর্বোচ্চ recoverable points |
-|---:|---|---:|---:|
-| 1 | Independent physical validation + held-out positive/control evaluation | Validity +7 | 7 |
-| 2 | Genuine teammate contribution evidence | Teamwork +4 | 4 |
-| 3 | Real-data demo video এবং public judge guide | Presentation +5 | 5 |
-| 4 | আরও দুটি reproducible case study ও traceable impact context | Impact +4 | 4 |
-| 5 | First-time-user ও mobile/accessibility test | UX +2 | 2 |
-| 6 | NASA Project Page পূরণ ও submit | Project page +1 | 1 |
-| 7 | AOI-to-measurement differentiator বাস্তব demo | Creativity +4 | 4 |
-| 8 | প্রতিটি feature walkthrough-এ source provenance দৃশ্যমান | Relevance +1 | 1 |
+| Priority | Work | Score area | Evidence needed |
+|---:|---|---|---|
+| 1 | Four-minute real-data walkthrough + 30-second cut | Presentation, Creativity, Impact | published video, exact runs and acquisition IDs |
+| 2 | Contributor graph CSV/PNG + member-level contribution register | Teamwork | verified team-member attribution |
+| 3 | Public/Explorer/Scientific first-time-user test | UX | task completion + accessibility record |
+| 4 | Held-out positive/control evaluation | Validity | metrics, uncertainty, frozen test set |
+| 5 | More cross-region reproducible cases | Impact | actual source products, run IDs and honest outcomes |
+| 6 | Per-feature visible NISAR provenance panel | Relevance | product/granule/date/maturity/measurement source |
+| 7 | Official project page submission | Project page | submitted state and confirmation |
 
-এগুলো rubric-এর arithmetic gap; কাজ হলেই বিচারক পুরো নম্বর দেবেন—এমন নিশ্চয়তা নেই।
+## ৬. Judge-facing phrases
 
-## ৫. Score কমাতে পারে—এমন ভুল এড়িয়ে চলুন
+**Primary positioning:**  
+**“Not a static demo. A live, AOI-driven NISAR processing platform—where compatible observations are available.”**
 
-- GOFF anomaly-কে confirmed landslide/glacier event বলবেন না।
-- একটি GUNW LOS component-কে 3-D বা downslope velocity বলবেন না।
-- প্রমাণ ছাড়া Known Place Reference Polygon stable বলবেন না।
-- P05023 headline numerical match-কে complete author-exact reproduction বলবেন না, যতক্ষণ crown geometry/null-control parity মেলেনি।
-- RiverShift NO_MATCH_NO_SCORE-কে zero accuracy/PASS/VERIFIED বানাবেন না।
-- RiverShift sediment volume, signed bankline migration বা confirmed damage মেপেছে দাবি করবেন না।
-- Simulated progress/result-কে live NISAR processing দেখাবেন না।
-- Team contribution বা women bonus eligibility বানিয়ে দেখাবেন না।
+**Impact:**  
+“Users start with a place and a time window. SARGuardian searches the available NISAR archive, identifies the product path that fits the question, and returns source-linked evidence or a clear coverage limitation.”
 
-## ৬. এই review-তে ব্যবহৃত evidence baseline
+**Creativity:**  
+“We connect target-free discovery to user-controlled measurement and traceable evidence, while keeping GUNW, GOFF and GCOV scientifically distinct.”
 
-- Backend main head: 97d849454918b1425ac41bb70e7a32d11cfd3833।
-- Dynamic production: READY, commit 42d977b5abd186866ac0d78454239563eebb18d2; alias sar-guardian-dynamic-lilac.vercel.app।
-- Find Displacements: Backend run #42097077601।
-- Known Place generic AOI: Monorepo run #42321054100; PARTIAL_SCIENTIFIC_METRICS।
-- Known Place regression: Monorepo run #42327901627; PR #8 head-এ successful; PR #8 এখনো Draft/Open এবং interval UI change deployed বলে গণ্য হয়নি।
-- RiverShift: Backend Run #36 #41803576163; retrospective replay #41926490047; reference status NO_MATCH_NO_SCORE / PROVISIONAL।
-- Dynamic main frontend CI: #41941335970।
-- Teamwork: তিন repository-র সর্বশেষ ১০০ commit ও ১০০ PR-এর inspected window-তে visible author/PR author moshiour0।
+**Validity:**  
+“We show what the radar measured, how it was processed, what passed quality gates, and what remains unvalidated. A missing reference is withheld—not fabricated.”
 
-এটি available engineering, source, deployment ও documentation-এর desk review। Vercel metadata deployment READY দেখায়, কিন্তু full external signed-out user study করা হয়নি। Planned work, draft document, unmerged branch অথবা absent external validation completed evidence নয়।
+**Live platform clarification:**  
+“Live processing” means an actual user request can initiate the deployed catalogue/worker pipeline. It does not mean continuous global data, instant results, or data for every place/date. Demonstrate a real request/run in the video.
+
+## ৭. Do not overclaim
+
+- GOFF anomaly ≠ confirmed landslide/glacier movement.
+- GUNW LOS ≠ complete 3-D or downslope motion.
+- Reference polygon ≠ proven stable ground.
+- P05023 headline agreement ≠ complete author-exact experiment reproduction.
+- RiverShift candidate area ≠ field-measured erosion/deposition, sediment volume or signed bankline migration.
+- NO_MATCH_NO_SCORE ≠ 0 accuracy.
+- NASA archive limitation ≠ application failure; broken catalogue/worker is still an application failure.
+- Simulated progress/result ≠ live processing.
+- Contributor count/lines of code ≠ independently sufficient teamwork proof; attribute real work to real members.
+
+## ৮. Evidence baseline
+
+- Find Displacements: [Backend run #42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601)
+- RiverShift Run #36: [Backend run #41803576163](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163)
+- RiverShift replay: [Backend run #41926490047](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926490047)
+- RiverShift tests: [Backend run #41926825076](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926825076)
+- Known Place generic run: [Monorepo run #42321054100](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42321054100), PARTIAL_SCIENTIFIC_METRICS
+- Known Place regression: [Monorepo run #42327901627](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42327901627), PR #8 head
+- Dynamic frontend CI: [run #41941335970](https://github.com/moshiour0/SARGuardian_Dynamic/actions/runs/41941335970)
+- Current judge package PR: [Monorepo PR #9](https://github.com/moshiour0/SARGuardian-Monorepo/pull/9)
 
 ## Bottom line
 
-**বর্তমান evidence-supported score: ৯০ / ১১৮।**
-
-SARGuardian NASA-data relevance ও technically substantial platform-এর দিক থেকে শক্তিশালী। সবচেয়ে বড় score gap হলো independent scientific validation, genuine teamwork evidence, real-data video, একাধিক reproducible case এবং non-expert user test।
-
-সবচেয়ে দ্রুত বিশ্বাসযোগ্য উন্নতি হবে: **আরও প্রমাণ তৈরি, সেই প্রমাণ পরিষ্কারভাবে দেখানো, এবং কে কোন কাজ করেছে তা traceable করা**—data যতটুকু সমর্থন করে তার চেয়ে বড় scientific claim করা নয়।
+**Revised estimate: ৯৮/১১৮।** Impact ১৮, Creativity ১৮ এবং Validity ১৬-তে revision যুক্তিযুক্ত—কারণ system-এর reach, connected discovery-to-measurement design এবং বাস্তব engineering/scientific controls আগের estimate-এ যথেষ্ট weight পায়নি। Teamwork-কে ৫ এবং UX-কে ৫ করতে হলে member-level contribution evidence ও user testing দেখাতে হবে। Presentation-এর স্কোর script নয়, final video ও media quality বিচার করে উঠবে।
