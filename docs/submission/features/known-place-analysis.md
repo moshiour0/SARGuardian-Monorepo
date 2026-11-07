@@ -51,7 +51,7 @@ Known Place is a measurement and research-reproduction workflow, not an operatio
 
 ## Source references
 
-- [Known Place engine and documentation](../../../../engines/known-place/README.md)
+- [Known Place engine and documentation](../../../engines/known-place/README.md)
 - [Known Place Monorepo workflow](https://github.com/moshiour0/SARGuardian-Monorepo/actions/workflows/know-place-aoi-analysis.yml)
 - [Bhote Koshi author paper record](https://doi.org/10.21203/rs.3.rs-11022365/v1)
 - [NISAR GOFF product guide](https://nisar-docs.asf.alaska.edu/goff/)
