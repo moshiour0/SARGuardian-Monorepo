@@ -102,3 +102,8 @@ Landslide and Glacier Movement are two entry contexts for Find Displacements, no
 SARGuardian presents a candidate when the observation supports a candidate, a measurement when the method supports a measurement and a validation score only when a suitable reference comparison exists. Missing data is not silently converted to zero. A passing software test or processing workflow is reported as engineering/reproducibility evidence, not as proof of geophysical accuracy.
 
 The result is a platform for exploring and communicating NISAR evidence—not an automated disaster prediction or emergency-warning service.
+
+
+## Validation and verification
+
+The [whole-project validation protocol](PROJECT_VALIDATION_PROTOCOL.md) lists the checks and workflow evidence for all four user-facing paths. Each feature also has its own reproducible checklist: [Find Displacements](validation/find-displacements.md), [Glacier Movement](validation/glacier-movement.md), [Known Place Analysis](validation/known-place-analysis.md) and [RiverShift](validation/river-shift.md).
