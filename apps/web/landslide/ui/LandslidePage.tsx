@@ -2170,6 +2170,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         onSignOut={onSignOut}
         isArchivePage
         hideProfile
+        showPageTitle
       />
 
       <main className="map-main">
