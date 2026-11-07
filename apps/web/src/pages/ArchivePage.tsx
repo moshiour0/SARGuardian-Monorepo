@@ -22,6 +22,7 @@ export function ArchivePage({ user, authState, onSignIn, onSignOut, onOpenWorksp
         onSignIn={onSignIn}
         onSignOut={onSignOut}
         isArchivePage
+        hideProfile
         hideSignIn
       />
       <main className="home-main archive-main">
