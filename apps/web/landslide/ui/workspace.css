@@ -1415,3 +1415,53 @@
   .landslide-route-shell .validation-toast-message { font-size: 12px; }
 }
 @media (max-height: 700px) { .landslide-route-shell .aoi-controls-stack .action-bar { max-height: calc(100dvh - 190px); } }
+
+/* Compact top-level validation alert. It is rendered outside the action tray
+   so tray sizing can never squeeze or relocate the message. */
+.landslide-route-shell .validation-toast.validation-toast--floating {
+  position: fixed;
+  z-index: 120;
+  top: 84px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 26px;
+  align-items: center;
+  width: min(420px, calc(100vw - 24px));
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 11px 12px;
+  gap: 10px;
+  transform: translateX(-50%);
+  border-radius: 18px;
+  animation: workspace-toast-in .24s cubic-bezier(.2,.85,.25,1);
+}
+.landslide-route-shell .validation-toast--floating .validation-toast-message {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.landslide-route-shell .validation-toast--floating .validation-toast-close {
+  width: 26px;
+  height: 26px;
+}
+@media (max-width: 900px) {
+  .landslide-route-shell .validation-toast.validation-toast--floating {
+    top: 168px;
+    width: min(360px, calc(100vw - 24px));
+  }
+}
+@media (max-width: 560px) {
+  .landslide-route-shell .validation-toast.validation-toast--floating {
+    top: 166px;
+    grid-template-columns: 28px minmax(0, 1fr) 24px;
+    padding: 10px;
+    gap: 8px;
+    border-radius: 16px;
+  }
+  .landslide-route-shell .validation-toast--floating .validation-toast-message { font-size: 12px; }
+}
