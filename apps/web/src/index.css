@@ -1134,6 +1134,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   transform: translateX(-50%);
   pointer-events: none;
 }
+.claude-nav-shell.processing-only-header .claude-brand-word { display: none; }
 .claude-brand {
   display: flex;
   width: auto;
