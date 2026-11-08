@@ -13,6 +13,7 @@ import {
 import { ScientificResults } from './ScientificResults';
 import { chooseAccountJob } from '../engine/displacementJobSelection';
 import { ELAPSED_TICK_MS, formatElapsed, type GranuleCounts } from './processingStatus';
+import './displacementPreparation.css';
 
 const activeStates = new Set(['queued', 'dispatching', 'running']);
 const noopTaskActivityChange = () => {};
@@ -48,19 +49,6 @@ function jobStateDescription(state: DisplacementJob['state']): string {
   }
 }
 
-function safeWorkflowUrl(value?: string | null): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    const isProjectWorkflow = url.protocol === 'https:'
-      && url.hostname === 'github.com'
-      && /^\/moshiour0\/SARGuardian_Dynamic\/actions\/runs\/\d+\/?$/.test(url.pathname);
-    return isProjectWorkflow ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
 export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRefresh, onRetry, onBack, user }: {
   job: DisplacementJob;
   user: Pick<User, 'getIdToken'>;
@@ -75,100 +63,95 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const hasActiveJob = activeStates.has(job.state);
   const counts = resultGranuleCounts(job) || granuleCounts;
   const busy = pendingAction !== null;
-  const workflowUrl = safeWorkflowUrl(job.github_run_url);
   const dateWindow = `${new Date(job.start_date + 'T00:00:00').toLocaleDateString()} – ${new Date(job.end_date + 'T00:00:00').toLocaleDateString()}`;
-  const hasTarget = Number.isFinite(job.target_latitude) && Number.isFinite(job.target_longitude);
+  const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const stageIndex = job.state === 'queued' ? 0 : job.state === 'dispatching' ? 1 : job.state === 'running' ? 2 : job.state === 'succeeded' ? 4 : -1;
+  const stageName = job.stage || (job.state === 'queued' ? 'Initializing' : job.state === 'dispatching' ? 'Preparing task' : job.state === 'running' ? 'Processing' : job.state === 'succeeded' ? 'Complete' : 'Needs attention');
+  const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
+  const total = counts ? counts.GUNW + counts.GOFF : null;
+  const shortJobId = job.id.length > 15 ? `${job.id.slice(0, 8)}…${job.id.slice(-4)}` : job.id;
+
+  useEffect(() => {
+    if (!cancelConfirmationOpen) return undefined;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setCancelConfirmationOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [cancelConfirmationOpen]);
+
+  const copyJobId = async () => {
+    try {
+      await navigator.clipboard.writeText(job.id);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const confirmCancel = () => {
+    setCancelConfirmationOpen(false);
+    onCancel();
+  };
 
   return (
-    <section className="displacement-job-status processing-v2" aria-live="polite">
-      <div className="processing-v2-heading">
-        <div>
-          <span className="result-kicker">LIVE JOB STATUS</span>
-          <h2>{job.state === 'succeeded' ? 'Processing finished' : job.state === 'failed' ? 'Processing needs attention' : job.state === 'cancelled' ? 'Processing cancelled' : 'Processing in progress'}</h2>
-          <p>{jobStateDescription(job.state)}</p>
+    <section className={`displacement-job-status processing-page processing-page--${job.state}`} aria-live="polite">
+      <section className="processing-card processing-hero">
+        <span className={`processing-status-chip ${hasActiveJob ? 'is-running' : ''}`}>
+          <i aria-hidden="true" />
+          {job.state === 'succeeded' ? 'Complete' : job.state === 'failed' ? 'Needs attention' : job.state === 'cancelled' ? 'Cancelled' : 'Running'}
+        </span>
+        <div className={`processing-orbit ${hasActiveJob ? 'is-active' : ''}`} aria-label={`${stageName}, elapsed ${elapsed}`}>
+          <div className="processing-orbit-inner">
+            {job.state === 'succeeded' ? <span className="processing-orbit-symbol" aria-hidden="true">✓</span> : job.state === 'failed' || job.state === 'cancelled' ? <span className="processing-orbit-symbol" aria-hidden="true">!</span> : <>
+              <strong>{stageName}</strong>
+              <time data-testid="job-age">{elapsed}</time>
+            </>}
+          </div>
         </div>
-        <span className={`processing-state-pill processing-state-${job.state}`}>{job.state}</span>
-      </div>
+        <ol className="processing-stepper" aria-label="Processing stages">
+          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
+        </ol>
+        <p className="processing-safe-note">{hasActiveJob ? 'Safe to close this page. Your task keeps running.' : jobStateDescription(job.state)}</p>
+      </section>
 
-      <div className="processing-summary-grid">
-        <article><span>AOI</span><strong>Submitted polygon</strong><small>{job.place_name || 'No named place attached'}</small></article>
-        <article><span>Date window</span><strong>{dateWindow}</strong><small>Requested observation period</small></article>
-        <article><span>Analysis scope</span><strong>AOI-wide screening</strong><small>{hasTarget ? 'A target coordinate was also supplied' : 'No measurement target required'}</small></article>
-        <article><span>Job reference</span><strong className="processing-job-id">{job.id}</strong><small>Submitted {new Date(job.created_at).toLocaleString()}</small></article>
-      </div>
+      <section className="processing-card processing-products-card" aria-label="Product inventory">
+        <div><span>GUNW</span><strong>{counts?.GUNW ?? '—'}</strong></div>
+        <div><span>GOFF</span><strong>{counts?.GOFF ?? '—'}</strong></div>
+        <div><span>Total</span><strong>{total ?? '—'}</strong></div>
+      </section>
 
-      <div className="processing-context-strip" aria-label="Selected place and measurement target">
-        <p><strong>Selected place:</strong> {job.place_name || 'No named place selected'}</p>
-        {Number.isFinite(job.place_latitude) && Number.isFinite(job.place_longitude) && (
-          <p><strong>Place coordinates:</strong> {job.place_latitude!.toFixed(5)}, {job.place_longitude!.toFixed(5)}</p>
-        )}
-        {hasTarget ? (
-          <p><strong>Measurement target:</strong> {job.target_latitude!.toFixed(5)}, {job.target_longitude!.toFixed(5)}
-            <small> In-AOI pair sampling point only; not a stable-ground reference and not a hazard finding.</small>
-          </p>
-        ) : (
-          <p><strong>Measurement target:</strong> Not supplied inside the submitted AOI.
-            <small> This is acceptable for Find Displacements: AOI-wide candidate screening still scans the polygon. Target-local measurements and point-based diagnostics remain withheld.</small>
-          </p>
-        )}
-      </div>
+      <section className="processing-card processing-details-card" aria-label="Task details">
+        <dl>
+          <div><dt>Area</dt><dd>{job.place_name || 'Submitted AOI'}</dd></div>
+          <div><dt>Dates</dt><dd>{dateWindow}</dd></div>
+          <div><dt>Scope</dt><dd>AOI-wide screening</dd></div>
+          <div><dt>Job</dt><dd><code title={job.id}>{shortJobId}</code><button type="button" className="processing-copy-button" onClick={() => void copyJobId()} aria-label="Copy job ID">{copied ? 'Copied' : 'Copy'}</button></dd></div>
+        </dl>
+      </section>
 
-      <div className="processing-detail-grid">
-        <section className="processing-detail-panel" aria-labelledby="processing-stage-title">
-          <div className="processing-panel-heading">
-            <div><span className="result-kicker">WORKFLOW STATUS</span><h3 id="processing-stage-title">Current processing stage</h3></div>
-            <span className="processing-stage-mark">{job.state === 'running' ? 'Active' : job.state}</span>
-          </div>
-          <p className="processing-stage-name">{job.stage || 'Stage not reported'}</p>
-          <p className="processing-stage-note">Age: <strong><time data-testid="job-age">{formatElapsed(job.created_at, job.updated_at, job.state, clock)}</time></strong></p>
-          <div className="processing-products">
-            <div className="processing-panel-heading"><h4>Product inventory</h4><span>Source: {counts ? counts.source === 'processed-results' ? 'Processed results' : counts.source === 'worker-discovery' ? 'Worker discovery' : 'ASF catalogue preflight' : 'Not reported'}</span></div>
-            {counts ? (
-              <div className="processing-product-grid">
-                <article><span>GUNW granules</span><strong>{counts.GUNW}</strong></article>
-                <article><span>GOFF granules</span><strong>{counts.GOFF}</strong></article>
-                <article><span>Total</span><strong>{counts.GUNW + counts.GOFF}</strong></article>
-              </div>
-            ) : <p className="processing-not-reported">Product counts are not included in the current job response.</p>}
-          </div>
-          {workflowUrl && <a className="processing-workflow-link" href={workflowUrl} target="_blank" rel="noreferrer">Open workflow run details <span aria-hidden="true">→</span></a>}
-        </section>
+      {job.error_message && <p className="processing-error" role="alert">{job.error_message}</p>}
 
-        <section className="processing-detail-panel baseline-readiness-panel" aria-labelledby="baseline-readiness-title">
-          <div className="processing-panel-heading">
-            <div><span className="result-kicker">INTERFEROMETRIC GEOMETRY</span><h3 id="baseline-readiness-title">Baseline analysis</h3></div>
-            <span className="processing-stage-mark">Not exposed</span>
-          </div>
-          <p>Baseline geometry helps assess acquisition-pair suitability. It is not a displacement measurement.</p>
-          <div className="baseline-readiness-grid">
-            <article><span>Temporal baseline</span><strong>Date-derived</strong><small>Requires pair-level reference and secondary dates in the result manifest.</small></article>
-            <article><span>Perpendicular baseline · B⊥</span><strong>Not exposed</strong><small>Not currently published by the frontend job-result contract.</small></article>
-            <article><span>Parallel baseline · B∥</span><strong>Not exposed</strong><small>Not currently published by the frontend job-result contract.</small></article>
-          </div>
-          <div className="baseline-empty-state">
-            <strong>Baseline plot not available for this job yet.</strong>
-            <p>No scatter points, ranges or zero values are drawn until real pair metadata, units and AOI coverage have been extracted and validated.</p>
-          </div>
-        </section>
-      </div>
-
-      <div className="processing-science-note">
-        A processing PASS confirms structural and provenance checks; it does not independently validate ground movement. Pairwise LOS is not automatically cumulative or 3-D motion. A withheld measurement is not zero.
-      </div>
-
-      {job.error_message && <p className="processing-job-error" role="alert">{job.error_message}</p>}
-
-      <div className="displacement-task-actions processing-actions">
+      <div className="processing-page-actions">
         {hasActiveJob && <>
-          <button type="button" className="demo-button danger-button" disabled={busy} onClick={onCancel}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel task'}</button>
-          <button type="button" className="investigate-button" disabled={busy} onClick={onRefresh}>{pendingAction === 'refresh' ? 'Refreshing…' : 'Refresh task'}</button>
+          <button type="button" className="processing-ghost-button processing-cancel-button" disabled={busy} onClick={() => setCancelConfirmationOpen(true)}>Cancel task</button>
+          <button type="button" className="processing-primary-button" disabled={busy} onClick={onRefresh}>{pendingAction === 'refresh' ? 'Refreshing…' : 'Refresh'}</button>
         </>}
-        {job.state === 'failed' && <>
-          <button type="button" className="investigate-button" disabled={busy} onClick={onRetry}>{pendingAction === 'retry' ? 'Retrying…' : 'Retry task'}</button>
-          <button type="button" className="demo-button" onClick={onBack}>Go to map</button>
-        </>}
-        {job.state === 'cancelled' && <button type="button" className="demo-button" onClick={onBack}>Go to map</button>}
+        {job.state === 'succeeded' && <button type="button" className="processing-primary-button" onClick={() => document.querySelector<HTMLElement>('.scientific-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>View results</button>}
+        {job.state === 'failed' && <><button type="button" className="processing-primary-button" disabled={busy} onClick={onRetry}>{pendingAction === 'retry' ? 'Retrying…' : 'Try again'}</button><button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button></>}
+        {job.state === 'cancelled' && <button type="button" className="processing-primary-button" onClick={onBack}>Back to map</button>}
       </div>
+
+      {cancelConfirmationOpen && <div className="processing-confirmation-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCancelConfirmationOpen(false); }}>
+        <section className="processing-confirmation" role="dialog" aria-modal="true" aria-labelledby="cancel-task-title">
+          <h2 id="cancel-task-title">Cancel this task?</h2>
+          <p>Processing will stop.</p>
+          <button type="button" className="processing-primary-button" onClick={() => setCancelConfirmationOpen(false)}>Keep running</button>
+          <button type="button" className="processing-dialog-cancel" onClick={confirmCancel}>Cancel task</button>
+        </section>
+      </div>}
 
       <ScientificResults job={job} user={user} />
     </section>
@@ -331,15 +314,10 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
 
   if (!job && !jobError) return null;
 
-  return <main className="nisar-results-main displacement-preparation">
-    <section className="nisar-results-summary">
-      <span className="result-kicker">DISPLACEMENT PROCESSING</span>
-      <h1>Find Displacements</h1>
-      <p>Your processing task belongs to this signed-in account and continues if you close the browser. Reopen this page to see its current state.</p>
+  return <main className="displacement-preparation">
       {job && <DisplacementJobStatus job={job} pendingAction={pendingAction} clock={clock} granuleCounts={granuleCounts} user={user}
         onCancel={() => void cancel()} onRefresh={() => void refreshManually()}
         onRetry={() => void retryFailed()} onBack={onBack} />}
-      {jobError && <><p role="alert">{jobError}</p>{!job && <button type="button" className="demo-button" onClick={onBack}>Go to map</button>}</>}
-    </section>
+      {jobError && <section className="processing-card processing-load-error" role="alert"><p>{jobError}</p>{!job && <button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button>}</section>}
   </main>;
 }
