@@ -1476,7 +1476,7 @@
   .landslide-route-shell .mobile-date-picker-anchor {
     position: fixed;
     z-index: 121;
-    top: max(72px, calc(env(safe-area-inset-top) + 72px));
+    top: 72px;
     left: 8px;
     width: 1px;
     height: 1px;

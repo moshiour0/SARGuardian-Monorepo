@@ -1488,6 +1488,16 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const openAnchoredDatePicker = (pickerRef: { current: HTMLInputElement | null }) => {
     const picker = pickerRef.current;
     if (!picker) return;
+    const actionBar = document.querySelector<HTMLElement>('.landslide-route-shell .aoi-controls-stack .action-bar');
+    if (actionBar) {
+      const actionRect = actionBar.getBoundingClientRect();
+      const estimatedPickerHeight = Math.min(420, Math.round(window.innerHeight * .52));
+      const estimatedPickerWidth = Math.min(326, window.innerWidth - 16);
+      const top = Math.max(8, actionRect.top - estimatedPickerHeight - 8);
+      const left = Math.max(8, Math.min(actionRect.left, window.innerWidth - estimatedPickerWidth - 8));
+      picker.style.top = `${top}px`;
+      picker.style.left = `${left}px`;
+    }
     if (typeof picker.showPicker === 'function') picker.showPicker();
     else picker.click();
   };
