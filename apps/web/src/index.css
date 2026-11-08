@@ -1371,6 +1371,13 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   .claude-principles-grid { gap: 2rem; }
 }
 
+/* The map workspace has its own compact mobile chrome. Keep its title out of
+   the brand row; the page context is already clear from the map controls. */
+@media (max-width: 820px) {
+  .landslide-route-shell .claude-nav-title { display: none; }
+  .landslide-route-shell .claude-nav-shell.processing-only-header .claude-nav-title { display: block; }
+}
+
 @media (max-width: 700px) {
   .claude-nav-shell.processing-only-header .claude-nav-title {
     display: block;
