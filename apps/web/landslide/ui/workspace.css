@@ -596,10 +596,10 @@
 .landslide-route-shell .action-bar,
 .landslide-route-shell .layers-menu {
   border: 0;
-  background: var(--find-glass);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 18px 48px rgba(27, 74, 103, .24);
-  backdrop-filter: blur(26px) saturate(165%);
-  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  background: rgba(157, 211, 228, .30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .48), 0 18px 48px rgba(27, 74, 103, .18);
+  backdrop-filter: blur(26px) saturate(155%);
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
 }
 
 .landslide-route-shell .map-search {
@@ -619,9 +619,12 @@
   min-height: 42px;
   border: 0;
   border-radius: 14px;
-  background: rgba(255, 255, 255, .48);
+  background: rgba(215, 239, 246, .30);
   color: #0b2233;
   font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .38);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .landslide-route-shell .workspace-search-input input::placeholder,
