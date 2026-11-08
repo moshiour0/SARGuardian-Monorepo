@@ -64,12 +64,11 @@ function jobStateDescription(state: DisplacementJob['state']): string {
 
 function displayStageName(stage: string | null | undefined, state: DisplacementJob['state']): string {
   const normalized = stage?.trim().toLowerCase() ?? '';
-  if (normalized.includes('initial')) return 'Initializing';
-  if (normalized.includes('screen')) return 'Screening';
   if (normalized.includes('complete') || state === 'succeeded') return 'Complete';
-  if (normalized.includes('process') || state === 'running') return 'Processing';
-  if (state === 'queued') return 'Initializing';
-  if (state === 'dispatching') return 'Preparing task';
+  if (normalized.includes('screen') || normalized.includes('dashboard') || normalized.includes('validation')) return 'Screening';
+  if (normalized.includes('product') || normalized.includes('granule') || normalized.includes('process')) return 'Processing';
+  if (normalized.includes('initial') || state === 'running') return 'Initializing';
+  if (state === 'queued' || state === 'dispatching') return 'Preparing task';
   if (state === 'failed' || state === 'cancelled') return 'Needs attention';
   return stage ? `${stage.charAt(0).toUpperCase()}${stage.slice(1)}` : 'Processing';
 }
@@ -94,8 +93,8 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const dateWindow = `${new Date(job.start_date + 'T00:00:00').toLocaleDateString()} – ${new Date(job.end_date + 'T00:00:00').toLocaleDateString()}`;
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const stageIndex = job.state === 'queued' ? 0 : job.state === 'dispatching' ? 1 : job.state === 'running' ? 2 : job.state === 'succeeded' ? 4 : -1;
   const stageName = displayStageName(job.stage, job.state);
+  const stageIndex = stageName === 'Complete' ? 3 : stageName === 'Screening' ? 2 : stageName === 'Processing' ? 1 : 0;
   const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
   const processingCountPending = counts === null && hasActiveJob;
   const pendingCountLabel = processingCountPending ? 'Searching…' : '—';
