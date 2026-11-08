@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 LEGACY_SOURCE_SCIENCE_COMMIT = "ab547ecc82bcc4d6ccef545a59852536c2beacc6"
-EXPORT_NAME = re.compile(r"^GUNW_(\d{8})_(\d{8})(?:_([A-Z]{2}))?\.tif$", re.IGNORECASE)
+EXPORT_NAME = re.compile(r"^GUNW_(\d{8})_(\d{8})(?:_([A-Z]{2}))?(?:__[A-Za-z0-9-]+)?\.tif$", re.IGNORECASE)
 KNOWN_INSUFFICIENT = (
     "no winter rasters", "no summer rasters", "no all rasters",
     "no contiguous chain of 2+ pairs", "no rasters",
@@ -67,12 +67,20 @@ def collect_pr_gunw_exports(exports_root: Path, target_dir: Path) -> dict[str, A
 
     copied: list[str] = []
     collisions: list[dict[str, str]] = []
+    renamed_collisions: list[dict[str, str]] = []
     for source in candidates:
         target = target_dir / source.name
         if target.exists():
             # Two distinct source products must never be allowed to overwrite one another.
             if file_sha256(source) != file_sha256(target):
-                collisions.append({"name": source.name, "source": str(source)})
+                unique_name = f"{source.stem}__{file_sha256(source)[:12]}{source.suffix}"
+                unique_target = target_dir / unique_name
+                if unique_target.exists() and file_sha256(source) != file_sha256(unique_target):
+                    collisions.append({"name": unique_name, "source": str(source)})
+                    continue
+                shutil.copy2(source, unique_target)
+                copied.append(unique_target.name)
+                renamed_collisions.append({"original_name": source.name, "name": unique_name, "source": str(source)})
             continue
         shutil.copy2(source, target)
         copied.append(target.name)
@@ -83,6 +91,7 @@ def collect_pr_gunw_exports(exports_root: Path, target_dir: Path) -> dict[str, A
         "files_copied": len(copied),
         "files": copied,
         "filename_collisions": collisions,
+        "renamed_collisions": renamed_collisions,
     }
 
 
