@@ -2274,17 +2274,17 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               </div>
 
               <section className="investigation-modes" aria-labelledby="investigation-mode-title">
-                {isKnownPlaceSetupPage && <h2 id="investigation-mode-title">Known Place Analysis · AOI setup</h2>}
                 <div className="investigation-mode-cards">
                   {isKnownPlaceSetupPage ? (
-                    <article className="investigation-mode-card known-place-mode">
-                      <span className="mode-icon" aria-hidden="true"><Icon name="locate" /></span>
-                      <h3>Measurement + Reference polygons</h3>
-                      <p>First set the outer AOI and observation dates above. The next step lets you draw or paste two separate polygons inside this AOI.</p>
-                      <button className="investigate-button" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)} onClick={onKnownPlaceAnalysis}>
-                        {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to polygon inputs'}
-                      </button>
-                    </article>
+                    <button
+                      id="investigation-mode-title"
+                      className="investigate-button find-displacement-primary"
+                      type="button"
+                      disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)}
+                      onClick={onKnownPlaceAnalysis}
+                    >
+                      {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to polygon inputs'}
+                    </button>
                   ) : (
                     <button className="investigate-button find-displacement-primary" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>
                       {isDisplacementSubmitting ? 'Starting processing…' : 'Find displacements'}
