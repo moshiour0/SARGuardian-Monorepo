@@ -116,7 +116,13 @@
 .processing-primary-button, .processing-ghost-button, .processing-dialog-cancel { min-height: 48px; padding: 0 20px; border-radius: 999px; font: 750 14px/1 inherit; cursor: pointer; transition: transform .12s ease-out, opacity .2s, background .2s; }
 .processing-primary-button { border: 0; background: linear-gradient(135deg, #1689df, #0764bd); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .46), 0 10px 28px -12px #087bd3; color: #fff; }
 .processing-ghost-button { border: 1px solid rgba(42, 108, 144, .22); background: rgba(255, 255, 255, .4); color: #245777; }
-.processing-cancel-button { color: #9e483e; }
+.processing-cancel-button {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, .22);
+}
+.processing-cancel-button:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
 .processing-primary-button:active, .processing-ghost-button:active, .processing-dialog-cancel:active { transform: scale(.96); }
 .processing-primary-button:disabled, .processing-ghost-button:disabled { cursor: wait; opacity: .55; }
 .processing-error, .processing-load-error { margin: 0; color: #9b4b26; }
