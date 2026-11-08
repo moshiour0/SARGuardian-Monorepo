@@ -101,6 +101,7 @@
 .processing-products-card > div + div { border-left: 1px solid rgba(59, 111, 138, .14); }
 .processing-products-card span { display: block; color: var(--processing-muted); font-size: 12px; font-weight: 750; letter-spacing: .05em; }
 .processing-products-card strong { display: block; margin-top: 3px; color: var(--processing-ink); font-size: 34px; letter-spacing: -.06em; line-height: 1; }
+.processing-products-card strong.processing-count-pending { color: #6b7280; font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
 
 .processing-details-card { padding: 4px 22px; }
 .processing-details-card dl { margin: 0; }

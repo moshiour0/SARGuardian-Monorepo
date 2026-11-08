@@ -148,9 +148,9 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
       </section>
 
       <section className="processing-card processing-products-card" aria-label="Product inventory">
-        <div><span>GUNW</span><strong>{counts?.GUNW ?? pendingCountLabel}</strong></div>
-        <div><span>GOFF</span><strong>{counts?.GOFF ?? pendingCountLabel}</strong></div>
-        <div><span>Total</span><strong>{total ?? pendingCountLabel}</strong></div>
+        <div><span>GUNW</span><strong className={counts ? '' : 'processing-count-pending'}>{counts?.GUNW ?? pendingCountLabel}</strong></div>
+        <div><span>GOFF</span><strong className={counts ? '' : 'processing-count-pending'}>{counts?.GOFF ?? pendingCountLabel}</strong></div>
+        <div><span>Total</span><strong className={counts ? '' : 'processing-count-pending'}>{total ?? pendingCountLabel}</strong></div>
       </section>
 
       <section className="processing-card processing-details-card" aria-label="Task details">
