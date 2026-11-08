@@ -7,6 +7,7 @@ import type { AoiWindowResponse, CatalogProduct, CatalogResponse, GunwQualityAna
 import { calculateGeodesicAreaKm2, canSubmitCatalogPreflight, validateCatalogPreflight, validatePolyline } from '../engine/validation';
 import { isPointInsidePolygon, parsePolygonWkt, prepareInvestigation } from '../engine/investigation';
 import { DisplacementPreparation } from './DisplacementPreparation';
+import { ScientificResultsPage } from './ScientificResults';
 import { KnownPlaceAnalysisPanel } from './KnownPlaceAnalysisPanel';
 import { countCatalogGranules, type GranuleCounts } from './processingStatus';
 import { scheduleErrorToastDismissal } from './errorToast';
@@ -1074,16 +1075,19 @@ function loadSubmittedHarmonyJobs(): SubmittedHarmonyLayerJob[] {
   }
 }
 
-export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onKnownPlaceAnalysis, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
+export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
   user: User;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   onHome: () => void;
   onSignIn: () => void;
   onResults: () => void;
+  onViewResults?: (jobId: string) => void;
+  resultJobId?: string | null;
   onBackToMap: () => void;
   onDisplacementTaskActivityChange: (active: boolean) => void;
   isResultsPage: boolean;
   isDisplacementPage: boolean;
+  isResultViewsPage?: boolean;
   isKnownPlaceAnalysisPage: boolean;
   isKnownPlaceSetupPage?: boolean;
   onDisplacements: () => void;
@@ -2395,7 +2399,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
 
   return (
     <div className="landslide-route-shell">
-      <div className={`landslide-map-keepalive${isResultsPage || isDisplacementPage || isKnownPlaceAnalysisPage ? ' is-hidden' : ''}`} aria-hidden={isResultsPage || isDisplacementPage || isKnownPlaceAnalysisPage}>
+      <div className={`landslide-map-keepalive${isResultsPage || isDisplacementPage || isResultViewsPage || isKnownPlaceAnalysisPage ? ' is-hidden' : ''}`} aria-hidden={isResultsPage || isDisplacementPage || isResultViewsPage || isKnownPlaceAnalysisPage}>
         {renderMapPage()}
       </div>
       {isResultsPage && renderResultsPage()}
@@ -2414,9 +2418,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               </nav>
             </div>
           </header>
-          <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
+          <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onViewResults={onViewResults} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
         </div>
       </div>}
+      {isResultViewsPage && <ScientificResultsPage jobId={resultJobId} user={user} onBack={onBackToMap} />}
       {isKnownPlaceAnalysisPage && <div className="nisar-results-page">
         {renderWorkspaceHeader('KNOWN PLACE ANALYSIS', 'Dedicated GOFF research workflow', 'Back to map', onBackToMap)}
         <KnownPlaceAnalysisPanel

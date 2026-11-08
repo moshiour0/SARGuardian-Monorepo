@@ -4,6 +4,7 @@ export const DASHBOARD_PATH = '/dashboard';
 export const RIVER_SHIFT_PATH = '/river-shift';
 export const FIND_DISPLACEMENT_PATH = '/find-displacement';
 export const FIND_DISPLACEMENT_RESULTS_PATH = '/find-displacement/results';
+export const FIND_DISPLACEMENT_OUTPUTS_PATH = '/find-displacement/view-results';
 export const FIND_DISPLACEMENT_DISPLACEMENT_PATH = '/find-displacement/displacements';
 export const KNOWN_PLACE_ANALYSIS_PATH = '/know-place-analysis';
 // Legacy aliases remain recognized so existing bookmarks continue to work.
@@ -70,6 +71,12 @@ export function isLandslideResultsRoute(pathname: string): boolean {
   const normalizedPath = normalizePathname(pathname);
   return normalizedPath === FIND_DISPLACEMENT_RESULTS_PATH
     || normalizedPath === LANDSLIDE_RESULTS_PATH;
+}
+
+export function isLandslideResultViewsRoute(pathname: string): boolean {
+  const normalizedPath = normalizePathname(pathname);
+  return normalizedPath === FIND_DISPLACEMENT_OUTPUTS_PATH
+    || normalizedPath.startsWith(`${FIND_DISPLACEMENT_OUTPUTS_PATH}/`);
 }
 
 export function navigatePath(

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import type { DisplacementJob } from '../../src/api/catalog';
-import { downloadDisplacementArtifact } from '../../src/api/catalog';
+import { downloadDisplacementArtifact, getDisplacementJob } from '../../src/api/catalog';
 import { buildDashboardRouteUrl, type DashboardView } from '../../src/dashboardDocument';
+import { BrandLogo } from '../../src/components/BrandLogo';
 
 const dashboardViews: Array<{ id: DashboardView; title: string; audience: string; description: string }> = [
   {
@@ -52,9 +53,9 @@ function resultBundleArtifactIndex(job: DisplacementJob): number | undefined {
   return index >= 0 ? index : undefined;
 }
 
-export function ScientificResults({ job, user }: { job: DisplacementJob; user: Pick<User, 'getIdToken'> }) {
+export function ScientificResults({ job, user, showDownload = true }: { job: DisplacementJob; user?: Pick<User, 'getIdToken'>; showDownload?: boolean }) {
   const bundleArtifactIndex = resultBundleArtifactIndex(job);
-  const canDownloadBundle = bundleArtifactIndex !== undefined;
+  const canDownloadBundle = showDownload && bundleArtifactIndex !== undefined;
   const canOpenDashboard = dashboardAvailable(job);
   const [selectedView, setSelectedView] = useState<DashboardView>('public');
   const [dashboardError, setDashboardError] = useState('');
@@ -81,12 +82,10 @@ export function ScientificResults({ job, user }: { job: DisplacementJob; user: P
   }
 
   async function downloadResultBundle() {
-    if (bundleArtifactIndex === undefined) return;
+    if (bundleArtifactIndex === undefined || !user) return;
     setBundleError('');
     setDownloadingBundle(true);
     try {
-      // The Drive folder is intentionally private. Stream the retained ZIP via
-      // the owner-authenticated API instead of sending the user to a private Drive URL.
       const blob = await downloadDisplacementArtifact(job.id, bundleArtifactIndex, user, setBundleProgress);
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -105,7 +104,7 @@ export function ScientificResults({ job, user }: { job: DisplacementJob; user: P
     }
   }
 
-  if (!canDownloadBundle && !canOpenDashboard) return null;
+  if (!canDownloadBundle && !canOpenDashboard) return <section className="scientific-results scientific-results-v2" aria-label="Scientific result outputs"><p className="scientific-results-error" role="status">Interactive result views are not available for this job yet.</p></section>;
   return (
     <section className="scientific-results scientific-results-v2" aria-label="Scientific result outputs">
       {canOpenDashboard && (
@@ -137,35 +136,62 @@ export function ScientificResults({ job, user }: { job: DisplacementJob; user: P
 
         </div>
       )}
-      {canDownloadBundle && (
-        <div className="scientific-results-actions">
-          <button
-            className="investigate-button validated-output-link"
-            type="button"
-            onClick={() => void downloadResultBundle()}
-            disabled={downloadingBundle}
-          >
-            {downloadingBundle ? 'Preparing secure download…' : 'Download complete result package'}
-          </button>
-        </div>
-      )}
-      {canDownloadBundle && (
-        <p className="scientific-results-note">
-          Results are kept in private storage and downloaded through your signed-in SARGuardian account.
-          {job.retention_mode === 'derived-only'
-            ? ' This package contains the retained AOI-derived products, maps and provenance; original full-granule HDF5 files are not retained in derived-only mode.'
-            : ''}
-        </p>
-      )}
-      {canDownloadBundle && !canOpenDashboard && (
-        <p className="scientific-results-note" role="status">
-          This job's result package is still retained and checksum-verified, but its interactive dashboard did not pass viewer validation. The three audience views are therefore unavailable for this run; the verified result package can still be downloaded.
-        </p>
-      )}
+      {canDownloadBundle && <div className="scientific-results-actions">
+        <button className="investigate-button validated-output-link" type="button" onClick={() => void downloadResultBundle()} disabled={downloadingBundle}>
+          {downloadingBundle ? 'Preparing secure download…' : 'Download complete result package'}
+        </button>
+      </div>}
+      {canDownloadBundle && <p className="scientific-results-note">
+        Results are kept in private storage and downloaded through your signed-in SARGuardian account.
+        {job.retention_mode === 'derived-only' ? ' This package contains the retained AOI-derived products, maps and provenance; original full-granule HDF5 files are not retained in derived-only mode.' : ''}
+      </p>}
+      {canDownloadBundle && !canOpenDashboard && <p className="scientific-results-note" role="status">
+        This job&apos;s result package is still retained and checksum-verified, but its interactive dashboard did not pass viewer validation. The three audience views are therefore unavailable for this run; the verified result package can still be downloaded.
+      </p>}
       {canOpenDashboard && <p className="scientific-results-note">A processing PASS confirms structural and provenance checks, not independent geophysical accuracy. Candidate patterns are not hazard confirmations; pairwise LOS is not automatically cumulative or 3-D movement.</p>}
+      {dashboardError && <p className="scientific-results-error" role="alert">{dashboardError}</p>}
       {bundleProgress && <p className="scientific-results-note" role="status">{bundleProgress}</p>}
       {bundleError && <p className="scientific-results-error" role="alert">{bundleError}</p>}
-      {dashboardError && <p className="scientific-results-error" role="alert">{dashboardError}</p>}
     </section>
+  );
+}
+
+export function ScientificResultsPage({ jobId, user, onBack }: { jobId: string | null; user: Pick<User, 'getIdToken'>; onBack: () => void }) {
+  const [job, setJob] = useState<DisplacementJob | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (!jobId) {
+      setLoading(false);
+      setError('No displacement result was selected.');
+      return () => { active = false; };
+    }
+    setLoading(true);
+    setError('');
+    void getDisplacementJob(jobId, user)
+      .then((nextJob) => { if (active) setJob(nextJob); })
+      .catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load this displacement result.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [jobId, user]);
+
+  return (
+    <div className="home-page claude-home claude-processing-page displacement-results-view-page">
+      <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
+      <header className="claude-nav-shell is-archive processing-only-header">
+        <div className="claude-nav-inner">
+          <a className="claude-brand" href="/" aria-label="SARGuardian home"><span className="claude-brand-mark"><BrandLogo className="claude-brand-logo" /></span><span className="claude-brand-word"><b>SAR</b>Guardian</span></a>
+          <span className="claude-nav-title">Results</span>
+          <nav className="claude-nav-links" aria-label="Results navigation"><button type="button" className="archive-home-link" onClick={onBack}>Back</button></nav>
+        </div>
+      </header>
+      <main className="displacement-results-view-main">
+        {loading && <section className="processing-card scientific-results-loading" aria-busy="true"><span className="processing-skeleton-line" /><span className="processing-skeleton-line" /><span className="processing-skeleton-line" /></section>}
+        {!loading && error && <section className="processing-card processing-load-error" role="alert"><p>{error}</p><button type="button" className="processing-ghost-button" onClick={onBack}>Back to processing</button></section>}
+        {!loading && !error && job && <ScientificResults job={job} showDownload={false} />}
+      </main>
+    </div>
   );
 }

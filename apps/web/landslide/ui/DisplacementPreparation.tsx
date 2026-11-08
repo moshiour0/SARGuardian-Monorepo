@@ -10,7 +10,6 @@ import {
   type DisplacementProcessingOptions,
   type DisplacementJob,
 } from '../../src/api/catalog';
-import { ScientificResults } from './ScientificResults';
 import { chooseAccountJob } from '../engine/displacementJobSelection';
 import { ELAPSED_TICK_MS, formatElapsed, type GranuleCounts } from './processingStatus';
 import './displacementPreparation.css';
@@ -107,14 +106,14 @@ function ProcessingPageSkeleton() {
   );
 }
 
-export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRetry, onBack, user }: {
+export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRetry, onViewResults, onBack }: {
   job: DisplacementJob;
-  user: Pick<User, 'getIdToken'>;
   pendingAction: PendingAction;
   clock: number;
   granuleCounts: GranuleCounts | null;
   onCancel: () => void;
   onRetry: () => void;
+  onViewResults: (jobId: string) => void;
   onBack: () => void;
 }) {
   const hasActiveJob = activeStates.has(job.state);
@@ -213,7 +212,7 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
         {hasActiveJob && <>
           <button type="button" className="processing-ghost-button processing-cancel-button" disabled={busy} onClick={() => setCancelConfirmationOpen(true)}>Cancel task</button>
         </>}
-        {job.state === 'succeeded' && <button type="button" className="processing-primary-button" onClick={() => document.querySelector<HTMLElement>('.scientific-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>View results</button>}
+        {job.state === 'succeeded' && <button type="button" className="processing-primary-button" onClick={() => onViewResults(job.id)}>View results</button>}
         {job.state === 'failed' && <><button type="button" className="processing-primary-button" disabled={busy} onClick={onRetry}>{pendingAction === 'retry' ? 'Retrying…' : 'Try again'}</button><button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button></>}
         {job.state === 'cancelled' && <button type="button" className="processing-primary-button" onClick={onBack}>Back to map</button>}
       </div>
@@ -227,12 +226,11 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
         </section>
       </div>}
 
-      <ScientificResults job={job} user={user} />
     </section>
   );
 }
 
-export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLACEMENT_OPTIONS, granuleCounts = null, onBack, onTaskActivityChange = noopTaskActivityChange, user }: { preparation: PreparedInvestigation; options?: DisplacementProcessingOptions; granuleCounts?: GranuleCounts | null; onBack: () => void; onTaskActivityChange?: (active: boolean) => void; user: User }) {
+export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLACEMENT_OPTIONS, granuleCounts = null, onBack, onViewResults = () => {}, onTaskActivityChange = noopTaskActivityChange, user }: { preparation: PreparedInvestigation; options?: DisplacementProcessingOptions; granuleCounts?: GranuleCounts | null; onBack: () => void; onViewResults?: (jobId: string) => void; onTaskActivityChange?: (active: boolean) => void; user: User }) {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [job, setJob] = useState<DisplacementJob | null>(null);
   const [jobError, setJobError] = useState('');
@@ -366,9 +364,9 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
   if (!job && !jobError) return <ProcessingPageSkeleton />;
 
   return <main className="displacement-preparation">
-      {job && <DisplacementJobStatus job={job} pendingAction={pendingAction} clock={clock} granuleCounts={granuleCounts} user={user}
+      {job && <DisplacementJobStatus job={job} pendingAction={pendingAction} clock={clock} granuleCounts={granuleCounts}
         onCancel={() => void cancel()}
-        onRetry={() => void retryFailed()} onBack={onBack} />}
+        onRetry={() => void retryFailed()} onViewResults={onViewResults} onBack={onBack} />}
       {jobError && <section className="processing-card processing-load-error" role="alert"><p>{jobError}</p>{!job && <button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button>}</section>}
   </main>;
 }
