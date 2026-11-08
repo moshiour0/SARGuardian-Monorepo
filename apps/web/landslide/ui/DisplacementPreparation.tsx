@@ -88,16 +88,20 @@ function ProcessingPageSkeleton() {
           <span /><span /><span /><span />
         </div>
         <span className="processing-skeleton-line processing-skeleton-note" />
+        <span className="processing-skeleton-line processing-skeleton-duration" />
       </section>
       <section className="processing-card processing-products-card processing-skeleton-products">
         <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
         <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
         <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
       </section>
-      <section className="processing-card processing-details-card processing-skeleton-details">
-        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
-        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
-        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
+      <section className="processing-card processing-details-card">
+        <dl className="processing-skeleton-details">
+          <div><dt><span className="processing-skeleton-line" /></dt><dd><span className="processing-skeleton-line" /></dd></div>
+          <div><dt><span className="processing-skeleton-line" /></dt><dd><span className="processing-skeleton-line" /></dd></div>
+          <div><dt><span className="processing-skeleton-line" /></dt><dd><span className="processing-skeleton-line" /></dd></div>
+          <div><dt><span className="processing-skeleton-line" /></dt><dd><span className="processing-skeleton-line" /></dd></div>
+        </dl>
       </section>
     </main>
   );

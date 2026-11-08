@@ -43,12 +43,13 @@
 .processing-skeleton-stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .processing-skeleton-stepper span { height: 10px; border-radius: 999px; background: rgba(87,128,153,.22); }
 .processing-skeleton-note { width: min(260px, 70%); margin: 23px auto 0; }
+.processing-skeleton-duration { width: min(220px, 58%); margin: 6px auto 0; height: 10px; }
 .processing-skeleton-products > div { display: grid; justify-items: center; gap: 10px; }
 .processing-skeleton-products .processing-skeleton-line:first-child { width: 45px; }
 .processing-skeleton-products .processing-skeleton-line:last-child { width: 68px; height: 30px; }
-.processing-skeleton-details { display: grid; grid-template-columns: 90px 1fr; gap: 18px 22px; padding: 22px; }
-.processing-skeleton-details .processing-skeleton-line:nth-child(odd) { width: 62px; }
-.processing-skeleton-details .processing-skeleton-line:nth-child(even) { width: 70%; justify-self: end; }
+.processing-skeleton-details > div { min-height: 59px; }
+.processing-skeleton-details dt .processing-skeleton-line { width: 62px; }
+.processing-skeleton-details dd .processing-skeleton-line { width: min(220px, 70%); }
 .processing-card,
 .processing-confirmation {
   border: 1px solid rgba(255, 255, 255, .68);
