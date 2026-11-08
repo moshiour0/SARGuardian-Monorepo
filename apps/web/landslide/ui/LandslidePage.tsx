@@ -2249,7 +2249,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               {coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
 
               <div className="draw-actions">
-                <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />Draw area</button>
+                <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>
                 {drawing && (
                   <>
                     <button type="button" disabled={!coordinates.length} onClick={undo}><Icon name="undo" />Undo</button>
@@ -2260,10 +2260,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   </>
                 )}
                 {!drawing && areaClosed && (
-                  <>
-                    <button type="button" disabled={!mapReady} onClick={() => setDrawing(true)}><Icon name="draw" />Edit</button>
-                    <button type="button" onClick={clearGeometry}><Icon name="clear" />Clear</button>
-                  </>
+                  <button type="button" onClick={clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
 
