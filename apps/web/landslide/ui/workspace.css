@@ -1453,6 +1453,7 @@
   width: 26px;
   height: 26px;
 }
+.landslide-route-shell .mobile-date-button { display: none; }
 @media (max-width: 900px) {
   .landslide-route-shell .validation-toast.validation-toast--floating {
     top: 168px;
@@ -1475,14 +1476,31 @@
   .landslide-route-shell .mobile-date-picker-anchor {
     position: fixed;
     z-index: 121;
-    top: max(132px, calc(env(safe-area-inset-top) + 96px));
-    left: 12px;
+    top: max(72px, calc(env(safe-area-inset-top) + 72px));
+    left: 8px;
     width: 1px;
     height: 1px;
     padding: 0;
     border: 0;
     opacity: .001;
     pointer-events: none;
+  }
+  .landslide-route-shell .date-range .desktop-date-input { display: none; }
+  .landslide-route-shell .date-range .mobile-date-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--sg-border);
+    border-radius: 18px;
+    background: var(--sg-control);
+    color: var(--sg-text);
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: none;
   }
 }
 

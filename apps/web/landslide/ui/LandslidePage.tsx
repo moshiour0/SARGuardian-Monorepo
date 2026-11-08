@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { importLibrary } from '@googlemaps/js-api-loader';
 import { configureGoogleMaps } from '../../src/googleMapsLoader';
 import type { User } from 'firebase/auth';
@@ -1135,7 +1135,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [toastRevision, setToastRevision] = useState(0);
   const mobileStartDatePickerRef = useRef<HTMLInputElement>(null);
   const mobileEndDatePickerRef = useRef<HTMLInputElement>(null);
-  const suppressMobileDateClickRef = useRef(false);
   const [selectedHarmonyProduct, setSelectedHarmonyProduct] = useState<CatalogProduct | null>(initialSessionState.selectedHarmonyProduct);
   const [harmonyLayerRole, setHarmonyLayerRole] = useState<HarmonyLayerRole>('unwrapped_phase');
   const [harmonyWorkflowMaturity, setHarmonyWorkflowMaturity] = useState<'PROVISIONAL' | 'BETA'>('PROVISIONAL');
@@ -1486,21 +1485,16 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     setValidationAlertDismissed(false);
   };
 
-  const openMobileDatePicker = (event: ReactPointerEvent<HTMLInputElement>, pickerRef: { current: HTMLInputElement | null }) => {
-    // Real touch browsers position their native/OS picker correctly and some
-    // reject showPicker() on a proxy input. Only use the safe anchor for a
-    // mouse-driven narrow viewport (desktop responsive preview).
-    if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
-    if (!window.matchMedia('(max-width: 560px)').matches || typeof pickerRef.current?.showPicker !== 'function') return;
-    event.preventDefault();
-    suppressMobileDateClickRef.current = true;
-    pickerRef.current.showPicker();
+  const openAnchoredDatePicker = (pickerRef: { current: HTMLInputElement | null }) => {
+    const picker = pickerRef.current;
+    if (!picker) return;
+    if (typeof picker.showPicker === 'function') picker.showPicker();
+    else picker.click();
   };
 
-  const suppressProxiedDateClick = (event: { preventDefault: () => void }) => {
-    if (!suppressMobileDateClickRef.current) return;
-    event.preventDefault();
-    suppressMobileDateClickRef.current = false;
+  const formatDateButtonValue = (value: string) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    return match ? `${match[2]}/${match[3]}/${match[1]}` : 'mm/dd/yyyy';
   };
 
   const handleCoordinates = (next: Coordinate[], closed: boolean) => {
@@ -2311,25 +2305,29 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 <span>Observation window</span>
                 <div className="date-range">
                   <input
+                    className="desktop-date-input"
                     type="date"
                     value={windowStart}
                     max={today}
-                    onPointerDown={(event) => openMobileDatePicker(event, mobileStartDatePickerRef)}
-                    onClick={suppressProxiedDateClick}
                     onChange={(event) => handleWindowStartChange(event.target.value)}
                     aria-label="Starting date"
                   />
+                  <button className="mobile-date-button" type="button" onClick={() => openAnchoredDatePicker(mobileStartDatePickerRef)} aria-label="Select starting date">
+                    <span>{formatDateButtonValue(windowStart)}</span><span aria-hidden="true">▣</span>
+                  </button>
                   <span>to</span>
                   <input
+                    className="desktop-date-input"
                     type="date"
                     value={windowEnd}
                     min={windowStart || undefined}
                     max={today}
-                    onPointerDown={(event) => openMobileDatePicker(event, mobileEndDatePickerRef)}
-                    onClick={suppressProxiedDateClick}
                     onChange={(event) => handleWindowEndChange(event.target.value)}
                     aria-label="Ending date"
                   />
+                  <button className="mobile-date-button" type="button" onClick={() => openAnchoredDatePicker(mobileEndDatePickerRef)} aria-label="Select ending date">
+                    <span>{formatDateButtonValue(windowEnd)}</span><span aria-hidden="true">▣</span>
+                  </button>
                 </div>
               </div>
 
