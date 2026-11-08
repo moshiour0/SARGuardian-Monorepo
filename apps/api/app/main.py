@@ -765,7 +765,19 @@ async def update_displacement_job_from_worker(job_id: UUID, request: Request) ->
         if current == target and stored_run_id == payload.github_run_id and record.get("stage") == payload.stage:
             return {"status": "accepted", "job_id": str(job_id), "job_status": current.value}
         raise HTTPException(status_code=409, detail="Duplicate worker callback does not match the recorded event.")
-    if payload.sequence != stored_sequence + 1:
+    # Product discovery is an optional progress event. Some GitHub worker
+    # revisions report startup (sequence 1) and then send the discovery
+    # counts as sequence 3 without emitting the intermediate stage-2 event.
+    # Accept that specific signed event so the selected counts reach the UI as
+    # soon as discovery completes; all other sequence gaps remain rejected.
+    discovery_progress_gap = (
+        target == JobState.RUNNING
+        and payload.stage == "products_discovered"
+        and isinstance(payload.result_summary, dict)
+        and stored_sequence == 1
+        and payload.sequence == 3
+    )
+    if payload.sequence != stored_sequence + 1 and not discovery_progress_gap:
         raise HTTPException(status_code=409, detail="Worker callback sequence is out of order.")
     if stored_run_id and stored_run_id != payload.github_run_id:
         raise HTTPException(status_code=409, detail="Worker callback run does not match the recorded workflow run.")

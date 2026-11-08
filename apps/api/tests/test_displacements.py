@@ -302,7 +302,6 @@ def test_running_discovery_counts_remain_visible_when_the_worker_fails(monkeypat
                         headers={"Content-Type": "application/json", "X-SARGuardian-Signature": signature})
 
     assert callback({"state": "running", "stage": "initializing", "sequence": 1, "github_run_id": "123"}).status_code == 200
-    assert callback({"state": "running", "stage": "science_processing", "sequence": 2, "github_run_id": "123"}).status_code == 200
     progress = {"schema_version": 2, "catalog_granule_counts": {"GUNW": 8, "GOFF": 5},
                 "selected_granule_counts": {"GUNW": 1, "GOFF": 1}}
     assert callback({"state": "running", "stage": "products_discovered", "sequence": 3,
