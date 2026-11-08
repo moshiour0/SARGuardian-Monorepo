@@ -4,7 +4,7 @@ import { configureGoogleMaps } from '../../src/googleMapsLoader';
 import type { User } from 'firebase/auth';
 import { analyzeGunwAoiQuality, createDisplacementJob, createQueuedJob, DEFAULT_DISPLACEMENT_OPTIONS, getNisarHarmonyJobStatus, getProcessingJob, inspectNisarAoiWindow, listProcessingJobs, searchNisarCatalog, startGunwQualityLayers, startNisarHarmonyLayerJob, verifyGunwNativeSourceMask } from '../../src/api/catalog';
 import type { AoiWindowResponse, CatalogProduct, CatalogResponse, GunwQualityAnalysisResponse, HarmonyLayerRole, HarmonyQualityLayerBundle, HarmonyQualityLayerJob, NativeSourceMaskVerificationResponse, NisarProductType, ProcessingJob, SubmittedHarmonyLayerJob } from '../../src/api/catalog';
-import { calculateGeodesicAreaKm2, canSubmitCatalogPreflight, validatePolyline } from '../engine/validation';
+import { calculateGeodesicAreaKm2, canSubmitCatalogPreflight, validateCatalogPreflight, validatePolyline } from '../engine/validation';
 import { isPointInsidePolygon, parsePolygonWkt, prepareInvestigation } from '../engine/investigation';
 import { DisplacementPreparation } from './DisplacementPreparation';
 import { KnownPlaceAnalysisPanel } from './KnownPlaceAnalysisPanel';
@@ -1254,6 +1254,16 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     endDate: windowEnd,
     today,
   });
+  // Keep field-level AOI/date feedback available even when prepareInvestigation
+  // short-circuits on an incomplete date pair.
+  const fieldValidation = validateCatalogPreflight({
+    coordinates,
+    areaClosed,
+    startDate: windowStart,
+    endDate: windowEnd,
+    today,
+  });
+  const fieldValidationErrors = fieldValidation.valid ? [] : fieldValidation.errors;
   const selectionKey = JSON.stringify([coordinates, areaClosed, windowStart, windowEnd, location]);
   const currentSelectionKey = useRef(selectionKey);
   currentSelectionKey.current = selectionKey;
@@ -1303,9 +1313,13 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       setIsCatalogLoading(false);
     }
   };
-  const actionableValidationError = catalogValidation.valid || coordinates.length < 3 || !windowStart || !windowEnd
-    ? ''
-    : catalogValidation.errors.find((message) => !message.startsWith('Close a valid AOI') && !message.startsWith('Choose both a start date')) || '';
+  const aoiValidationError = coordinates.length >= 3 && areaClosed
+    ? fieldValidationErrors.find((message) => !/date|archive search|time window/i.test(message)) || ''
+    : '';
+  const dateValidationError = windowStart && windowEnd
+    ? fieldValidationErrors.find((message) => /date|archive search|time window/i.test(message)) || ''
+    : '';
+  const actionableValidationError = aoiValidationError || dateValidationError;
   const validationPopupError = !validationAlertDismissed ? actionableValidationError : '';
   const visibleError = catalogError || error || validationPopupError;
 
@@ -1461,6 +1475,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     setQualityAnalysis(null);
     setQualityError('');
     setQualityMessage('');
+    setError('');
     setValidationAlertDismissed(false);
   };
 
