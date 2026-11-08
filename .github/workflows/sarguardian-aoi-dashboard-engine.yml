@@ -153,6 +153,7 @@ jobs:
       aoi_wkt_sha256: ${{ steps.discover.outputs.aoi_wkt_sha256 }}
       orchestration_sha: ${{ steps.orch.outputs.sha }}
       orchestration_branch: ${{ steps.orch.outputs.branch }}
+      progress_reported: ${{ steps.progress.outputs.reported }}
     env:
       SARGUARDIAN_AOI_WKT: ${{ inputs.aoi_wkt }}
       AOI_ORCHESTRATION_BRANCH: ${{ github.ref_name }}
@@ -235,6 +236,26 @@ jobs:
             --date-filter-mode "$DATE_FILTER_MODE" \
             --run-profile "$RUN_PROFILE" --retention-profile "$RETENTION_PROFILE" \
             --out "$RUNNER_TEMP/sarguardian-aoi/manifest/manifest.json"
+
+      - name: Report discovered processing counts to the account API
+        id: progress
+        if: inputs.job_id != ''
+        env:
+          CALLBACK_SECRET: ${{ secrets.DISPLACEMENT_CALLBACK_SECRET }}
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          JOB_ID: ${{ inputs.job_id }}
+          REQUEST_FINGERPRINT: ${{ inputs.request_fingerprint }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE/apps/api" python -m science_adapter.dynamic_callback \
+            --state running --stage products_discovered --sequence 2 \
+            --callback-url "$CALLBACK_URL" --callback-secret "$CALLBACK_SECRET" \
+            --job-id "$JOB_ID" --request-fingerprint "$REQUEST_FINGERPRINT" \
+            --github-run-id "$GITHUB_RUN_ID" \
+            --github-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --manifest "$RUNNER_TEMP/sarguardian-aoi/manifest/manifest.json"
+          echo "reported=true" >> "$GITHUB_OUTPUT"
 
       - name: Checkout exact workflow revision for race-free Drive folder preparation
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -604,6 +625,7 @@ jobs:
           REQUEST_FINGERPRINT: ${{ inputs.request_fingerprint }}
           PIPELINE_RESULT: ${{ needs.dashboard.result }}
           RUNNING_REPORTED: ${{ needs.report-running.outputs.reported }}
+          PROGRESS_REPORTED: ${{ needs.manifest.outputs.progress_reported }}
         shell: bash
         run: |
           set -euo pipefail
@@ -615,6 +637,7 @@ jobs:
 
           sequence=1
           if [[ "$RUNNING_REPORTED" == "true" ]]; then sequence=2; fi
+          if [[ "$PROGRESS_REPORTED" == "true" ]]; then sequence=3; fi
           state=failed
           stage=failed
           error_code=GITHUB_ACTIONS_WORKER_FAILED
