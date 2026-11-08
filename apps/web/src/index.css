@@ -1356,6 +1356,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
 @media (max-width: 700px) {
   .claude-wrap { width: min(100% - 28px, 1080px); }
   .claude-nav-inner { height: 54px; padding-left: 11px; gap: 8px; }
+  /* Keep the mobile workspace header readable: the page title must not sit
+     underneath the brand when the nav has only a Home action. Processing
+     keeps its centered title via the explicit processing-only override below. */
+  .claude-nav-title { display: none; }
   .claude-brand-word { font-size: 15px; }
   .claude-nav-how { display: none !important; }
   .claude-nav-links { gap: 4px; }
@@ -1364,6 +1368,18 @@ html { scroll-behavior: smooth; scroll-padding-top: 112px; }
   .claude-limits-grid { grid-template-columns: minmax(0,1fr); }
   .claude-workflow-card { min-height: 310px; }
   .claude-principles-grid { gap: 2rem; }
+}
+
+@media (max-width: 700px) {
+  .claude-nav-shell.processing-only-header .claude-nav-title {
+    display: block;
+    position: static;
+    margin: 0 auto;
+    transform: none;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .claude-nav-shell.processing-only-header .claude-brand-word { display: none; }
 }
 
 @media (max-width: 480px) {

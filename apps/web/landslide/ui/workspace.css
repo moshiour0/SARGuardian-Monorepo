@@ -255,7 +255,9 @@
   .landslide-route-shell .draw-actions,
   .landslide-route-shell .time-actions,
   .landslide-route-shell .date-range { width: 100%; min-width: 0; }
-  .landslide-route-shell .map-search { top: 12px; left: 12px; width: calc(100% - 80px); padding: 9px; gap: 6px; }
+  /* Leave a clear lane for the vertical map controls. The previous 80px
+     subtraction let the Search button sit beneath the controls on iPhone. */
+  .landslide-route-shell .map-search { top: 12px; left: 12px; width: calc(100% - 108px); padding: 9px; gap: 6px; }
   .landslide-route-shell .map-tools { top: 12px; right: 12px; }
   .landslide-route-shell .draw-hint { top: auto; bottom: 32px; left: 12px; right: 12px; transform: none; max-width: none; }
   .landslide-route-shell .validation-toast { grid-area: feedback; position: static; margin: 10px 12px 0; width: calc(100% - 24px); max-width: 380px; justify-self: center; }
@@ -272,6 +274,7 @@
   .workspace-header .workspace-profile-trigger { padding: 3px; }
   .workspace-profile-chevron { display: none; }
   .landslide-route-shell .map-search > button { padding: 0 9px; font-size: 11px; }
+  .landslide-route-shell .map-search { max-width: calc(100% - 108px); }
   .workspace-search-input input { font-size: 12px; }
   .landslide-route-shell .action-bar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'summary summary' 'drawing drawing' 'time time' 'modes modes'; }
   .landslide-route-shell .draw-actions { display: flex; justify-content: flex-start; }
