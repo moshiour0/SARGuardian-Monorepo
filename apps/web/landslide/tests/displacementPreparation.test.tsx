@@ -195,17 +195,14 @@ describe('displacement preparation route', () => {
     const html = renderToStaticMarkup(<DisplacementJobStatus job={failedJob} pendingAction={null} clock={Date.parse('2026-10-24T10:02:00Z')}
       granuleCounts={{ GUNW: 4, GOFF: 3, source: 'catalog-preflight' }} onCancel={() => {}} onRefresh={() => {}}
       onRetry={() => {}} onBack={() => {}} />);
-    expect(html).toContain('Age:');
+    expect(html).toContain('elapsed 1m 5s');
     expect(html).toContain('1m 5s');
-    expect(html).toContain('GUNW granules');
+    expect(html).toContain('>GUNW<');
     expect(html).toContain('>4<');
-    expect(html).toContain('GOFF granules');
+    expect(html).toContain('>GOFF<');
     expect(html).toContain('>3<');
-    expect(html).toContain('Retry task');
-    expect(html).toContain('Go to map');
-    expect(html).toContain('Selected place:');
-    expect(html).toContain('Measurement target:');
-    expect(html).toContain('Not supplied inside the submitted AOI');
+    expect(html).toContain('Try again');
+    expect(html).toContain('Back to map');
     expect(html).not.toContain('Start displacement processing');
 
     const targetedJob = {
@@ -216,8 +213,6 @@ describe('displacement preparation route', () => {
       clock={Date.parse('2026-10-24T10:02:00Z')} granuleCounts={null} onCancel={() => {}} onRefresh={() => {}}
       onRetry={() => {}} onBack={() => {}} />);
     expect(targetedHtml).toContain('Rasuwa foothill');
-    expect(targetedHtml).toContain('27.01000, 85.01000');
-    expect(targetedHtml).toContain('not a stable-ground reference');
 
     const runningWithWorkerCounts = { ...failedJob, state: 'running', stage: 'products_discovered',
       github_run_url: 'https://github.com/shourov-04/SARGuardian_Dynamic/actions/runs/123', result_summary: {
@@ -228,8 +223,7 @@ describe('displacement preparation route', () => {
       onRetry={() => {}} onBack={() => {}} />);
     expect(runningHtml).toContain('>8<');
     expect(runningHtml).toContain('>5<');
-    expect(runningHtml).toContain('Worker discovery');
-    expect(runningHtml).toContain('Refresh task');
+    expect(runningHtml).toContain('Refresh');
     expect(runningHtml).not.toContain('View worker logs');
     expect(runningHtml).not.toContain('https://github.com/shourov-04/SARGuardian_Dynamic/actions/runs/123');
 

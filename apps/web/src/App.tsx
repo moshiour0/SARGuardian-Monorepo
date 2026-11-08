@@ -10,7 +10,7 @@ import { parseDashboardView } from './dashboardDocument';
 import { LandslidePage } from '../landslide/ui/LandslidePage';
 import { RiverShiftPage } from './pages/RiverShiftPage';
 import { auth, firebaseConfigured, googleProvider, missingFirebaseConfig } from './firebase';
-import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, KNOWN_PLACE_ANALYSIS_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, LANDSLIDE_RESULTS_PATH, navigatePath, normalizePathname } from './routing';
+import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, KNOWN_PLACE_ANALYSIS_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, navigatePath, normalizePathname } from './routing';
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
@@ -72,7 +72,7 @@ function App() {
     // workspace is locked because changing its AOI during an active task would
     // be misleading; the durable status route stays available.
     if (hasActiveDisplacementTask && pathname === FIND_DISPLACEMENT_PATH) {
-      navigateTo(LANDSLIDE_DISPLACEMENT_PATH);
+      navigateTo(FIND_DISPLACEMENT_DISPLACEMENT_PATH);
     }
   }, [hasActiveDisplacementTask, navigateTo, pathname]);
 
@@ -289,13 +289,13 @@ function App() {
         isDisplacementPage={isLandslideDisplacementRoute(pathname)}
         isKnownPlaceAnalysisPage={isLandslideKnownPlaceAnalysisRoute(pathname)}
         isKnownPlaceSetupPage={isLandslideKnownPlaceSetupRoute(pathname)}
-        onDisplacements={() => navigateTo(LANDSLIDE_DISPLACEMENT_PATH)}
+        onDisplacements={() => navigateTo(FIND_DISPLACEMENT_DISPLACEMENT_PATH)}
         onKnownPlaceAnalysis={() => navigateTo(
           isLandslideKnownPlaceSetupRoute(pathname)
             ? LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH
             : LANDSLIDE_KNOWN_PLACE_PATH
         )}
-        onResults={() => navigateTo(LANDSLIDE_RESULTS_PATH)}
+        onResults={() => navigateTo(FIND_DISPLACEMENT_RESULTS_PATH)}
         onBackToMap={() => navigateTo(
           isLandslideKnownPlaceSetupAnalysisRoute(pathname)
             ? LANDSLIDE_KNOWN_PLACE_SETUP_PATH

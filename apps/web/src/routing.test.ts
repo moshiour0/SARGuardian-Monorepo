@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -56,5 +56,15 @@ describe('client-side route recognition', () => {
 
     expect(navigatePath('/landslide/results', '/landslide/results', pushState)).toBe('/landslide/results');
     expect(pushState).toHaveBeenCalledOnce();
+  });
+
+  it('uses Find Displacement as the canonical public route while accepting legacy aliases', () => {
+    expect(FIND_DISPLACEMENT_PATH).toBe('/find-displacement');
+    expect(FIND_DISPLACEMENT_DISPLACEMENT_PATH).toBe('/find-displacement/displacements');
+    expect(FIND_DISPLACEMENT_RESULTS_PATH).toBe('/find-displacement/results');
+    expect(isLandslideRoute('/find-displacement/displacements')).toBe(true);
+    expect(isLandslideDisplacementRoute('/find-displacement/displacements')).toBe(true);
+    expect(isLandslideResultsRoute('/find-displacement/results')).toBe(true);
+    expect(isLandslideDisplacementRoute('/landslide/displacements')).toBe(true);
   });
 });
