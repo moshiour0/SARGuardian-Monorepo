@@ -809,6 +809,17 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px rgba(8, 77, 151, .18);
 }
 
+.landslide-route-shell .draw-actions .confirm-button {
+  border-color: transparent;
+  background: linear-gradient(135deg, #2fbf88, #16865f);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px rgba(16, 104, 75, .18);
+}
+
+.landslide-route-shell .draw-actions .confirm-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #46d49b, #1d9a6e);
+}
+
 .landslide-route-shell .map-search > button:hover:not(:disabled),
 .landslide-route-shell .map-tools button:hover,
 .landslide-route-shell .draw-actions button:hover:not(:disabled),
