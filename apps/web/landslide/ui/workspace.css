@@ -792,30 +792,18 @@
 .landslide-route-shell .draw-actions button,
 .landslide-route-shell .investigate-button {
   border-color: transparent;
-  background: linear-gradient(135deg, rgba(20, 52, 78, .30), rgba(7, 24, 43, .30));
+  background: linear-gradient(135deg, #1689df, #075fb4);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 8px 20px rgba(4, 18, 35, .22);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px rgba(8, 77, 151, .14);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
 }
 
 .landslide-route-shell .map-search > button:hover:not(:disabled),
 .landslide-route-shell .map-tools button:hover,
 .landslide-route-shell .draw-actions button:hover:not(:disabled),
 .landslide-route-shell .investigate-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(32, 76, 108, .46), rgba(10, 34, 58, .46));
-}
-
-.landslide-route-shell .map-tools .layers-menu {
-  background: rgba(10, 30, 48, .30);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 18px 40px rgba(4, 18, 35, .24);
-  backdrop-filter: blur(22px) saturate(135%);
-  -webkit-backdrop-filter: blur(22px) saturate(135%);
-}
-
-.landslide-route-shell .map-tools .layers-menu button[aria-checked="true"] {
-  color: #d7f1ff;
-  background: rgba(18, 63, 91, .30);
+  background: linear-gradient(135deg, rgba(45, 157, 235, .48), rgba(35, 108, 198, .46));
 }
 
 .landslide-route-shell .map-search:focus-within,
