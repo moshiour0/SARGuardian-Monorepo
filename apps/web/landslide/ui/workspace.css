@@ -1438,6 +1438,9 @@
   border-radius: 18px;
   animation: workspace-toast-in .24s cubic-bezier(.2,.85,.25,1);
 }
+.landslide-route-shell .validation-toast--floating .validation-alert-icon {
+  color: #fff;
+}
 .landslide-route-shell .validation-toast--floating .validation-toast-message {
   min-width: 0;
   white-space: normal;
