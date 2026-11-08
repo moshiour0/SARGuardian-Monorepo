@@ -19,6 +19,36 @@
 }
 
 .processing-page { display: grid; gap: 16px; }
+.processing-page-skeleton { pointer-events: none; }
+.processing-skeleton-line {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,.28), rgba(255,255,255,.7), rgba(255,255,255,.28));
+  background-size: 220% 100%;
+  animation: processing-skeleton-shimmer 1.25s ease-in-out infinite;
+}
+.processing-skeleton-chip { width: 86px; height: 25px; margin: 0 auto; }
+.processing-skeleton-orbit {
+  display: grid;
+  width: 240px;
+  height: 240px;
+  margin: 20px auto 24px;
+  padding: 15px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+  box-sizing: border-box;
+}
+.processing-skeleton-orbit > div { border-radius: 50%; background: rgba(243,250,252,.72); }
+.processing-skeleton-stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.processing-skeleton-stepper span { height: 10px; border-radius: 999px; background: rgba(87,128,153,.22); }
+.processing-skeleton-note { width: min(260px, 70%); margin: 23px auto 0; }
+.processing-skeleton-products > div { display: grid; justify-items: center; gap: 10px; }
+.processing-skeleton-products .processing-skeleton-line:first-child { width: 45px; }
+.processing-skeleton-products .processing-skeleton-line:last-child { width: 68px; height: 30px; }
+.processing-skeleton-details { display: grid; grid-template-columns: 90px 1fr; gap: 18px 22px; padding: 22px; }
+.processing-skeleton-details .processing-skeleton-line:nth-child(odd) { width: 62px; }
+.processing-skeleton-details .processing-skeleton-line:nth-child(even) { width: 70%; justify-self: end; }
 .processing-card,
 .processing-confirmation {
   border: 1px solid rgba(255, 255, 255, .68);
@@ -142,6 +172,7 @@
 .processing-dialog-cancel { border: 0; background: transparent; color: #bd4a40; }
 
 @keyframes processing-spin { to { transform: rotate(360deg); } }
+@keyframes processing-skeleton-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 @keyframes processing-pulse { 0% { box-shadow: 0 0 0 0 rgba(43, 138, 209, .45); } 75%, 100% { box-shadow: 0 0 0 8px rgba(43, 138, 209, 0); } }
 @keyframes processing-dialog-in { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
 
@@ -158,5 +189,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .processing-orbit.is-active::before, .processing-status-chip.is-running i { animation: none; }
+  .processing-skeleton-line { animation: none; }
   .processing-confirmation { animation: none; }
 }

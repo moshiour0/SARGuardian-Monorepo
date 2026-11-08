@@ -78,6 +78,31 @@ function displayStageName(stage: string | null | undefined, state: DisplacementJ
   return stage ? `${stage.charAt(0).toUpperCase()}${stage.slice(1)}` : 'Processing';
 }
 
+function ProcessingPageSkeleton() {
+  return (
+    <main className="displacement-preparation processing-page-skeleton" aria-busy="true" aria-label="Loading processing status">
+      <section className="processing-card processing-hero">
+        <span className="processing-skeleton-line processing-skeleton-chip" />
+        <div className="processing-skeleton-orbit"><div /></div>
+        <div className="processing-skeleton-stepper">
+          <span /><span /><span /><span />
+        </div>
+        <span className="processing-skeleton-line processing-skeleton-note" />
+      </section>
+      <section className="processing-card processing-products-card processing-skeleton-products">
+        <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
+        <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
+        <div><span className="processing-skeleton-line" /><strong className="processing-skeleton-line" /></div>
+      </section>
+      <section className="processing-card processing-details-card processing-skeleton-details">
+        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
+        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
+        <span className="processing-skeleton-line" /><span className="processing-skeleton-line" />
+      </section>
+    </main>
+  );
+}
+
 export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRetry, onBack, user }: {
   job: DisplacementJob;
   user: Pick<User, 'getIdToken'>;
@@ -334,7 +359,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
     }
   }, [job, onTaskActivityChange, pendingAction, user]);
 
-  if (!job && !jobError) return null;
+  if (!job && !jobError) return <ProcessingPageSkeleton />;
 
   return <main className="displacement-preparation">
       {job && <DisplacementJobStatus job={job} pendingAction={pendingAction} clock={clock} granuleCounts={granuleCounts} user={user}
