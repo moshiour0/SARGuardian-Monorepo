@@ -133,6 +133,8 @@
   gap: 10px;
 }
 .landslide-route-shell .aoi-controls-stack .action-bar { position: relative; inset: auto; }
+.landslide-route-shell .aoi-controls-stack .action-bar { order: 1; }
+.landslide-route-shell .aoi-controls-stack .validation-toast { order: 2; }
 .landslide-route-shell .investigation-modes { grid-area: modes; min-width: 0; }
 .investigation-modes h2 { margin: 0 0 8px; font-size: 14px; color: var(--sg-text); }
 .investigation-mode-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -240,7 +242,7 @@
 /* On phones and short screens, controls follow the map in document flow. */
 @media (max-width: 760px), (max-height: 620px) {
   .landslide-route-shell .landslide-page { height: auto; min-height: 100dvh; overflow: visible; }
-  .landslide-route-shell .map-main { width: 100%; min-width: 0; height: auto; display: grid; grid-template-areas: 'map' 'feedback' 'controls'; grid-template-rows: minmax(340px, 56svh) auto auto; gap: 0; padding-bottom: 20px; }
+  .landslide-route-shell .map-main { width: 100%; min-width: 0; height: auto; display: grid; grid-template-areas: 'map' 'controls' 'feedback'; grid-template-rows: minmax(340px, 56svh) auto auto; gap: 0; padding-bottom: 20px; }
   .landslide-route-shell .aoi-controls-stack { position: static; display: contents; min-width: 0; }
   .landslide-route-shell .map-canvas-wrap { grid-area: map; position: relative; inset: auto; width: 100%; min-width: 0; }
   .landslide-route-shell .action-bar { grid-area: controls; position: relative; inset: auto; width: auto; min-width: 0; margin: 14px 12px 0; max-height: none; overflow: visible; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'summary drawing' 'time time' 'modes modes'; gap: 14px; padding: 16px; }
@@ -784,10 +786,11 @@
 .landslide-route-shell .validation-toast {
   border: 0;
   border-radius: 22px;
-  background: rgba(255, 248, 235, .60);
-  color: #6a3b14;
-  box-shadow: 0 16px 40px rgba(78, 60, 34, .2);
+  background: linear-gradient(135deg, rgba(142, 31, 48, .72), rgba(75, 12, 27, .64));
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 225, .28), 0 16px 40px rgba(78, 10, 28, .24);
   backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
 }
 
 .landslide-route-shell .map-search > button,
