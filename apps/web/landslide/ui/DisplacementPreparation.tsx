@@ -49,6 +49,18 @@ function jobStateDescription(state: DisplacementJob['state']): string {
   }
 }
 
+function displayStageName(stage: string | null | undefined, state: DisplacementJob['state']): string {
+  const normalized = stage?.trim().toLowerCase() ?? '';
+  if (normalized.includes('initial')) return 'Initializing';
+  if (normalized.includes('screen')) return 'Screening';
+  if (normalized.includes('complete') || state === 'succeeded') return 'Complete';
+  if (normalized.includes('process') || state === 'running') return 'Processing';
+  if (state === 'queued') return 'Initializing';
+  if (state === 'dispatching') return 'Preparing task';
+  if (state === 'failed' || state === 'cancelled') return 'Needs attention';
+  return stage ? `${stage.charAt(0).toUpperCase()}${stage.slice(1)}` : 'Processing';
+}
+
 export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRefresh, onRetry, onBack, user }: {
   job: DisplacementJob;
   user: Pick<User, 'getIdToken'>;
@@ -67,7 +79,7 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const stageIndex = job.state === 'queued' ? 0 : job.state === 'dispatching' ? 1 : job.state === 'running' ? 2 : job.state === 'succeeded' ? 4 : -1;
-  const stageName = job.stage || (job.state === 'queued' ? 'Initializing' : job.state === 'dispatching' ? 'Preparing task' : job.state === 'running' ? 'Processing' : job.state === 'succeeded' ? 'Complete' : 'Needs attention');
+  const stageName = displayStageName(job.stage, job.state);
   const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
   const total = counts ? counts.GUNW + counts.GOFF : null;
   const shortJobId = job.id.length > 15 ? `${job.id.slice(0, 8)}…${job.id.slice(-4)}` : job.id;

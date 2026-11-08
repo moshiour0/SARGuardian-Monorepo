@@ -2318,8 +2318,18 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       </div>
       {isResultsPage && renderResultsPage()}
       {isDisplacementPage && <div className="nisar-results-page">
-        {renderWorkspaceHeader('DISPLACEMENT PROCESSING', 'Account processing status')}
-        <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
+        <div className="home-page claude-home claude-processing-page">
+          <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
+          <Header
+            user={user}
+            authState={authState}
+            onSignIn={onSignIn}
+            onSignOut={onSignOut}
+            onOpenArchive={() => window.location.assign('/archive')}
+            onOpenHowItWorks={() => window.location.assign('/how-it-works')}
+          />
+          <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
+        </div>
       </div>}
       {isKnownPlaceAnalysisPage && <div className="nisar-results-page">
         {renderWorkspaceHeader('KNOWN PLACE ANALYSIS', 'Dedicated GOFF research workflow', 'Back to map', onBackToMap)}
