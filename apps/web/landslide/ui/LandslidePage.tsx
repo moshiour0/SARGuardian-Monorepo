@@ -2204,7 +2204,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         <div className="map-tools glass-float" role="group" aria-label="Map controls" aria-disabled={!mapReady}>
           <button type="button" aria-label="Zoom in" disabled={!mapReady} onClick={() => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 5) + 1)}><Icon name="plus" /></button>
           <button type="button" aria-label="Zoom out" disabled={!mapReady} onClick={() => mapRef.current?.setZoom(Math.max(MIN_MAP_ZOOM, (mapRef.current.getZoom() ?? DEFAULT_MAP_ZOOM) - 1))}><Icon name="minus" /></button>
-          <button type="button" aria-label="Locate selected place" disabled={!mapReady || !location} onClick={() => location && mapRef.current?.panTo({ lat: location.latitude, lng: location.longitude })}><Icon name="locate" /></button>
           <div className="layers-menu-wrap">
             <button ref={layerButtonRef} type="button" aria-label="Layers" title={`Map layers: ${layerMode === 'hybrid' ? 'Satellite + labels' : layerMode}`} aria-haspopup="menu" aria-expanded={layerOpen} aria-controls="map-layer-menu" disabled={!mapReady} onClick={() => setLayerOpen((current) => !current)} onKeyDown={(event) => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); setLayerOpen(true); } }}><Icon name="layers" /></button>
             {layerOpen && (

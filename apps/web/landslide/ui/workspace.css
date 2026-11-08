@@ -652,14 +652,21 @@
   right: 24px;
   gap: 2px;
   padding: 5px;
-  border-radius: 980px;
+  border-radius: 18px;
 }
 
 .landslide-route-shell .map-tools button {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: 12px;
   color: var(--find-ink);
+}
+
+.landslide-route-shell .map-tools .layers-menu button {
+  width: 100%;
+  height: auto;
+  min-height: 42px;
+  border-radius: 12px;
 }
 
 .landslide-route-shell .map-tools button:hover,
