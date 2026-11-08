@@ -2320,16 +2320,18 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       {isDisplacementPage && <div className="nisar-results-page">
         <div className="home-page claude-home claude-processing-page">
           <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
-          <Header
-            user={user}
-            authState={authState}
-            onSignIn={onSignIn}
-            onSignOut={onSignOut}
-            isArchivePage
-            hideProfile
-            showPageTitle
-            pageTitle="Processing"
-          />
+          <header className="claude-nav-shell is-archive processing-only-header">
+            <div className="claude-nav-inner">
+              <a className="claude-brand" href="/" aria-label="SARGuardian home">
+                <span className="claude-brand-mark"><BrandLogo className="claude-brand-logo" /></span>
+                <span className="claude-brand-word"><b>SAR</b>Guardian</span>
+              </a>
+              <span className="claude-nav-title">Processing</span>
+              <nav className="claude-nav-links" aria-label="Processing navigation">
+                <a className="archive-home-link" href="/">Home</a>
+              </nav>
+            </div>
+          </header>
           <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
         </div>
       </div>}
