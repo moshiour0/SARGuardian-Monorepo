@@ -2192,7 +2192,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         />
 
         <form className="map-search glass-float" onSubmit={handleSearch}>
-          <Icon name="search" />
           <div className="workspace-search-input">
             <div id="landslide-place-search" className="google-place-autocomplete" aria-label="Search a place" hidden={!placesReady} />
             {!placesReady && <input type="search" aria-label="Search a place or coordinates" placeholder="Search a place or coordinates" value={searchText} onChange={(event) => setSearchText(event.target.value)} />}

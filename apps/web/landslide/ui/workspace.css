@@ -89,7 +89,7 @@
   box-shadow: 0 12px 32px rgba(0, 20, 32, .2), inset 0 1px rgba(214, 251, 255, .04);
   backdrop-filter: blur(18px);
 }
-.landslide-route-shell .map-search { top: 20px; left: 20px; width: min(450px, calc(100% - 100px)); padding: 10px 12px; gap: 9px; grid-template-columns: 18px minmax(0, 1fr) auto; }
+.landslide-route-shell .map-search { top: 20px; left: 20px; width: min(450px, calc(100% - 100px)); padding: 10px 12px; gap: 9px; grid-template-columns: minmax(0, 1fr) auto; }
 .workspace-search-input { min-width: 0; }
 .workspace-search-input input { width: 100%; min-width: 0; padding: 0 10px; }
 .workspace-search-input .place-autocomplete-element { width: 100%; color-scheme: dark; }
