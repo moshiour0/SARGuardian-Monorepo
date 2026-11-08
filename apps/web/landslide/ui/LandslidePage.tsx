@@ -2325,8 +2325,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
             authState={authState}
             onSignIn={onSignIn}
             onSignOut={onSignOut}
-            onOpenArchive={() => window.location.assign('/archive')}
-            onOpenHowItWorks={() => window.location.assign('/how-it-works')}
+            isArchivePage
+            hideProfile
           />
           <DisplacementPreparation preparation={catalogValidation} options={processingOptions} granuleCounts={displacementGranuleCounts} onBack={onBackToMap} onTaskActivityChange={onDisplacementTaskActivityChange} user={user} />
         </div>

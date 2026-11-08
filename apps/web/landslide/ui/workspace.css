@@ -827,6 +827,19 @@
   -webkit-backdrop-filter: blur(22px) saturate(150%);
 }
 
+/* Find Displacement map feedback: keep every message readable over the map. */
+.landslide-route-shell .validation-toast {
+  border: 1px solid rgba(0, 0, 0, .22);
+  background: rgba(255, 255, 255, .96);
+  color: #000;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 16px 40px rgba(0, 0, 0, .22);
+}
+.landslide-route-shell .validation-toast-message,
+.landslide-route-shell .validation-toast-message strong,
+.landslide-route-shell .validation-toast-close { color: #000; }
+.landslide-route-shell .validation-alert-icon { background: #ffd166; color: #000; }
+.landslide-route-shell .validation-toast-close { border-color: rgba(0, 0, 0, .24); background: #fff; }
+
 .landslide-route-shell .map-search > button,
 .landslide-route-shell .map-tools button,
 .landslide-route-shell .draw-actions button,
