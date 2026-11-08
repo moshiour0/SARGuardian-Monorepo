@@ -677,6 +677,28 @@
   height: auto;
   min-height: 42px;
   border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: #071724;
+  box-shadow: none;
+}
+
+.landslide-route-shell .map-tools .layers-menu button[aria-checked="true"] {
+  background: linear-gradient(135deg, #1689df, #075fb4);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .36), 0 6px 16px rgba(8, 77, 151, .16);
+}
+
+.landslide-route-shell .map-tools .layers-menu button:hover:not(:disabled),
+.landslide-route-shell .map-tools .layers-menu button:focus-visible {
+  background: rgba(255, 255, 255, .24);
+  color: #071724;
+}
+
+.landslide-route-shell .map-tools .layers-menu button[aria-checked="true"]:hover:not(:disabled),
+.landslide-route-shell .map-tools .layers-menu button[aria-checked="true"]:focus-visible {
+  background: linear-gradient(135deg, #1689df, #075fb4);
+  color: #fff;
 }
 
 .landslide-route-shell .map-tools button:hover,
