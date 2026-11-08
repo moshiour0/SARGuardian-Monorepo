@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, HOW_IT_WORKS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -24,6 +24,9 @@ describe('client-side route recognition', () => {
   });
 
   it('recognizes the dedicated home-launched Known Place setup and two-polygon analysis routes', () => {
+    expect(KNOWN_PLACE_ANALYSIS_PATH).toBe('/know-place-analysis');
+    expect(isLandslideKnownPlaceSetupRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
+    expect(isLandslideRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
     expect(LANDSLIDE_KNOWN_PLACE_SETUP_PATH).toBe('/landslide/known-place-setup');
     expect(LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH).toBe('/landslide/known-place-setup/analysis');
     expect(isLandslideKnownPlaceSetupRoute('/landslide/known-place-setup')).toBe(true);

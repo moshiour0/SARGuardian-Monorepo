@@ -14,9 +14,10 @@ type HeaderProps = {
   showPageTitle?: boolean;
   hideHowItWorks?: boolean;
   hideSignIn?: boolean;
+  pageTitle?: string;
 };
 
-export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false, hideProfile = false, showPageTitle = false, hideHowItWorks = false, hideSignIn = false }: HeaderProps) {
+export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, onOpenHowItWorks, isArchivePage = false, hideProfile = false, showPageTitle = false, hideHowItWorks = false, hideSignIn = false, pageTitle = 'Find displacement' }: HeaderProps) {
   return (
     <header className={`claude-nav-shell${isArchivePage ? ' is-archive' : ''}`}>
       <div className="claude-nav-inner">
@@ -24,7 +25,7 @@ export function Header({ user, authState, onSignIn, onSignOut, onOpenArchive, on
           <span className="claude-brand-mark"><BrandLogo className="claude-brand-logo" /></span>
           <span className="claude-brand-word"><b>SAR</b>Guardian</span>
         </a>
-        {showPageTitle && <span className="claude-nav-title">Find displacement</span>}
+        {showPageTitle && <span className="claude-nav-title">{pageTitle}</span>}
         <nav className="claude-nav-links" aria-label="Main navigation">
           {isArchivePage ? <a className="archive-home-link" href="/">Home</a> : (
             <>

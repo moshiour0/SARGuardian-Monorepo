@@ -2171,6 +2171,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         isArchivePage
         hideProfile
         showPageTitle
+        pageTitle={isKnownPlaceSetupPage ? 'Known Place Analysis' : 'Find displacement'}
       />
 
       <main className="map-main">

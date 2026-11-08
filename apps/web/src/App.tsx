@@ -10,7 +10,7 @@ import { parseDashboardView } from './dashboardDocument';
 import { LandslidePage } from '../landslide/ui/LandslidePage';
 import { RiverShiftPage } from './pages/RiverShiftPage';
 import { auth, firebaseConfigured, googleProvider, missingFirebaseConfig } from './firebase';
-import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, LANDSLIDE_RESULTS_PATH, navigatePath, normalizePathname } from './routing';
+import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, KNOWN_PLACE_ANALYSIS_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_KNOWN_PLACE_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, LANDSLIDE_RESULTS_PATH, navigatePath, normalizePathname } from './routing';
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
@@ -140,7 +140,7 @@ function App() {
     // the existing two-polygon analysis page. Landslide and Glacier retain
     // the target-free AOI workspace.
     const targetRoute = engine.id === 'known-place'
-      ? LANDSLIDE_KNOWN_PLACE_SETUP_PATH
+      ? KNOWN_PLACE_ANALYSIS_PATH
       : engine.id === 'river-shift' ? RIVER_SHIFT_PATH : FIND_DISPLACEMENT_PATH;
     if (!user) {
       setPendingRoute(targetRoute);
