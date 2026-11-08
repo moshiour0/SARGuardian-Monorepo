@@ -1135,6 +1135,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [toastRevision, setToastRevision] = useState(0);
   const mobileStartDatePickerRef = useRef<HTMLInputElement>(null);
   const mobileEndDatePickerRef = useRef<HTMLInputElement>(null);
+  const suppressMobileDateClickRef = useRef(false);
   const [selectedHarmonyProduct, setSelectedHarmonyProduct] = useState<CatalogProduct | null>(initialSessionState.selectedHarmonyProduct);
   const [harmonyLayerRole, setHarmonyLayerRole] = useState<HarmonyLayerRole>('unwrapped_phase');
   const [harmonyWorkflowMaturity, setHarmonyWorkflowMaturity] = useState<'PROVISIONAL' | 'BETA'>('PROVISIONAL');
@@ -1486,9 +1487,20 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   };
 
   const openMobileDatePicker = (event: ReactPointerEvent<HTMLInputElement>, pickerRef: { current: HTMLInputElement | null }) => {
+    // Real touch browsers position their native/OS picker correctly and some
+    // reject showPicker() on a proxy input. Only use the safe anchor for a
+    // mouse-driven narrow viewport (desktop responsive preview).
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') return;
     if (!window.matchMedia('(max-width: 560px)').matches || typeof pickerRef.current?.showPicker !== 'function') return;
     event.preventDefault();
+    suppressMobileDateClickRef.current = true;
     pickerRef.current.showPicker();
+  };
+
+  const suppressProxiedDateClick = (event: { preventDefault: () => void }) => {
+    if (!suppressMobileDateClickRef.current) return;
+    event.preventDefault();
+    suppressMobileDateClickRef.current = false;
   };
 
   const handleCoordinates = (next: Coordinate[], closed: boolean) => {
@@ -2303,9 +2315,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     value={windowStart}
                     max={today}
                     onPointerDown={(event) => openMobileDatePicker(event, mobileStartDatePickerRef)}
-                    onClick={(event) => {
-                      if (window.matchMedia('(max-width: 560px)').matches && typeof mobileStartDatePickerRef.current?.showPicker === 'function') event.preventDefault();
-                    }}
+                    onClick={suppressProxiedDateClick}
                     onChange={(event) => handleWindowStartChange(event.target.value)}
                     aria-label="Starting date"
                   />
@@ -2316,9 +2326,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     min={windowStart || undefined}
                     max={today}
                     onPointerDown={(event) => openMobileDatePicker(event, mobileEndDatePickerRef)}
-                    onClick={(event) => {
-                      if (window.matchMedia('(max-width: 560px)').matches && typeof mobileEndDatePickerRef.current?.showPicker === 'function') event.preventDefault();
-                    }}
+                    onClick={suppressProxiedDateClick}
                     onChange={(event) => handleWindowEndChange(event.target.value)}
                     aria-label="Ending date"
                   />
