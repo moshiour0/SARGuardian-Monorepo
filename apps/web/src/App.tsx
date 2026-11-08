@@ -278,9 +278,13 @@ function App() {
       );
     }
 
+    const landslideSessionMode = isLandslideKnownPlaceAnalysisRoute(pathname) || isLandslideKnownPlaceSetupRoute(pathname)
+      ? 'known-place'
+      : 'find-displacement';
+
     return (
       <LandslidePage
-        key={user.uid}
+        key={`${user.uid}:${landslideSessionMode}`}
         user={user}
         authState={authState}
         onSignIn={handleSignIn}

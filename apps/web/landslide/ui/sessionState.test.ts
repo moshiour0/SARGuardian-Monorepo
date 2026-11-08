@@ -45,11 +45,11 @@ describe('validated Landslide session state', () => {
     expect(restored.catalogResult?.products[0].granule_name).toBe('NISAR_GOFF_1');
     expect(restored.selectedHarmonyProduct?.granule_name).toBe('NISAR_GOFF_1');
     expect(restored.processingOptions.processing_profile).toBe('full-aoi');
-    expect(storage.get('sarguardian.landslide.session.v1.user-1')).not.toContain('token');
+    expect(storage.get('sarguardian.landslide.session.v1.find-displacement.user-1')).not.toContain('token');
   });
 
   it('rejects malformed stored coordinates and catalogue data', () => {
-    const storage = new Map<string, string>([['sarguardian.landslide.session.v1.user-1', JSON.stringify({
+    const storage = new Map<string, string>([['sarguardian.landslide.session.v1.find-displacement.user-1', JSON.stringify({
       coordinates: [['not', 'coordinates']],
       areaClosed: true,
       productType: 'SECRET',
@@ -101,6 +101,30 @@ describe('validated Landslide session state', () => {
     expect(loadLandslideSessionState('user-1').searchText).toBe('Saved location');
     expect(loadLandslideSessionState('user-2').searchText).toBe('');
     expect([...storage.values()][0]).not.toContain('must-not-be-stored');
+  });
+
+  it('keeps Find Displacement and Known Place AOI state isolated', () => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('window', { sessionStorage: {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => { storage.set(key, value); },
+    } });
+
+    const findState = loadLandslideSessionState('user-1', 'find-displacement');
+    findState.coordinates = [[85.3, 27.7], [85.301, 27.7], [85.301, 27.701]];
+    findState.areaClosed = true;
+    findState.windowStart = '2026-08-01';
+    persistLandslideSessionState('user-1', findState, 'find-displacement');
+
+    const knownState = loadLandslideSessionState('user-1', 'known-place');
+    expect(knownState.coordinates).toEqual([]);
+    expect(knownState.areaClosed).toBe(false);
+    expect(knownState.windowStart).toBe('');
+
+    knownState.searchText = 'Known place only';
+    persistLandslideSessionState('user-1', knownState, 'known-place');
+    expect(loadLandslideSessionState('user-1', 'find-displacement').searchText).toBe('');
+    expect(loadLandslideSessionState('user-1', 'known-place').searchText).toBe('Known place only');
   });
 
   it('falls back to in-memory defaults when optional session storage is blocked', () => {

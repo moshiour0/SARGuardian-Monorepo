@@ -3,6 +3,8 @@ import type { Coordinate, LocationSelection } from '../engine/types';
 
 const STORAGE_KEY_PREFIX = 'sarguardian.landslide.session.v1';
 
+export type LandslideSessionScope = 'find-displacement' | 'known-place';
+
 export type LandslideSessionState = {
   searchText: string;
   searchState: string;
@@ -103,14 +105,14 @@ function isCatalogResponse(value: unknown): value is CatalogResponse {
     && value.warnings.every((warning) => typeof warning === 'string');
 }
 
-function storageKey(uid: string): string {
-  return `${STORAGE_KEY_PREFIX}.${uid}`;
+function storageKey(uid: string, scope: LandslideSessionScope): string {
+  return `${STORAGE_KEY_PREFIX}.${scope}.${uid}`;
 }
 
-export function loadLandslideSessionState(uid: string): LandslideSessionState {
+export function loadLandslideSessionState(uid: string, scope: LandslideSessionScope = 'find-displacement'): LandslideSessionState {
   const fallback = emptyState();
   try {
-    const raw = window.sessionStorage.getItem(storageKey(uid));
+    const raw = window.sessionStorage.getItem(storageKey(uid, scope));
     if (!raw) return fallback;
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) return fallback;
@@ -150,10 +152,10 @@ export function loadLandslideSessionState(uid: string): LandslideSessionState {
   }
 }
 
-export function persistLandslideSessionState(uid: string, state: LandslideSessionState): void {
+export function persistLandslideSessionState(uid: string, state: LandslideSessionState, scope: LandslideSessionScope = 'find-displacement'): void {
   try {
     const { searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions } = state;
-    window.sessionStorage.setItem(storageKey(uid), JSON.stringify({ searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions }));
+    window.sessionStorage.setItem(storageKey(uid, scope), JSON.stringify({ searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions }));
   } catch {
     // Session storage is optional; the mounted LandslidePage remains the primary route state.
   }

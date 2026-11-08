@@ -1447,6 +1447,7 @@
   overflow-wrap: anywhere;
   font-size: 13px;
   line-height: 1.35;
+  color: #fff;
 }
 .landslide-route-shell .validation-toast--floating .validation-toast-close {
   width: 26px;
@@ -1476,7 +1477,22 @@
   .landslide-route-shell .aoi-controls-stack:has(input[type='date']:focus) {
     bottom: clamp(220px, 34dvh, 320px);
   }
+  .landslide-route-shell .aoi-controls-stack.is-date-picker-active {
+    bottom: clamp(240px, 38dvh, 360px);
+  }
   .landslide-route-shell .aoi-controls-stack:has(input[type='date']:focus) .action-bar {
     max-height: calc(100dvh - 300px);
   }
+  .landslide-route-shell .aoi-controls-stack.is-date-picker-active .action-bar {
+    max-height: calc(100dvh - 320px);
+  }
+}
+
+/* Keep validation copy readable over the red alert surface regardless of
+   earlier generic toaster typography rules. */
+.landslide-route-shell .validation-toast.validation-toast--floating,
+.landslide-route-shell .validation-toast.validation-toast--floating .validation-toast-message,
+.landslide-route-shell .validation-toast.validation-toast--floating .validation-toast-message strong,
+.landslide-route-shell .validation-toast.validation-toast--floating .validation-alert-icon {
+  color: #fff;
 }

@@ -1090,7 +1090,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   onKnownPlaceAnalysis: () => void;
   onSignOut: () => void;
 }) {
-  const [initialSessionState] = useState(() => loadLandslideSessionState(user.uid));
+  const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
+  const [initialSessionState] = useState(() => loadLandslideSessionState(user.uid, sessionScope));
   const [searchText, setSearchText] = useState(initialSessionState.searchText);
   const [location, setLocation] = useState<LocationSelection | null>(initialSessionState.location);
   const [searchState, setSearchState] = useState(initialSessionState.searchState);
@@ -1132,6 +1133,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [jobIdempotencyKey, setJobIdempotencyKey] = useState('');
   const [validationAlertDismissed, setValidationAlertDismissed] = useState(false);
   const [toastRevision, setToastRevision] = useState(0);
+  const [datePickerActive, setDatePickerActive] = useState(false);
   const [selectedHarmonyProduct, setSelectedHarmonyProduct] = useState<CatalogProduct | null>(initialSessionState.selectedHarmonyProduct);
   const [harmonyLayerRole, setHarmonyLayerRole] = useState<HarmonyLayerRole>('unwrapped_phase');
   const [harmonyWorkflowMaturity, setHarmonyWorkflowMaturity] = useState<'PROVISIONAL' | 'BETA'>('PROVISIONAL');
@@ -1205,8 +1207,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       catalogResult,
       selectedHarmonyProduct,
       processingOptions,
-    });
-  }, [areaClosed, catalogResult, coordinates, drawing, location, processingOptions, searchState, searchText, selectedHarmonyProduct, user.uid, windowEnd, windowStart]);
+    }, sessionScope);
+  }, [areaClosed, catalogResult, coordinates, drawing, location, processingOptions, searchState, searchText, selectedHarmonyProduct, sessionScope, user.uid, windowEnd, windowStart]);
 
   useEffect(() => {
     setProfileImageFailed(false);
@@ -2234,7 +2236,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           </div>
         )}
 
-        <div className="aoi-controls-stack">
+        <div className={`aoi-controls-stack${datePickerActive ? ' is-date-picker-active' : ''}`}>
           <section className="action-bar glass-float" aria-label="Investigation controls">
           {!result ? (
             <>
@@ -2267,9 +2269,28 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               <div className="time-actions">
                 <span>Observation window</span>
                 <div className="date-range">
-                  <input type="date" value={windowStart} max={today} onChange={(event) => handleWindowStartChange(event.target.value)} aria-label="Starting date" />
+                  <input
+                    type="date"
+                    value={windowStart}
+                    max={today}
+                    onPointerDown={() => setDatePickerActive(true)}
+                    onFocus={() => setDatePickerActive(true)}
+                    onBlur={() => setDatePickerActive(false)}
+                    onChange={(event) => { handleWindowStartChange(event.target.value); setDatePickerActive(false); }}
+                    aria-label="Starting date"
+                  />
                   <span>to</span>
-                  <input type="date" value={windowEnd} min={windowStart || undefined} max={today} onChange={(event) => handleWindowEndChange(event.target.value)} aria-label="Ending date" />
+                  <input
+                    type="date"
+                    value={windowEnd}
+                    min={windowStart || undefined}
+                    max={today}
+                    onPointerDown={() => setDatePickerActive(true)}
+                    onFocus={() => setDatePickerActive(true)}
+                    onBlur={() => setDatePickerActive(false)}
+                    onChange={(event) => { handleWindowEndChange(event.target.value); setDatePickerActive(false); }}
+                    aria-label="Ending date"
+                  />
                 </div>
               </div>
 
