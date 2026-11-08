@@ -21,17 +21,30 @@ export const JOB_STATUS_POLL_MS = 2000;
 
 function resultGranuleCounts(job: DisplacementJob): GranuleCounts | null {
   const products = job.result_summary?.products;
-  if (Array.isArray(products)) return {
+  const selected = job.result_summary?.selected_granule_counts;
+  const selectedCounts = selected && typeof selected === 'object' ? selected as Record<string, unknown> : null;
+  const hasSelectedCounts = selectedCounts
+    && Number.isInteger(selectedCounts.GUNW)
+    && Number.isInteger(selectedCounts.GOFF);
+
+  if (job.state !== 'succeeded' && hasSelectedCounts) {
+    return {
+      GUNW: selectedCounts.GUNW as number,
+      GOFF: selectedCounts.GOFF as number,
+      source: 'worker-discovery',
+    };
+  }
+  if (Array.isArray(products) && products.length > 0) return {
       GUNW: products.filter((product) => product && typeof product === 'object' && (product as Record<string, unknown>).product_type === 'GUNW').length,
       GOFF: products.filter((product) => product && typeof product === 'object' && (product as Record<string, unknown>).product_type === 'GOFF').length,
       source: 'processed-results',
     };
-  const discovered = job.result_summary?.catalog_granule_counts;
-  if (discovered && typeof discovered === 'object') {
-    const counts = discovered as Record<string, unknown>;
-    if (Number.isInteger(counts.GUNW) && Number.isInteger(counts.GOFF)) {
-      return { GUNW: counts.GUNW as number, GOFF: counts.GOFF as number, source: 'worker-discovery' };
-    }
+  if (hasSelectedCounts) {
+    return {
+      GUNW: selectedCounts.GUNW as number,
+      GOFF: selectedCounts.GOFF as number,
+      source: 'worker-discovery',
+    };
   }
   return null;
 }
@@ -73,7 +86,10 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   onBack: () => void;
 }) {
   const hasActiveJob = activeStates.has(job.state);
-  const counts = resultGranuleCounts(job) || granuleCounts;
+  const counts = resultGranuleCounts(job);
+  // ASF preflight counts describe discovered candidates, not processed products.
+  // Keep the prop for route compatibility, but never render it as processing output.
+  void granuleCounts;
   const busy = pendingAction !== null;
   const dateWindow = `${new Date(job.start_date + 'T00:00:00').toLocaleDateString()} – ${new Date(job.end_date + 'T00:00:00').toLocaleDateString()}`;
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
@@ -81,6 +97,8 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const stageIndex = job.state === 'queued' ? 0 : job.state === 'dispatching' ? 1 : job.state === 'running' ? 2 : job.state === 'succeeded' ? 4 : -1;
   const stageName = displayStageName(job.stage, job.state);
   const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
+  const processingCountPending = counts === null && hasActiveJob;
+  const pendingCountLabel = processingCountPending ? 'Searching…' : '—';
   const total = counts ? counts.GUNW + counts.GOFF : null;
   const shortJobId = job.id.length > 15 ? `${job.id.slice(0, 8)}…${job.id.slice(-4)}` : job.id;
 
@@ -130,9 +148,9 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
       </section>
 
       <section className="processing-card processing-products-card" aria-label="Product inventory">
-        <div><span>GUNW</span><strong>{counts?.GUNW ?? '—'}</strong></div>
-        <div><span>GOFF</span><strong>{counts?.GOFF ?? '—'}</strong></div>
-        <div><span>Total</span><strong>{total ?? '—'}</strong></div>
+        <div><span>GUNW</span><strong>{counts?.GUNW ?? pendingCountLabel}</strong></div>
+        <div><span>GOFF</span><strong>{counts?.GOFF ?? pendingCountLabel}</strong></div>
+        <div><span>Total</span><strong>{total ?? pendingCountLabel}</strong></div>
       </section>
 
       <section className="processing-card processing-details-card" aria-label="Task details">

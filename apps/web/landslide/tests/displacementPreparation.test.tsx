@@ -198,9 +198,10 @@ describe('displacement preparation route', () => {
     expect(html).toContain('elapsed 1m 5s');
     expect(html).toContain('1m 5s');
     expect(html).toContain('>GUNW<');
-    expect(html).toContain('>4<');
+    expect(html).toContain('>—<');
     expect(html).toContain('>GOFF<');
-    expect(html).toContain('>3<');
+    expect(html).not.toContain('>4<');
+    expect(html).not.toContain('>3<');
     expect(html).toContain('Try again');
     expect(html).toContain('Back to map');
     expect(html).not.toContain('Start displacement processing');
@@ -216,13 +217,15 @@ describe('displacement preparation route', () => {
 
     const runningWithWorkerCounts = { ...failedJob, state: 'running', stage: 'products_discovered',
       github_run_url: 'https://github.com/shourov-04/SARGuardian_Dynamic/actions/runs/123', result_summary: {
-      catalog_granule_counts: { GUNW: 8, GOFF: 5 }, selected_granule_counts: { GUNW: 1, GOFF: 1 },
+      catalog_granule_counts: { GUNW: 30, GOFF: 0 }, selected_granule_counts: { GUNW: 10, GOFF: 7 },
     } } as const;
     const runningHtml = renderToStaticMarkup(<DisplacementJobStatus job={runningWithWorkerCounts as never} pendingAction={null}
       clock={Date.parse('2026-10-24T10:02:00Z')} granuleCounts={null} onCancel={() => {}} onRefresh={() => {}}
       onRetry={() => {}} onBack={() => {}} />);
-    expect(runningHtml).toContain('>8<');
-    expect(runningHtml).toContain('>5<');
+    expect(runningHtml).toContain('>10<');
+    expect(runningHtml).toContain('>7<');
+    expect(runningHtml).toContain('>17<');
+    expect(runningHtml).not.toContain('>30<');
     expect(runningHtml).toContain('Refresh');
     expect(runningHtml).not.toContain('View worker logs');
     expect(runningHtml).not.toContain('https://github.com/shourov-04/SARGuardian_Dynamic/actions/runs/123');
