@@ -117,7 +117,7 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
         </span>
         <div className={`processing-orbit ${hasActiveJob ? 'is-active' : ''}`} aria-label={`${stageName}, elapsed ${elapsed}`}>
           <div className="processing-orbit-inner">
-            {job.state === 'succeeded' ? <span className="processing-orbit-symbol" aria-hidden="true">✓</span> : job.state === 'failed' || job.state === 'cancelled' ? <span className="processing-orbit-symbol" aria-hidden="true">!</span> : <>
+            {job.state === 'succeeded' ? <span className="processing-orbit-symbol processing-orbit-label" aria-hidden="true">Success</span> : job.state === 'failed' ? <span className="processing-orbit-symbol processing-orbit-label" aria-hidden="true">Failed</span> : job.state === 'cancelled' ? <span className="processing-orbit-symbol" aria-hidden="true">!</span> : <>
               <strong>{stageName}</strong>
               <time data-testid="job-age">{elapsed}</time>
             </>}
@@ -143,8 +143,6 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
           <div><dt>Job</dt><dd><code title={job.id}>{shortJobId}</code><button type="button" className="processing-copy-button" onClick={() => void copyJobId()} aria-label="Copy job ID">{copied ? 'Copied' : 'Copy'}</button></dd></div>
         </dl>
       </section>
-
-      {job.error_message && <p className="processing-error" role="alert">{job.error_message}</p>}
 
       <div className="processing-page-actions">
         {hasActiveJob && <>

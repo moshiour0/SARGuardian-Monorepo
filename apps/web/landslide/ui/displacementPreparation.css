@@ -45,7 +45,9 @@
 .processing-status-chip i { width: 8px; height: 8px; border-radius: 50%; background: #2b8ad1; }
 .processing-status-chip.is-running i { animation: processing-pulse 1.6s ease-out infinite; }
 .processing-page--succeeded .processing-status-chip i { background: #258a50; }
-.processing-page--failed .processing-status-chip i, .processing-page--cancelled .processing-status-chip i { background: #c16b29; }
+.processing-page--failed .processing-status-chip { color: #a82828; border-color: rgba(183, 38, 38, .24); }
+.processing-page--failed .processing-status-chip i { background: #d52f3f; }
+.processing-page--cancelled .processing-status-chip i { background: #c16b29; }
 
 .processing-orbit {
   position: relative;
@@ -74,8 +76,11 @@
 .processing-orbit strong { color: var(--processing-ink); font-size: clamp(20px, 4vw, 27px); letter-spacing: -.04em; }
 .processing-orbit time { color: var(--processing-muted); font-variant-numeric: tabular-nums; font-size: 14px; }
 .processing-orbit-symbol { color: var(--processing-accent); font-size: 66px; font-weight: 650; line-height: 1; }
-.processing-page--failed .processing-orbit::before, .processing-page--cancelled .processing-orbit::before { background: conic-gradient(#ee9c50 0 25%, rgba(255, 255, 255, .42) 26% 100%); }
-.processing-page--failed .processing-orbit-symbol, .processing-page--cancelled .processing-orbit-symbol { color: #bf6d2d; }
+.processing-orbit-label { font-size: clamp(28px, 5vw, 42px); letter-spacing: -.06em; }
+.processing-page--failed .processing-orbit::before { background: conic-gradient(#ef4444 0 25%, rgba(255, 255, 255, .42) 26% 100%); }
+.processing-page--failed .processing-orbit-symbol { color: #c62828; }
+.processing-page--cancelled .processing-orbit::before { background: conic-gradient(#ee9c50 0 25%, rgba(255, 255, 255, .42) 26% 100%); }
+.processing-page--cancelled .processing-orbit-symbol { color: #bf6d2d; }
 .processing-page--succeeded .processing-orbit::before { background: conic-gradient(#3db775, #55cdc6); }
 .processing-page--succeeded .processing-orbit-symbol { color: #288d55; }
 
