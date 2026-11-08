@@ -94,7 +94,15 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const [cancelConfirmationOpen, setCancelConfirmationOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const stageName = displayStageName(job.stage, job.state);
+  const normalizedStage = job.stage?.trim().toLowerCase() ?? '';
   const stageIndex = stageName === 'Complete' ? 3 : stageName === 'Screening' ? 2 : stageName === 'Processing' ? 1 : 0;
+  const failedStageIndex = job.state === 'failed'
+    ? (normalizedStage.includes('screen') || normalizedStage.includes('dashboard') || normalizedStage.includes('validation') || normalizedStage.includes('terminal')
+      ? 2
+      : normalizedStage.includes('process') || normalizedStage.includes('granule') || normalizedStage.includes('download')
+        ? 1
+        : 0)
+    : -1;
   const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
   const processingCountPending = counts === null && hasActiveJob;
   const pendingCountLabel = processingCountPending ? 'Searching…' : '—';
@@ -141,7 +149,7 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
           </div>
         </div>
         <ol className="processing-stepper" aria-label="Processing stages">
-          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
+          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index === failedStageIndex ? 'is-failed' : index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
         </ol>
         <p className="processing-safe-note">{hasActiveJob ? 'Safe to close this page. Your task keeps running.' : jobStateDescription(job.state)}</p>
       </section>
