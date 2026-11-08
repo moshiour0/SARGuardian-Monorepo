@@ -19,7 +19,11 @@
 }
 
 .processing-page { display: grid; gap: 16px; }
-.processing-page-skeleton { pointer-events: none; }
+.processing-page-skeleton {
+  display: grid;
+  row-gap: 16px;
+  pointer-events: none;
+}
 .processing-skeleton-line {
   display: block;
   height: 12px;
