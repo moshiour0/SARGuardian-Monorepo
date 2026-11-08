@@ -49,7 +49,7 @@ function resultGranuleCounts(job: DisplacementJob): GranuleCounts | null {
   return null;
 }
 
-type PendingAction = 'cancel' | 'refresh' | 'retry' | null;
+type PendingAction = 'cancel' | 'retry' | null;
 
 function jobStateDescription(state: DisplacementJob['state']): string {
   switch (state) {
@@ -78,14 +78,13 @@ function displayStageName(stage: string | null | undefined, state: DisplacementJ
   return stage ? `${stage.charAt(0).toUpperCase()}${stage.slice(1)}` : 'Processing';
 }
 
-export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRefresh, onRetry, onBack, user }: {
+export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts, onCancel, onRetry, onBack, user }: {
   job: DisplacementJob;
   user: Pick<User, 'getIdToken'>;
   pendingAction: PendingAction;
   clock: number;
   granuleCounts: GranuleCounts | null;
   onCancel: () => void;
-  onRefresh: () => void;
   onRetry: () => void;
   onBack: () => void;
 }) {
@@ -184,7 +183,6 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
       <div className="processing-page-actions">
         {hasActiveJob && <>
           <button type="button" className="processing-ghost-button processing-cancel-button" disabled={busy} onClick={() => setCancelConfirmationOpen(true)}>Cancel task</button>
-          <button type="button" className="processing-primary-button" disabled={busy} onClick={onRefresh}>{pendingAction === 'refresh' ? 'Refreshing…' : 'Refresh'}</button>
         </>}
         {job.state === 'succeeded' && <button type="button" className="processing-primary-button" onClick={() => document.querySelector<HTMLElement>('.scientific-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>View results</button>}
         {job.state === 'failed' && <><button type="button" className="processing-primary-button" disabled={busy} onClick={onRetry}>{pendingAction === 'retry' ? 'Retrying…' : 'Try again'}</button><button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button></>}
@@ -318,29 +316,6 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
     }
   }, [job, onBack, onTaskActivityChange, pendingAction, user]);
 
-  const refreshManually = useCallback(async () => {
-    if (!job || pendingAction || userActionActive.current) return;
-    const requestedJobId = job.id;
-    userActionActive.current = true;
-    const requestSequence = ++statusRequestSequence.current;
-    setPendingAction('refresh');
-    setJobError('');
-    try {
-      const nextJob = await getDisplacementJob(requestedJobId, user);
-      if (requestSequence === statusRequestSequence.current) {
-        setJob((current) => current?.id === requestedJobId ? nextJob : current);
-        setClock(Date.now());
-      }
-    } catch (error) {
-      if (requestSequence === statusRequestSequence.current) {
-        setJobError(error instanceof Error ? error.message : 'Could not refresh the displacement job.');
-      }
-    } finally {
-      userActionActive.current = false;
-      setPendingAction(null);
-    }
-  }, [job, pendingAction, user]);
-
   const retryFailed = useCallback(async () => {
     if (!job || job.state !== 'failed' || pendingAction || userActionActive.current) return;
     userActionActive.current = true;
@@ -363,7 +338,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
 
   return <main className="displacement-preparation">
       {job && <DisplacementJobStatus job={job} pendingAction={pendingAction} clock={clock} granuleCounts={granuleCounts} user={user}
-        onCancel={() => void cancel()} onRefresh={() => void refreshManually()}
+        onCancel={() => void cancel()}
         onRetry={() => void retryFailed()} onBack={onBack} />}
       {jobError && <section className="processing-card processing-load-error" role="alert"><p>{jobError}</p>{!job && <button type="button" className="processing-ghost-button" onClick={onBack}>Back to map</button>}</section>}
   </main>;
