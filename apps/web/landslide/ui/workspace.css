@@ -373,6 +373,242 @@
     margin: 0;
   }
 }
+
+/* Responsive geometry authority — must remain the final block in this file. */
+.landslide-route-shell .aoi-controls-stack {
+  right: 20px;
+  bottom: 16px;
+  left: 20px;
+  display: block;
+}
+.landslide-route-shell .aoi-controls-stack .action-bar {
+  position: relative;
+  inset: auto;
+  width: min(760px, calc(100vw - 40px));
+  height: auto;
+  min-height: 0;
+  max-height: calc(100dvh - 150px);
+  margin: 0 auto;
+  padding: clamp(14px, 1.8vw, 20px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: none;
+  grid-template-columns: minmax(150px, .7fr) minmax(260px, 1.3fr);
+  grid-template-areas: 'summary drawing' 'time time' 'modes modes';
+  gap: 12px 16px;
+}
+.landslide-route-shell .validation-toast {
+  position: fixed;
+  z-index: 90;
+  top: 88px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  margin: 0;
+  padding: 15px 16px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255,255,255,.76);
+  border-radius: 22px;
+  background: rgba(245,249,250,.96);
+  color: #111;
+  box-shadow: inset 0 1px 0 #fff, 0 18px 54px rgba(8,26,38,.28);
+  animation: workspace-toast-in .24s cubic-bezier(.2,.85,.25,1);
+}
+.landslide-route-shell .validation-alert-icon { width: 30px; height: 30px; background: #ff9f0a; color: #fff; }
+.landslide-route-shell .validation-toast-message { color: #111; font-size: 14px; line-height: 1.45; }
+
+@media (max-width: 1200px) {
+  .landslide-route-shell .validation-toast { top: 158px; }
+}
+@media (max-width: 900px) {
+  .landslide-route-shell .map-search { top: 78px; left: 14px; width: min(360px, calc(100% - 104px)); max-width: none; }
+  .landslide-route-shell .map-tools { top: 78px; right: 14px; }
+  .landslide-route-shell .aoi-controls-stack { right: 12px; bottom: 12px; left: 12px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 230px); }
+  .landslide-route-shell .validation-toast { top: 168px; }
+}
+@media (max-width: 560px) {
+  .landslide-route-shell .map-search { top: 78px; left: 12px; width: min(260px, calc(100% - 112px)); padding: 7px; gap: 5px; }
+  .landslide-route-shell .map-search > button { min-height: 34px; padding-inline: 8px; font-size: 10px; }
+  .landslide-route-shell .map-tools { top: 78px; right: 10px; padding: 3px; gap: 2px; }
+  .landslide-route-shell .map-tools button { width: 32px; height: 32px; }
+  .landslide-route-shell .aoi-controls-stack { right: 10px; bottom: 10px; left: 10px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 250px);
+    padding: 12px;
+    grid-template-columns: minmax(0,1fr);
+    grid-template-areas: 'summary' 'drawing' 'time' 'modes';
+    gap: 9px;
+    border-radius: 24px;
+  }
+  .landslide-route-shell .geometry-summary { grid-template-columns: minmax(0,1fr) auto; min-height: 42px; }
+  .landslide-route-shell .geometry-summary strong { font-size: 20px; }
+  .landslide-route-shell .draw-actions { display: flex; flex-wrap: nowrap; gap: 7px; }
+  .landslide-route-shell .draw-actions button { min-width: 0; flex: 1 1 0; }
+  .landslide-route-shell .time-actions { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .landslide-route-shell .date-range { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); }
+  .landslide-route-shell .date-range input { min-height: 36px; font-size: 12px; }
+  .landslide-route-shell .investigation-modes { padding-top: 9px; }
+  .landslide-route-shell .find-displacement-primary { min-height: 42px; margin: 0; }
+  .landslide-route-shell .validation-toast { top: 170px; width: calc(100vw - 24px); padding: 12px; border-radius: 18px; }
+  .landslide-route-shell .validation-toast-message { font-size: 12px; }
+}
+@media (max-height: 700px) {
+  .landslide-route-shell .aoi-controls-stack .action-bar { max-height: calc(100dvh - 190px); }
+}
+
+/* Canonical responsive placement for the Find Displacement workspace.
+   These rules intentionally live last: earlier theme blocks style the glass,
+   while this block owns geometry at every viewport size. */
+.landslide-route-shell .aoi-controls-stack {
+  right: 20px;
+  bottom: 16px;
+  left: 20px;
+  display: block;
+}
+
+.landslide-route-shell .aoi-controls-stack .action-bar {
+  position: relative;
+  inset: auto;
+  width: min(760px, calc(100vw - 40px));
+  height: auto;
+  min-height: 0;
+  max-height: calc(100dvh - 150px);
+  margin: 0 auto;
+  padding: clamp(14px, 1.8vw, 20px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: none;
+  grid-template-columns: minmax(150px, .7fr) minmax(260px, 1.3fr);
+  grid-template-areas: 'summary drawing' 'time time' 'modes modes';
+  gap: 12px 16px;
+  justify-self: center;
+}
+
+.landslide-route-shell .validation-toast {
+  position: fixed;
+  z-index: 90;
+  top: 88px;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  margin: 0;
+  padding: 15px 16px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, .76);
+  border-radius: 22px;
+  background: rgba(245, 249, 250, .96);
+  color: #111;
+  box-shadow: inset 0 1px 0 #fff, 0 18px 54px rgba(8, 26, 38, .28);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
+  animation: workspace-toast-in .24s cubic-bezier(.2, .85, .25, 1);
+}
+
+.landslide-route-shell .validation-alert-icon {
+  width: 30px;
+  height: 30px;
+  background: #ff9f0a;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42);
+}
+
+.landslide-route-shell .validation-toast-message {
+  color: #111;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@keyframes workspace-toast-in {
+  from { opacity: 0; transform: translate(-50%, -14px) scale(.98); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@media (max-width: 1200px) {
+  .landslide-route-shell .validation-toast { top: 158px; }
+}
+
+@media (max-width: 900px) {
+  .landslide-route-shell .map-search {
+    top: 78px;
+    left: 14px;
+    width: min(360px, calc(100% - 104px));
+    max-width: none;
+  }
+  .landslide-route-shell .map-tools { top: 78px; right: 14px; }
+  .landslide-route-shell .aoi-controls-stack { right: 12px; bottom: 12px; left: 12px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar {
+    width: min(680px, calc(100vw - 24px));
+    max-height: calc(100dvh - 230px);
+  }
+  .landslide-route-shell .validation-toast { top: 168px; }
+}
+
+@media (max-width: 560px) {
+  .landslide-route-shell .map-search {
+    top: 78px;
+    left: 12px;
+    width: min(260px, calc(100% - 112px));
+    padding: 7px;
+    gap: 5px;
+  }
+  .landslide-route-shell .map-search > button {
+    min-height: 34px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+  .landslide-route-shell .map-tools {
+    top: 78px;
+    right: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .landslide-route-shell .map-tools button { width: 32px; height: 32px; }
+  .landslide-route-shell .aoi-controls-stack { right: 10px; bottom: 10px; left: 10px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 250px);
+    padding: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'summary' 'drawing' 'time' 'modes';
+    gap: 9px;
+    border-radius: 24px;
+  }
+  .landslide-route-shell .geometry-summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 42px;
+  }
+  .landslide-route-shell .geometry-summary strong { font-size: 20px; }
+  .landslide-route-shell .draw-actions { display: flex; flex-wrap: nowrap; gap: 7px; }
+  .landslide-route-shell .draw-actions button { min-width: 0; flex: 1 1 0; }
+  .landslide-route-shell .time-actions { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .landslide-route-shell .date-range { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .landslide-route-shell .date-range input { min-height: 36px; font-size: 12px; }
+  .landslide-route-shell .investigation-modes { padding-top: 9px; }
+  .landslide-route-shell .find-displacement-primary { min-height: 42px; margin: 0; }
+  .landslide-route-shell .validation-toast {
+    top: 170px;
+    width: calc(100vw - 24px);
+    padding: 12px;
+    border-radius: 18px;
+  }
+  .landslide-route-shell .validation-toast-message { font-size: 12px; }
+}
+
+@media (max-height: 700px) {
+  .landslide-route-shell .aoi-controls-stack .action-bar {
+    max-height: calc(100dvh - 190px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landslide-route-shell .validation-toast { animation: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .landslide-route-shell button { transition: none; }
 }
@@ -1125,3 +1361,57 @@
     margin: 0;
   }
 }
+
+/* Final responsive authority. Do not place geometry rules after this block. */
+.landslide-route-shell .aoi-controls-stack { right: 20px; bottom: 16px; left: 20px; display: block; }
+.landslide-route-shell .aoi-controls-stack .action-bar {
+  position: relative; inset: auto; width: min(760px, calc(100vw - 40px));
+  height: auto; min-height: 0; max-height: calc(100dvh - 150px);
+  margin: 0 auto; padding: clamp(14px, 1.8vw, 20px);
+  overflow-x: hidden; overflow-y: auto; transform: none;
+  grid-template-columns: minmax(150px, .7fr) minmax(260px, 1.3fr);
+  grid-template-areas: 'summary drawing' 'time time' 'modes modes';
+  gap: 12px 16px;
+}
+.landslide-route-shell .validation-toast {
+  position: fixed; z-index: 90; top: 88px; right: auto; bottom: auto; left: 50%;
+  width: min(600px, calc(100vw - 32px)); max-width: none; margin: 0; padding: 15px 16px;
+  transform: translateX(-50%); border: 1px solid rgba(255,255,255,.76); border-radius: 22px;
+  background: rgba(245,249,250,.96); color: #111;
+  box-shadow: inset 0 1px 0 #fff, 0 18px 54px rgba(8,26,38,.28);
+  animation: workspace-toast-in .24s cubic-bezier(.2,.85,.25,1);
+}
+.landslide-route-shell .validation-alert-icon { width: 30px; height: 30px; background: #ff9f0a; color: #fff; }
+.landslide-route-shell .validation-toast-message { color: #111; font-size: 14px; line-height: 1.45; }
+@media (max-width: 1200px) { .landslide-route-shell .validation-toast { top: 158px; } }
+@media (max-width: 900px) {
+  .landslide-route-shell .map-search { top: 78px; left: 14px; width: min(360px, calc(100% - 104px)); max-width: none; }
+  .landslide-route-shell .map-tools { top: 78px; right: 14px; }
+  .landslide-route-shell .aoi-controls-stack { right: 12px; bottom: 12px; left: 12px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 230px); }
+  .landslide-route-shell .validation-toast { top: 168px; }
+}
+@media (max-width: 560px) {
+  .landslide-route-shell .map-search { top: 78px; left: 12px; width: min(260px, calc(100% - 112px)); padding: 7px; gap: 5px; }
+  .landslide-route-shell .map-search > button { min-height: 34px; padding-inline: 8px; font-size: 10px; }
+  .landslide-route-shell .map-tools { top: 78px; right: 10px; padding: 3px; gap: 2px; }
+  .landslide-route-shell .map-tools button { width: 32px; height: 32px; }
+  .landslide-route-shell .aoi-controls-stack { right: 10px; bottom: 10px; left: 10px; }
+  .landslide-route-shell .aoi-controls-stack .action-bar {
+    width: calc(100vw - 20px); max-height: calc(100dvh - 250px); padding: 12px;
+    grid-template-columns: minmax(0,1fr); grid-template-areas: 'summary' 'drawing' 'time' 'modes';
+    gap: 9px; border-radius: 24px;
+  }
+  .landslide-route-shell .geometry-summary { grid-template-columns: minmax(0,1fr) auto; min-height: 42px; }
+  .landslide-route-shell .geometry-summary strong { font-size: 20px; }
+  .landslide-route-shell .draw-actions { display: flex; flex-wrap: nowrap; gap: 7px; }
+  .landslide-route-shell .draw-actions button { min-width: 0; flex: 1 1 0; }
+  .landslide-route-shell .time-actions { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .landslide-route-shell .date-range { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); }
+  .landslide-route-shell .date-range input { min-height: 36px; font-size: 12px; }
+  .landslide-route-shell .investigation-modes { padding-top: 9px; }
+  .landslide-route-shell .find-displacement-primary { min-height: 42px; margin: 0; }
+  .landslide-route-shell .validation-toast { top: 170px; width: calc(100vw - 24px); padding: 12px; border-radius: 18px; }
+  .landslide-route-shell .validation-toast-message { font-size: 12px; }
+}
+@media (max-height: 700px) { .landslide-route-shell .aoi-controls-stack .action-bar { max-height: calc(100dvh - 190px); } }
