@@ -679,7 +679,9 @@
   border-radius: 12px;
   border: 0;
   background: transparent;
-  color: #071724;
+  color: #000;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .32);
   box-shadow: none;
 }
 
@@ -692,7 +694,7 @@
 .landslide-route-shell .map-tools .layers-menu button:hover:not(:disabled),
 .landslide-route-shell .map-tools .layers-menu button:focus-visible {
   background: rgba(255, 255, 255, .24);
-  color: #071724;
+  color: #000;
 }
 
 .landslide-route-shell .map-tools .layers-menu button[aria-checked="true"]:hover:not(:disabled),
