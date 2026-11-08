@@ -1,6 +1,6 @@
 .nisar-results-page:has(.displacement-preparation) {
-  --processing-ink: #132438;
-  --processing-muted: #597084;
+  --processing-ink: #000;
+  --processing-muted: #000;
   --processing-accent: #087bd3;
   min-height: 100dvh;
   background: #071620;
@@ -43,8 +43,10 @@
   font-weight: 750;
 }
 .processing-status-chip i { width: 8px; height: 8px; border-radius: 50%; background: #2b8ad1; }
+.processing-status-chip.is-running { color: #000; }
 .processing-status-chip.is-running i { animation: processing-pulse 1.6s ease-out infinite; }
 .processing-page--succeeded .processing-status-chip i { background: #258a50; }
+.processing-page--succeeded .processing-status-chip { color: #176b3b; border-color: rgba(23, 107, 59, .24); }
 .processing-page--failed .processing-status-chip { color: #a82828; border-color: rgba(183, 38, 38, .24); }
 .processing-page--failed .processing-status-chip i { background: #d52f3f; }
 .processing-page--cancelled .processing-status-chip i { background: #c16b29; }
@@ -85,12 +87,12 @@
 .processing-page--succeeded .processing-orbit-symbol { color: #288d55; }
 
 .processing-stepper { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; padding: 0; list-style: none; }
-.processing-stepper li { position: relative; display: grid; justify-items: center; gap: 7px; color: #748696; font-size: 11px; font-weight: 700; }
+.processing-stepper li { position: relative; display: grid; justify-items: center; gap: 7px; color: #000; font-size: 11px; font-weight: 700; }
 .processing-stepper li:not(:last-child)::after { position: absolute; top: 5px; left: calc(50% + 8px); width: calc(100% - 16px); height: 2px; background: rgba(87, 128, 153, .22); content: ''; }
 .processing-stepper li.is-complete:not(:last-child)::after { background: #3fa9d1; }
 .processing-stepper i { z-index: 1; width: 12px; height: 12px; border: 2px solid rgba(78, 122, 150, .34); border-radius: 50%; background: #eef7f9; }
 .processing-stepper li.is-complete i { border-color: #3fa9d1; background: #3fa9d1; }
-.processing-stepper li.is-current { color: #176b9e; }
+.processing-stepper li.is-current { color: #000; }
 .processing-stepper li.is-current i { border-color: #147fc0; background: #effaff; box-shadow: 0 0 0 4px rgba(20, 127, 192, .14); }
 .processing-safe-note { margin: 23px 0 0; color: var(--processing-muted); font-size: 14px; }
 
