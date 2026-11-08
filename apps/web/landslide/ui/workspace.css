@@ -1484,6 +1484,9 @@
     border: 0;
     opacity: .001;
     pointer-events: none;
+    color: #071724;
+    color-scheme: light;
+    zoom: .8;
   }
   .landslide-route-shell .date-range .desktop-date-input { display: none; }
   .landslide-route-shell .date-range .mobile-date-button {
@@ -1496,8 +1499,8 @@
     padding: 0 10px;
     border: 1px solid var(--sg-border);
     border-radius: 18px;
-    background: var(--sg-control);
-    color: var(--sg-text);
+    background: #edf5f7;
+    color: #071724;
     font-size: 12px;
     font-weight: 700;
     box-shadow: none;
