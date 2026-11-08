@@ -1469,23 +1469,25 @@
   }
   .landslide-route-shell .validation-toast--floating .validation-toast-message { font-size: 12px; }
 
-  /* Native date popovers need space below their anchor. Lift the floating
-     tray only while a date field owns focus, then return it to the bottom. */
-  .landslide-route-shell .aoi-controls-stack {
-    transition: bottom .2s ease;
+  /* Chromium positions its native calendar from the input's viewport box.
+     Keep the toaster fixed and open narrow-screen calendars from this safe,
+     invisible anchor near the top of the viewport. */
+  .landslide-route-shell .mobile-date-picker-anchor {
+    position: fixed;
+    z-index: 121;
+    top: max(132px, calc(env(safe-area-inset-top) + 96px));
+    left: 12px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: .001;
+    pointer-events: none;
   }
-  .landslide-route-shell .aoi-controls-stack:has(input[type='date']:focus) {
-    bottom: clamp(220px, 34dvh, 320px);
-  }
-  .landslide-route-shell .aoi-controls-stack.is-date-picker-active {
-    bottom: clamp(240px, 38dvh, 360px);
-  }
-  .landslide-route-shell .aoi-controls-stack:has(input[type='date']:focus) .action-bar {
-    max-height: calc(100dvh - 300px);
-  }
-  .landslide-route-shell .aoi-controls-stack.is-date-picker-active .action-bar {
-    max-height: calc(100dvh - 320px);
-  }
+}
+
+@media (min-width: 561px) {
+  .landslide-route-shell .mobile-date-picker-anchor { display: none; }
 }
 
 /* Keep validation copy readable over the red alert surface regardless of

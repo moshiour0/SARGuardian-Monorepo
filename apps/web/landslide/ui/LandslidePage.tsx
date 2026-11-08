@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { importLibrary } from '@googlemaps/js-api-loader';
 import { configureGoogleMaps } from '../../src/googleMapsLoader';
 import type { User } from 'firebase/auth';
@@ -1133,7 +1133,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [jobIdempotencyKey, setJobIdempotencyKey] = useState('');
   const [validationAlertDismissed, setValidationAlertDismissed] = useState(false);
   const [toastRevision, setToastRevision] = useState(0);
-  const [datePickerActive, setDatePickerActive] = useState(false);
+  const mobileStartDatePickerRef = useRef<HTMLInputElement>(null);
+  const mobileEndDatePickerRef = useRef<HTMLInputElement>(null);
   const [selectedHarmonyProduct, setSelectedHarmonyProduct] = useState<CatalogProduct | null>(initialSessionState.selectedHarmonyProduct);
   const [harmonyLayerRole, setHarmonyLayerRole] = useState<HarmonyLayerRole>('unwrapped_phase');
   const [harmonyWorkflowMaturity, setHarmonyWorkflowMaturity] = useState<'PROVISIONAL' | 'BETA'>('PROVISIONAL');
@@ -1482,6 +1483,12 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       setToastRevision((current) => current + 1);
     } else setError('');
     setValidationAlertDismissed(false);
+  };
+
+  const openMobileDatePicker = (event: ReactPointerEvent<HTMLInputElement>, pickerRef: { current: HTMLInputElement | null }) => {
+    if (!window.matchMedia('(max-width: 560px)').matches || typeof pickerRef.current?.showPicker !== 'function') return;
+    event.preventDefault();
+    pickerRef.current.showPicker();
   };
 
   const handleCoordinates = (next: Coordinate[], closed: boolean) => {
@@ -2236,7 +2243,29 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           </div>
         )}
 
-        <div className={`aoi-controls-stack${datePickerActive ? ' is-date-picker-active' : ''}`}>
+        <input
+          ref={mobileStartDatePickerRef}
+          className="mobile-date-picker-anchor"
+          type="date"
+          value={windowStart}
+          max={today}
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => handleWindowStartChange(event.target.value)}
+        />
+        <input
+          ref={mobileEndDatePickerRef}
+          className="mobile-date-picker-anchor"
+          type="date"
+          value={windowEnd}
+          min={windowStart || undefined}
+          max={today}
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(event) => handleWindowEndChange(event.target.value)}
+        />
+
+        <div className="aoi-controls-stack">
           <section className="action-bar glass-float" aria-label="Investigation controls">
           {!result ? (
             <>
@@ -2273,10 +2302,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     type="date"
                     value={windowStart}
                     max={today}
-                    onPointerDown={() => setDatePickerActive(true)}
-                    onFocus={() => setDatePickerActive(true)}
-                    onBlur={() => setDatePickerActive(false)}
-                    onChange={(event) => { handleWindowStartChange(event.target.value); setDatePickerActive(false); }}
+                    onPointerDown={(event) => openMobileDatePicker(event, mobileStartDatePickerRef)}
+                    onClick={(event) => {
+                      if (window.matchMedia('(max-width: 560px)').matches && typeof mobileStartDatePickerRef.current?.showPicker === 'function') event.preventDefault();
+                    }}
+                    onChange={(event) => handleWindowStartChange(event.target.value)}
                     aria-label="Starting date"
                   />
                   <span>to</span>
@@ -2285,10 +2315,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     value={windowEnd}
                     min={windowStart || undefined}
                     max={today}
-                    onPointerDown={() => setDatePickerActive(true)}
-                    onFocus={() => setDatePickerActive(true)}
-                    onBlur={() => setDatePickerActive(false)}
-                    onChange={(event) => { handleWindowEndChange(event.target.value); setDatePickerActive(false); }}
+                    onPointerDown={(event) => openMobileDatePicker(event, mobileEndDatePickerRef)}
+                    onClick={(event) => {
+                      if (window.matchMedia('(max-width: 560px)').matches && typeof mobileEndDatePickerRef.current?.showPicker === 'function') event.preventDefault();
+                    }}
+                    onChange={(event) => handleWindowEndChange(event.target.value)}
                     aria-label="Ending date"
                   />
                 </div>
