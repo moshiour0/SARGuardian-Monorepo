@@ -680,7 +680,7 @@
 
 .landslide-route-shell .action-bar {
   right: 50%;
-  bottom: 24px;
+  bottom: 14px;
   left: auto;
   width: min(720px, calc(100% - 32px));
   transform: translateX(50%);
@@ -823,9 +823,35 @@
   height: 184px;
   min-height: 184px;
   max-height: 184px;
-  padding: 14px 18px;
+  padding: 14px 18px 20px;
   gap: 10px;
   overflow: hidden;
+  color: #071724;
+}
+
+.landslide-route-shell .action-bar span,
+.landslide-route-shell .action-bar strong,
+.landslide-route-shell .action-bar small,
+.landslide-route-shell .action-bar h2,
+.landslide-route-shell .action-bar label {
+  color: #071724;
+  font-weight: 750;
+}
+
+.landslide-route-shell .action-bar .time-actions > span,
+.landslide-route-shell .action-bar .geometry-summary span {
+  color: #173b51;
+}
+
+.landslide-route-shell .action-bar input {
+  color: #071724;
+  font-weight: 700;
+  color-scheme: light;
+}
+
+.landslide-route-shell .action-bar input::-webkit-calendar-picker-indicator {
+  filter: brightness(0);
+  opacity: .9;
 }
 
 .landslide-route-shell button:focus-visible,
@@ -837,6 +863,8 @@
 
 .landslide-route-shell .find-displacement-primary {
   min-height: 42px;
+  margin-bottom: 8px;
+  color: #071724;
 }
 
 @media (max-width: 760px) {
@@ -857,7 +885,7 @@
     height: 176px;
     min-height: 176px;
     max-height: 176px;
-    padding: 13px 15px;
+    padding: 13px 15px 20px;
     border-radius: 24px;
   }
 
