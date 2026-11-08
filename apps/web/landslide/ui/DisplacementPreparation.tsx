@@ -62,10 +62,15 @@ function jobStateDescription(state: DisplacementJob['state']): string {
   }
 }
 
+function isScreeningStage(stage: string): boolean {
+  return ['screen', 'dashboard', 'validation', 'terminal', 'assemble', 'export', 'result', 'map']
+    .some((marker) => stage.includes(marker));
+}
+
 function displayStageName(stage: string | null | undefined, state: DisplacementJob['state']): string {
   const normalized = stage?.trim().toLowerCase() ?? '';
   if (normalized.includes('complete') || state === 'succeeded') return 'Complete';
-  if (normalized.includes('screen') || normalized.includes('dashboard') || normalized.includes('validation')) return 'Screening';
+  if (isScreeningStage(normalized)) return 'Screening';
   if (normalized.includes('product') || normalized.includes('granule') || normalized.includes('process')) return 'Processing';
   if (normalized.includes('initial') || state === 'running') return 'Initializing';
   if (state === 'queued' || state === 'dispatching') return 'Preparing task';
@@ -97,13 +102,13 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const normalizedStage = job.stage?.trim().toLowerCase() ?? '';
   const stageIndex = job.state === 'succeeded' || normalizedStage.includes('complete')
     ? 3
-    : normalizedStage.includes('screen') || normalizedStage.includes('dashboard') || normalizedStage.includes('validation')
+    : isScreeningStage(normalizedStage)
       ? 2
       : normalizedStage.includes('product') || normalizedStage.includes('granule') || normalizedStage.includes('process')
         ? 1
         : 0;
   const failedStageIndex = job.state === 'failed'
-    ? (normalizedStage.includes('screen') || normalizedStage.includes('dashboard') || normalizedStage.includes('validation') || normalizedStage.includes('terminal')
+    ? (isScreeningStage(normalizedStage)
       ? 2
       : normalizedStage.includes('process') || normalizedStage.includes('granule') || normalizedStage.includes('download')
         ? 1
