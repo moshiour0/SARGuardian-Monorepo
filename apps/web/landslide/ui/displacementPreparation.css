@@ -96,8 +96,8 @@
 .processing-stepper li.is-current i { border-color: #147fc0; background: #effaff; box-shadow: 0 0 0 4px rgba(20, 127, 192, .14); }
 .processing-stepper li.is-failed { color: #c62828; }
 .processing-stepper li.is-failed i { border-color: #d43d3d; background: #ef6a6a; box-shadow: 0 0 0 4px rgba(212, 61, 61, .16); }
-.processing-safe-note { display: grid; gap: 5px; margin: 23px 0 0; color: var(--processing-muted); font-size: 14px; }
-.processing-safe-note small { color: var(--processing-muted); font-size: 12px; font-weight: 600; }
+.processing-safe-note { margin: 23px 0 0; color: var(--processing-muted); font-size: 14px; }
+.processing-duration-note { margin: 6px 0 0; color: var(--processing-muted); font-size: 12px; font-weight: 600; text-align: center; }
 
 .processing-products-card { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; }
 .processing-products-card > div { min-width: 0; padding: 22px 16px; text-align: center; }

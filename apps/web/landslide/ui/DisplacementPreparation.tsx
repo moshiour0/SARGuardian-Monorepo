@@ -95,7 +95,13 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
   const [copied, setCopied] = useState(false);
   const stageName = displayStageName(job.stage, job.state);
   const normalizedStage = job.stage?.trim().toLowerCase() ?? '';
-  const stageIndex = stageName === 'Complete' ? 3 : stageName === 'Screening' ? 2 : stageName === 'Processing' ? 1 : 0;
+  const stageIndex = job.state === 'succeeded' || normalizedStage.includes('complete')
+    ? 3
+    : normalizedStage.includes('screen') || normalizedStage.includes('dashboard') || normalizedStage.includes('validation')
+      ? 2
+      : normalizedStage.includes('product') || normalizedStage.includes('granule') || normalizedStage.includes('process')
+        ? 1
+        : 0;
   const failedStageIndex = job.state === 'failed'
     ? (normalizedStage.includes('screen') || normalizedStage.includes('dashboard') || normalizedStage.includes('validation') || normalizedStage.includes('terminal')
       ? 2
@@ -151,10 +157,8 @@ export function DisplacementJobStatus({ job, pendingAction, clock, granuleCounts
         <ol className="processing-stepper" aria-label="Processing stages">
           {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index === failedStageIndex ? 'is-failed' : index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
         </ol>
-        <p className="processing-safe-note">
-          <span>{hasActiveJob ? 'Safe to close this page. Your task keeps running.' : jobStateDescription(job.state)}</span>
-          <small>It may take up to 5 to 20 minutes depending on AOI and time window.</small>
-        </p>
+        <p className="processing-safe-note">{hasActiveJob ? 'Safe to close this page. Your task keeps running.' : jobStateDescription(job.state)}</p>
+        <p className="processing-duration-note">It may take up to 5 to 20 minutes depending on AOI and time window.</p>
       </section>
 
       <section className="processing-card processing-products-card" aria-label="Product inventory">
