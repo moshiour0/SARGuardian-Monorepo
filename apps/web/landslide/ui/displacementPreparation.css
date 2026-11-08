@@ -93,7 +93,7 @@
 .processing-stepper i { z-index: 1; width: 12px; height: 12px; border: 2px solid rgba(78, 122, 150, .34); border-radius: 50%; background: #eef7f9; }
 .processing-stepper li.is-complete i { border-color: #3fa9d1; background: #3fa9d1; }
 .processing-stepper li.is-current { color: #000; }
-.processing-stepper li.is-current i { border-color: #147fc0; background: #effaff; box-shadow: 0 0 0 4px rgba(20, 127, 192, .14); }
+.processing-stepper li.is-current i { border-color: #147fc0; background: #3fa9d1; box-shadow: 0 0 0 4px rgba(20, 127, 192, .14); }
 .processing-stepper li.is-failed { color: #c62828; }
 .processing-stepper li.is-failed i { border-color: #d43d3d; background: #ef6a6a; box-shadow: 0 0 0 4px rgba(212, 61, 61, .16); }
 .processing-safe-note { margin: 23px 0 0; color: var(--processing-muted); font-size: 14px; }
