@@ -668,7 +668,9 @@ jobs:
           if [[ "$PROGRESS_REPORTED" == "true" ]]; then sequence=3; fi
           if [[ "$SCREENING_REPORTED" == "true" ]]; then sequence=4; fi
           state=failed
-          stage=failed
+          stage=initializing_failed
+          if [[ "$PROGRESS_REPORTED" == "true" ]]; then stage=processing_failed; fi
+          if [[ "$SCREENING_REPORTED" == "true" ]]; then stage=screening_failed; fi
           error_code=GITHUB_ACTIONS_WORKER_FAILED
           error_message='The AOI science workflow did not complete successfully.'
           summary_args=()
