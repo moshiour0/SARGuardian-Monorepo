@@ -388,6 +388,33 @@ jobs:
       execution_label: retry-1
     secrets: inherit
 
+  report-screening:
+    name: Report screening stage
+    needs: [report-running, manifest, process-products, retry-plan, retry-products]
+    if: always() && inputs.job_id != '' && needs.manifest.result == 'success' && needs.manifest.outputs.progress_reported == 'true' && needs.process-products.result == 'success' && (needs.retry-products.result == 'success' || needs.retry-products.result == 'skipped')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+          check-latest: false
+      - name: Report screening stage to the account API
+        env:
+          CALLBACK_SECRET: ${{ secrets.DISPLACEMENT_CALLBACK_SECRET }}
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          JOB_ID: ${{ inputs.job_id }}
+          REQUEST_FINGERPRINT: ${{ inputs.request_fingerprint }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH="$GITHUB_WORKSPACE/apps/api" python -m science_adapter.dynamic_callback \
+            --state running --stage screening --sequence 3 \
+            --callback-url "$CALLBACK_URL" --callback-secret "$CALLBACK_SECRET" \
+            --job-id "$JOB_ID" --request-fingerprint "$REQUEST_FINGERPRINT" \
+            --github-run-id "$GITHUB_RUN_ID" \
+            --github-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
   dashboard:
     name: Assemble results dashboard and downloadable maps
     needs: [manifest, process-products, retry-plan, retry-products]
@@ -589,7 +616,7 @@ jobs:
 
   report-terminal:
     name: Report validated terminal state
-    needs: [report-running, manifest, process-products, retry-plan, retry-products, dashboard]
+    needs: [report-running, manifest, process-products, retry-plan, retry-products, report-screening, dashboard]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -626,6 +653,7 @@ jobs:
           PIPELINE_RESULT: ${{ needs.dashboard.result }}
           RUNNING_REPORTED: ${{ needs.report-running.outputs.reported }}
           PROGRESS_REPORTED: ${{ needs.manifest.outputs.progress_reported }}
+          SCREENING_REPORTED: ${{ needs.report-screening.result == 'success' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -638,6 +666,7 @@ jobs:
           sequence=1
           if [[ "$RUNNING_REPORTED" == "true" ]]; then sequence=2; fi
           if [[ "$PROGRESS_REPORTED" == "true" ]]; then sequence=3; fi
+          if [[ "$SCREENING_REPORTED" == "true" ]]; then sequence=4; fi
           state=failed
           stage=failed
           error_code=GITHUB_ACTIONS_WORKER_FAILED
