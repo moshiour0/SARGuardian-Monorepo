@@ -250,8 +250,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       .then((payload) => {
         if (!active) return;
         const ids = Array.from(new Set(
-          payload.result.pairwise_series_plan.chains
-            .map((chain) => chain.release_id)
+          [
+            ...(payload.result.pairwise_series_plan.candidate_release_ids || []),
+            ...payload.result.pairwise_series_plan.chains.map((chain) => chain.release_id),
+          ]
             .filter((releaseId): releaseId is string => Boolean(releaseId)),
         ));
         setCatalogReleaseIds(ids);
@@ -272,7 +274,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       return;
     }
     if (executeDownloads && !catalogPreflightReady) {
-      setError('Run a successful catalog-only dry run for these exact settings first. If it reports duplicate release variants, select the intended release ID and rerun the dry run before authorizing raw downloads.');
+      setError('Run a successful catalog-only dry run for these exact polygons, dates and processing settings first, then select one of its release IDs.');
+      return;
+    }
+    if (executeDownloads && catalogReleaseIds.length > 0 && !allowedReleaseIds.trim()) {
+      setError('Select one release ID from the successful dry-run result before starting the raw GOFF measurement.');
       return;
     }
     if (executeDownloads && !confirmRawDownloads) {
@@ -376,9 +382,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             </select>
           </label>
           <label className="aoi-job-label known-place-wide">
-            <span>Allowed release IDs (comma-separated)</span>
-            <input value={allowedReleaseIds} onChange={(event) => setAllowedReleaseIds(event.target.value)} placeholder="Leave blank only when catalog pairs are unambiguous" autoComplete="off" />
-            <span className="catalog-field-hint">Run the catalog-only dry run first. When it reports duplicate variants, enter only the intended release ID (for example, P05023) and rerun the dry run. SARGuardian never auto-selects a release.</span>
+            <span>Release selection</span>
+            {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release IDs found by the catalog dry run">
+              {catalogReleaseIds.map((releaseId) => <label key={releaseId}>
+                <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />
+                <span>{releaseId}</span>
+              </label>)}
+            </div> : <span className="catalog-field-hint">Run the catalog-only dry run to discover the release IDs available for this AOI and date window.</span>}
           </label>
           <label className="aoi-job-label">
             <span>Constant ellipsoidal height in metres (optional sensitivity only)</span>
@@ -395,7 +405,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <p className="catalog-notice" role="status">
             {catalogPreflightReady
               ? 'Catalog preflight passed for the exact current polygons, dates and processing settings. Raw download still requires the separate consent checkbox.'
-              : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current settings, completed within the last 15 minutes. Older or timestamp-missing preflight evidence expires; changing a polygon, date, track, direction, polarization or release filter also requires a new dry run.'}
+              : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current polygons, dates and processing settings, completed within the last 15 minutes.'}
           </p>
           <div className="known-place-consent">
             <label>
@@ -427,9 +437,9 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               : <p className="catalog-notice">Catalog-only preflight passed. No raw NISAR products were downloaded. You may now separately authorize a raw GOFF run for these unchanged settings.</p>)}
             {runSucceeded && !run.execute_downloads && (
               <p className="catalog-notice" role="status">
-                <b>Selected release ID{catalogReleaseIds.length === 1 ? '' : 's'}:</b>{' '}
+                <b>Release IDs found for this AOI:</b>{' '}
                 {catalogReleaseIds.length ? catalogReleaseIds.join(', ') : (catalogReleaseError || 'Loading from the verified dry-run result…')}
-                {' '}Leave the release filter blank for this successful, unambiguous preflight unless you want to pin a specific revision.
+                {' '}Choose one above before authorizing the raw measurement run.
               </p>
             )}
             {runFailed && (run.execute_downloads

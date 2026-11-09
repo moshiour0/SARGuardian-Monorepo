@@ -942,6 +942,8 @@ def _known_place_result_summary(result: dict[str, Any]) -> dict[str, Any]:
             "pairwise_metrics_are_not_cumulative": plan.get("pairwise_metrics_are_not_cumulative"),
             "warnings": plan.get("warnings") if isinstance(plan.get("warnings"), list) else [],
             "known_nisar_data_gaps_intersecting_requested_pairs": plan.get("known_nisar_data_gaps_intersecting_requested_pairs"),
+            "candidate_release_ids": plan.get("candidate_release_ids") if isinstance(plan.get("candidate_release_ids"), list) else [],
+            "selection_required": bool(plan.get("selection_required", False)),
             "chains": chains,
         },
         "pairs": _known_place_pair_rows(result),

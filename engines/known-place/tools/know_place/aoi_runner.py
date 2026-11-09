@@ -890,15 +890,39 @@ def run_aoi_analysis(
             {key: value for key, value in row.items() if key != "download_url"}
             for row in catalog_rows
         ]
-        plan = build_pairwise_series_plan(
-            plan_rows,
-            start_date=request.start_date,
-            end_date=request.end_date,
-            polarization=request.polarization,
-            track=request.track,
-            direction=request.direction,
-            preferred_granules=request.preferred_granules,
-        )
+        try:
+            plan = build_pairwise_series_plan(
+                plan_rows,
+                start_date=request.start_date,
+                end_date=request.end_date,
+                polarization=request.polarization,
+                track=request.track,
+                direction=request.direction,
+                preferred_granules=request.preferred_granules,
+            )
+        except SeriesPlanError as exc:
+            # A catalog-only run is the discovery step: expose every release
+            # candidate so the caller can choose one before the raw run.
+            if not dry_run or getattr(exc, "code", "") != "AMBIGUOUS_PRODUCT_RELEASE_VARIANTS":
+                raise
+            diagnostics = getattr(exc, "details", {})
+            candidate_release_ids = sorted({
+                str(value).upper()
+                for value in (diagnostics.get("candidate_release_ids", []) if isinstance(diagnostics, dict) else [])
+                if str(value).strip()
+            })
+            plan = {
+                "schema_version": "known-place-series-plan/1.0",
+                "status": "RELEASE_SELECTION_REQUIRED",
+                "chain_count": 0,
+                "pair_count": 0,
+                "chains": [],
+                "pairs": [],
+                "candidate_release_ids": candidate_release_ids,
+                "selection_required": True,
+                "selection_diagnostics": diagnostics,
+                "warnings": ["Select one release ID before starting the raw GOFF measurement."],
+            }
         selected_names = {pair["granule_name"] for pair in plan["pairs"]}
         for candidate in catalog_manifest.get("candidates", []):
             if candidate.get("granule_name") in selected_names:
