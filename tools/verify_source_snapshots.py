@@ -494,6 +494,7 @@ def main() -> int:
         "landslide/ui/DisplacementPreparation.tsx", "landslide/ui/KnownPlaceAnalysisPanel.tsx",
         "landslide/ui/KnownPlacePolygonEditor.tsx", "landslide/ui/LandslidePage.tsx",
         "landslide/ui/ScientificResults.tsx", "landslide/ui/knownPlacePreflight.ts",
+        "landslide/tests/investigationModes.test.tsx", "landslide/ui/knownPlacePreflight.test.ts",
         "landslide/ui/sessionState.test.ts", "landslide/ui/sessionState.ts",
         "landslide/ui/workspace.css", "src/App.tsx", "src/api/catalog.ts",
         "src/api/knownPlace.ts", "src/components/ArchiveSection.tsx",

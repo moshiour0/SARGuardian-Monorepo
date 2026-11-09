@@ -33,8 +33,8 @@
     {
       "source_path": "tools/know_place/aoi_runner.py",
       "destination_path": "engines/known-place/tools/know_place/aoi_runner.py",
-      "source_blob_sha": "9364b94d6629c67e44f007a0e2634824aa7e1f9f",
-      "source_bytes": 84131
+      "source_blob_sha": "ef1f4b4f38b0078ad5ee7168f76deeeeeb4c72cd",
+      "source_bytes": 85977
     },
     {
       "source_path": "tools/know_place/geometry.py",

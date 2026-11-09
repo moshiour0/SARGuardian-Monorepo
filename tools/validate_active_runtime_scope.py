@@ -70,7 +70,7 @@ def validate_known_place_active_pin() -> None:
             fail(f"active Known Place source blob mismatch: {destination}; expected={source_sha}; actual={actual}")
     expected = {
         "engines/known-place/tools/know_place/aoi_request.py": "8fcfdf635994ceb6093160931f21ae6cf0f986de",
-        "engines/known-place/tools/know_place/aoi_runner.py": "9364b94d6629c67e44f007a0e2634824aa7e1f9f",
+        "engines/known-place/tools/know_place/aoi_runner.py": "ef1f4b4f38b0078ad5ee7168f76deeeeeb4c72cd",
         "engines/known-place/tools/know_place/geometry.py": "25292440fd94426882a8c51b00b186b162de429a",
         "engines/known-place/tools/know_place/series.py": "f1b67c9255706b8e10ad4e2e280e80640490b405",
         "engines/known-place/tools/know_place/upload_bundle_to_drive.py": "ef721ee9e1d1b388927866054883440f95e1f2f6",
