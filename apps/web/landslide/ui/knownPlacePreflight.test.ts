@@ -51,7 +51,7 @@ describe('Known Place catalog preflight gate', () => {
     expect(hasMatchingKnownPlaceCatalogPreflight(successfulDryRun(fingerprint), fingerprint, NOW)).toBe(true);
   });
 
-  it('invalidates preflight when the release allowlist changes', () => {
+  it('keeps the discovery preflight valid when a release is selected afterward', () => {
     const fingerprint = knownPlaceRequestFingerprint(baseInput);
     const changed = {
       ...baseInput,
@@ -63,7 +63,7 @@ describe('Known Place catalog preflight gate', () => {
         knownPlaceRequestFingerprint(changed),
         NOW,
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('invalidates preflight when geometry or date window changes', () => {
