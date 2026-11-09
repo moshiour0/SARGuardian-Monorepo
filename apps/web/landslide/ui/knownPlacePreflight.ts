@@ -13,6 +13,9 @@ export function knownPlaceRequestFingerprint(input: KnownPlaceAnalysisInput): st
   const scienceRequest: Partial<KnownPlaceAnalysisInput> = { ...input };
   delete scienceRequest.execute_downloads;
   delete scienceRequest.confirm_raw_downloads;
+  // Release IDs are selected from the immediately preceding catalog result;
+  // choosing one must not force the user to repeat the discovery dry run.
+  delete scienceRequest.allowed_release_ids;
   return JSON.stringify(scienceRequest);
 }
 

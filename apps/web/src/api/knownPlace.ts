@@ -273,6 +273,8 @@ export type KnownPlaceAnalysisResults = {
       pairwise_metrics_are_not_cumulative: boolean;
       warnings: string[];
       known_nisar_data_gaps_intersecting_requested_pairs: unknown;
+      candidate_release_ids: string[];
+      selection_required: boolean;
       chains: KnownPlaceChain[];
     };
     pairs: KnownPlacePairResult[];
