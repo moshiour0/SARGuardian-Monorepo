@@ -178,10 +178,6 @@ export function KnownPlacePolygonEditor({
   const [reference, setReference] = useState<Coordinate[]>([]);
   const [measurementClosed, setMeasurementClosed] = useState(false);
   const [referenceClosed, setReferenceClosed] = useState(false);
-  const [measurementText, setMeasurementText] = useState('');
-  const [referenceText, setReferenceText] = useState('');
-  const [measurementWktDirty, setMeasurementWktDirty] = useState(false);
-  const [referenceWktDirty, setReferenceWktDirty] = useState(false);
   const [geometryError, setGeometryError] = useState('');
   const initialMeasurementAppliedRef = useRef(false);
   const initialReferenceAppliedRef = useRef(false);
@@ -197,11 +193,7 @@ export function KnownPlacePolygonEditor({
     () => validatePolygonPair(outerCoordinates, measurement, reference, measurementClosed, referenceClosed),
     [outerCoordinates, measurement, reference, measurementClosed, referenceClosed],
   );
-  const validation = useMemo(() => {
-    if (measurementWktDirty) return { valid: false, message: 'The Measurement WKT draft has not been applied. Apply it or redraw the polygon before submitting.' };
-    if (referenceWktDirty) return { valid: false, message: 'The Reference WKT draft has not been applied. Apply it or redraw the polygon before submitting.' };
-    return geometryValidation;
-  }, [geometryValidation, measurementWktDirty, referenceWktDirty]);
+  const validation = geometryValidation;
 
   const measurementArea = measurementClosed ? calculateGeodesicAreaKm2(measurement) : 0;
   const referenceArea = referenceClosed ? calculateGeodesicAreaKm2(reference) : 0;
@@ -219,8 +211,6 @@ export function KnownPlacePolygonEditor({
       if (hasSelfIntersection(points)) throw new Error('The suggested candidate outline needs editing because its simplified boundary crosses itself.');
       setMeasurement(points);
       setMeasurementClosed(true);
-      setMeasurementText(initialMeasurementWkt);
-      setMeasurementWktDirty(false);
       setActiveRole('measurement');
       setGeometryError('A candidate-derived Suggested Measurement Polygon was loaded. Review and edit its boundary before running measurement.');
     } catch (error) {
@@ -237,8 +227,6 @@ export function KnownPlacePolygonEditor({
       if (hasSelfIntersection(points)) throw new Error('The saved reference polygon crosses itself.');
       setReference(points);
       setReferenceClosed(true);
-      setReferenceText(initialReferenceWkt);
-      setReferenceWktDirty(false);
     } catch (error) {
       setGeometryError(error instanceof Error ? error.message : 'The saved reference polygon could not be loaded.');
     }
@@ -247,11 +235,8 @@ export function KnownPlacePolygonEditor({
   useEffect(() => {
     try {
       const wkt = measurementClosed && measurement.length >= 3 ? polygonToWkt(measurement) : '';
-      setMeasurementText(wkt);
-      setMeasurementWktDirty(false);
       onMeasurementChange(wkt);
     } catch {
-      setMeasurementText('');
       onMeasurementChange('');
     }
   }, [measurement, measurementClosed, onMeasurementChange]);
@@ -259,11 +244,8 @@ export function KnownPlacePolygonEditor({
   useEffect(() => {
     try {
       const wkt = referenceClosed && reference.length >= 3 ? polygonToWkt(reference) : '';
-      setReferenceText(wkt);
-      setReferenceWktDirty(false);
       onReferenceChange(wkt);
     } catch {
-      setReferenceText('');
       onReferenceChange('');
     }
   }, [reference, referenceClosed, onReferenceChange]);
@@ -278,13 +260,13 @@ export function KnownPlacePolygonEditor({
     }
     const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
     if (!apiKey) {
-      setMapError('Google Maps is not configured. Use the WKT fields below or configure VITE_GOOGLE_MAPS_API_KEY.');
+      setMapError('Google Maps is not configured. Configure VITE_GOOGLE_MAPS_API_KEY to draw the polygons.');
       return undefined;
     }
     try {
       configureGoogleMaps(apiKey);
     } catch {
-      setMapError('Google Maps was already initialized with a different API key. Use the WKT fields below or check the application configuration.');
+      setMapError('Google Maps was already initialized with a different API key. Check the application configuration.');
       return undefined;
     }
     void importLibrary('maps')
@@ -321,7 +303,7 @@ export function KnownPlacePolygonEditor({
         setMapReady(true);
       })
       .catch(() => {
-        if (mounted) setMapError('Google Maps could not load. Use the WKT fields below or check the Maps JavaScript API configuration.');
+        if (mounted) setMapError('Google Maps could not load. Check the Maps JavaScript API configuration.');
       });
     return () => {
       mounted = false;
@@ -438,14 +420,10 @@ export function KnownPlacePolygonEditor({
     if (role === 'measurement') {
       setMeasurement([]);
       setMeasurementClosed(false);
-      setMeasurementText('');
-      setMeasurementWktDirty(false);
       onMeasurementChange('');
     } else {
       setReference([]);
       setReferenceClosed(false);
-      setReferenceText('');
-      setReferenceWktDirty(false);
       onReferenceChange('');
     }
   };
@@ -478,41 +456,14 @@ export function KnownPlacePolygonEditor({
     if (activeRole === 'measurement') {
       setMeasurement([]);
       setMeasurementClosed(false);
-      setMeasurementText('');
-      setMeasurementWktDirty(false);
       onMeasurementChange('');
     } else {
       setReference([]);
       setReferenceClosed(false);
-      setReferenceText('');
-      setReferenceWktDirty(false);
       onReferenceChange('');
     }
     setDrawingRole(null);
     setGeometryError('');
-  };
-
-  const readWkt = (role: PolygonRole, value: string) => {
-    try {
-      const points = parsePolygonWkt(value);
-      if (points.length > 500) throw new Error('A polygon is limited to 500 vertices.');
-      if (hasSelfIntersection(points)) throw new Error('This polygon crosses itself.');
-      setGeometryError('');
-      setActiveRole(role);
-      if (role === 'measurement') {
-        setMeasurement(points);
-        setMeasurementClosed(true);
-        setMeasurementWktDirty(false);
-      } else {
-        setReference(points);
-        setReferenceClosed(true);
-        setReferenceWktDirty(false);
-      }
-    } catch (error) {
-      // Keep the user's pasted text intact so it can be edited and applied again.
-      // An invalid WKT draft must not erase the last valid polygon already on the map.
-      setGeometryError(error instanceof Error ? error.message : 'Invalid polygon WKT.');
-    }
   };
 
   return (
@@ -523,6 +474,7 @@ export function KnownPlacePolygonEditor({
       <div className="known-place-map-editor-wrap">
         <div ref={mapElementRef} className="known-place-polygon-map" aria-label="Map to draw measurement and reference polygons" />
         {mapError && <div className="known-place-map-error" role="status">{mapError}</div>}
+        {geometryError && <div className="known-place-map-error" role="alert">{geometryError}</div>}
         {drawingRole && (
           <div className="known-place-map-instruction" role="status">
             Drawing {ROLE_LABELS[drawingRole]}. Tap the map to add vertices, then close the polygon.
@@ -548,23 +500,6 @@ export function KnownPlacePolygonEditor({
           <span>{referenceClosed ? 'Ready' : 'Draw required'}</span>
         </button>
       </div>
-      <div className="known-place-geometry-fields">
-        <label className="aoi-job-label">
-          <span>Measurement Polygon WKT</span>
-          <textarea rows={2} value={measurementText} onChange={(event) => { setMeasurementText(event.target.value); setMeasurementWktDirty(true); }} spellCheck={false} placeholder="Draw on the map or paste a closed WGS84 POLYGON WKT" />
-          <button type="button" className="known-place-apply-wkt" onClick={() => readWkt('measurement', measurementText)}>Apply measurement WKT</button>
-        </label>
-        <label className="aoi-job-label">
-          <span>Reference Polygon WKT</span>
-          <textarea rows={2} value={referenceText} onChange={(event) => { setReferenceText(event.target.value); setReferenceWktDirty(true); }} spellCheck={false} placeholder="Draw on the map or paste a separate closed WGS84 POLYGON WKT" />
-          <button type="button" className="known-place-apply-wkt" onClick={() => readWkt('reference', referenceText)}>Apply reference WKT</button>
-        </label>
-      </div>
-      {geometryError && <p className="catalog-error" role="alert">{geometryError}</p>}
-      <p className={validation.valid ? 'known-place-geometry-valid' : 'known-place-geometry-warning'} role="status">
-        {validation.message}
-      </p>
-      <p className="catalog-notice">A reference polygon is only a user-selected comparison area. It is not certified stable ground. The backend also checks polygon separation against the native GOFF grid.</p>
     </section>
   );
 }
