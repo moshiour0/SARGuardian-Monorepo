@@ -9,7 +9,6 @@ import { isPointInsidePolygon, parsePolygonWkt, prepareInvestigation } from '../
 import { DisplacementPreparation } from './DisplacementPreparation';
 import { ScientificResultsPage } from './ScientificResults';
 import { KnownPlaceAnalysisPanel } from './KnownPlaceAnalysisPanel';
-import { KnownPlaceSetupControls } from './KnownPlaceSetupControls';
 import { countCatalogGranules, type GranuleCounts } from './processingStatus';
 import { scheduleErrorToastDismissal } from './errorToast';
 import { createAoiOverlayController } from './mapOverlays';
@@ -1167,7 +1166,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [isSourceMaskVerifying, setIsSourceMaskVerifying] = useState(false);
   const [sourceMaskVerificationError, setSourceMaskVerificationError] = useState('');
   const [sourceMaskVerification, setSourceMaskVerification] = useState<NativeSourceMaskVerificationResponse | null>(null);
-  const [knownPlaceSetupReady, setKnownPlaceSetupReady] = useState(false);
   const mapRef = useRef<google.maps.Map | null>(null);
   const workflowGranuleName = selectedHarmonyProduct?.granule_name || qualityGranuleName.trim();
   const individualLayerJobs: Record<string, HarmonyQualityLayerJob> = {};
@@ -2221,12 +2219,12 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       />
 
       <main className="map-main">
-          <MapCanvas
+        <MapCanvas
           location={location}
           searchText={searchText}
-            coordinates={isKnownPlaceSetupPage ? [] : coordinates}
-            areaClosed={isKnownPlaceSetupPage ? false : areaClosed}
-            drawing={isKnownPlaceSetupPage ? false : drawing}
+          coordinates={coordinates}
+          areaClosed={areaClosed}
+          drawing={drawing}
           selectedVertexIndex={selectedVertexIndex}
           onLocation={updateLocation}
           onCoordinates={handleCoordinates}
@@ -2306,9 +2304,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           <section className="action-bar glass-float" aria-label="Investigation controls">
           {!result ? (
             <>
-              {isKnownPlaceSetupPage ? (
-                <div className="geometry-summary workspace-empty-aoi"><span>KNOWN PLACE</span><strong>Draw two polygons below</strong><small>Measurement and reference/background areas</small></div>
-              ) : coordinates.length > 0 && (
+              {coordinates.length > 0 && (
                 <div className="geometry-summary" aria-live="polite">
                   <span>Study area</span>
                   <strong>{coordinates.length} vertices</strong>
@@ -2316,9 +2312,9 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 </div>
               )}
 
-              {!isKnownPlaceSetupPage && coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
+              {coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
 
-              {!isKnownPlaceSetupPage && <div className="draw-actions">
+              <div className="draw-actions">
                 <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>
                 {drawing && (
                   <>
@@ -2332,7 +2328,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 {!drawing && areaClosed && (
                   <button type="button" onClick={clearGeometry}><Icon name="clear" />Clear</button>
                 )}
-              </div>}
+              </div>
 
               <div className="time-actions">
                 <span>Observation window</span>
@@ -2371,10 +2367,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={isCatalogLoading || !windowStart || !windowEnd || Boolean(dateValidationError) || !knownPlaceSetupReady}
+                      disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)}
                       onClick={onKnownPlaceAnalysis}
                     >
-                      {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to Known Place analysis'}
+                      {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to polygon inputs'}
                     </button>
                   ) : (
                     <button className="investigate-button find-displacement-primary" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>
@@ -2390,14 +2386,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
 
           </section>
         </div>
-        {isKnownPlaceSetupPage && (
-          <KnownPlaceSetupControls
-            uid={user.uid}
-            centerAoiWkt={catalogValidation.valid ? catalogValidation.payload.aoi_wkt : null}
-            center={location ? { lat: location.latitude, lng: location.longitude } : null}
-            onReadyChange={setKnownPlaceSetupReady}
-          />
-        )}
       </main>
     </div>
   );

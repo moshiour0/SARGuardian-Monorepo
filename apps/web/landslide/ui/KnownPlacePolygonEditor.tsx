@@ -9,8 +9,7 @@ type PolygonRole = 'measurement' | 'reference';
 type ValidationResult = { valid: boolean; message: string };
 
 type Props = {
-  outerAoiWkt?: string | null;
-  center?: { lat: number; lng: number } | null;
+  outerAoiWkt: string | null;
   initialMeasurementWkt?: string | null;
   initialReferenceWkt?: string | null;
   onMeasurementChange: (wkt: string) => void;
@@ -116,13 +115,14 @@ function polygonsOverlapOrTouch(first: Coordinate[], second: Coordinate[]): bool
   return false;
 }
 
-export function validatePolygonPair(
+function validatePolygonPair(
   outer: Coordinate[] | null,
   measurement: Coordinate[],
   reference: Coordinate[],
   measurementClosed: boolean,
   referenceClosed: boolean,
 ): ValidationResult {
+  if (!outer || outer.length < 3) return { valid: false, message: 'The outer AOI boundary is unavailable or invalid.' };
   if (!measurementClosed || measurement.length < 3) {
     return { valid: false, message: 'Draw and close the Measurement Polygon first.' };
   }
@@ -131,10 +131,10 @@ export function validatePolygonPair(
   }
   if (hasSelfIntersection(measurement)) return { valid: false, message: 'The Measurement Polygon crosses itself. Edit its vertices.' };
   if (hasSelfIntersection(reference)) return { valid: false, message: 'The Reference Polygon crosses itself. Edit its vertices.' };
-  if (outer && !polygonInsideOuter(measurement, outer)) {
+  if (!polygonInsideOuter(measurement, outer)) {
     return { valid: false, message: 'Every part of the Measurement Polygon must remain inside the outer AOI.' };
   }
-  if (outer && !polygonInsideOuter(reference, outer)) {
+  if (!polygonInsideOuter(reference, outer)) {
     return { valid: false, message: 'Every part of the Reference Polygon must remain inside the outer AOI.' };
   }
   const measurementInsideReference = polygonInsideOuter(measurement, reference);
@@ -152,7 +152,6 @@ export function validatePolygonPair(
 
 export function KnownPlacePolygonEditor({
   outerAoiWkt,
-  center = null,
   initialMeasurementWkt,
   initialReferenceWkt,
   onMeasurementChange,
@@ -191,7 +190,7 @@ export function KnownPlacePolygonEditor({
   }, [outerAoiWkt]);
 
   const geometryValidation = useMemo(
-    () => validatePolygonPair(null, measurement, reference, measurementClosed, referenceClosed),
+    () => validatePolygonPair(outerCoordinates, measurement, reference, measurementClosed, referenceClosed),
     [outerCoordinates, measurement, reference, measurementClosed, referenceClosed],
   );
   const validation = geometryValidation;
@@ -255,7 +254,8 @@ export function KnownPlacePolygonEditor({
     let mounted = true;
     const pathListeners = pathListenersRef.current;
     const overlays = overlaysRef.current;
-    if (!mapElementRef.current) {
+    if (!outerCoordinates || !mapElementRef.current) {
+      setMapError('Return to the AOI map and create a valid closed outer polygon.');
       return undefined;
     }
     const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
@@ -272,9 +272,8 @@ export function KnownPlacePolygonEditor({
     void importLibrary('maps')
       .then(({ Map }) => {
         if (!mounted || !mapElementRef.current) return;
-        const focusCoordinates = outerCoordinates || [...measurement, ...reference];
         const map = new Map(mapElementRef.current, {
-          center: focusCoordinates.length ? { lat: focusCoordinates[0][1], lng: focusCoordinates[0][0] } : (center || { lat: 23.8, lng: 90.4 }),
+          center: { lat: outerCoordinates[0][1], lng: outerCoordinates[0][0] },
           zoom: 11,
           mapTypeId: 'hybrid',
           fullscreenControl: true,
@@ -283,12 +282,23 @@ export function KnownPlacePolygonEditor({
           clickableIcons: false,
           gestureHandling: 'greedy',
         });
-        if (focusCoordinates.length) {
-          const bounds = new google.maps.LatLngBounds();
-          focusCoordinates.forEach(([lng, lat]) => bounds.extend({ lng, lat }));
-          map.fitBounds(bounds, 56);
-        }
+        const outer = new google.maps.Polygon({
+          paths: outerCoordinates.map(([lng, lat]) => ({ lng, lat })),
+          strokeColor: '#f8fbff',
+          strokeOpacity: 0.95,
+          strokeWeight: 3,
+          fillColor: '#ffffff',
+          fillOpacity: 0.025,
+          clickable: false,
+          editable: false,
+          zIndex: 1,
+        });
+        outer.setMap(map);
+        const bounds = new google.maps.LatLngBounds();
+        outerCoordinates.forEach(([lng, lat]) => bounds.extend({ lng, lat }));
+        map.fitBounds(bounds, 56);
         mapRef.current = map;
+        outerOverlayRef.current = outer;
         setMapError('');
         setMapReady(true);
       })
@@ -303,7 +313,7 @@ export function KnownPlacePolygonEditor({
       mapRef.current = null;
       setMapReady(false);
     };
-  }, [outerCoordinates, center]);
+  }, [outerCoordinates]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -459,7 +469,7 @@ export function KnownPlacePolygonEditor({
   return (
     <section className="known-place-polygon-editor" aria-label="Known Place measurement geometry">
       <div className="known-place-geometry-heading">
-        <span className="known-place-outer-aoi-status">Two-polygon measurement</span>
+        <span className="known-place-outer-aoi-status">{outerCoordinates ? 'Outer AOI loaded' : 'Outer AOI missing'}</span>
       </div>
       <div className="known-place-map-editor-wrap">
         <div ref={mapElementRef} className="known-place-polygon-map" aria-label="Map to draw measurement and reference polygons" />
