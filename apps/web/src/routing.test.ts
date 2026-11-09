@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH, LANDSLIDE_KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -24,27 +24,20 @@ describe('client-side route recognition', () => {
   });
 
   it('recognizes the dedicated home-launched Known Place setup and two-polygon analysis routes', () => {
-    expect(KNOWN_PLACE_ANALYSIS_PATH).toBe('/know-place-analysis');
-    expect(isLandslideKnownPlaceSetupRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
-    expect(isLandslideRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
-    expect(LANDSLIDE_KNOWN_PLACE_SETUP_PATH).toBe('/landslide/known-place-setup');
-    expect(LANDSLIDE_KNOWN_PLACE_SETUP_ANALYSIS_PATH).toBe('/landslide/known-place-setup/analysis');
-    expect(isLandslideKnownPlaceSetupRoute('/landslide/known-place-setup')).toBe(true);
-    expect(isLandslideKnownPlaceSetupRoute('/landslide/known-place-setup?source=home')).toBe(true);
-    expect(isLandslideKnownPlaceSetupAnalysisRoute('/landslide/known-place-setup/analysis')).toBe(true);
-    expect(isLandslideKnownPlaceAnalysisRoute('/landslide/known-place-setup/analysis')).toBe(true);
-    expect(isLandslideKnownPlaceAnalysisRoute('/landslide/known-place-analysis')).toBe(true);
-    expect(isLandslideKnownPlaceAnalysisRoute('/landslide/displacements')).toBe(false);
-    expect(isLandslideRoute('/landslide/known-place-setup')).toBe(true);
-    expect(isLandslideRoute('/landslide/known-place-setup/analysis')).toBe(true);
+    expect(KNOWN_PLACE_SETUP_PATH).toBe('/known-place-analysis');
+    expect(KNOWN_PLACE_ANALYSIS_PATH).toBe('/known-place-analysis/analysis');
+    expect(isLandslideKnownPlaceSetupRoute(KNOWN_PLACE_SETUP_PATH)).toBe(true);
+    expect(isLandslideRoute(KNOWN_PLACE_SETUP_PATH)).toBe(true);
+    expect(isLandslideKnownPlaceSetupAnalysisRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
+    expect(isLandslideKnownPlaceAnalysisRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
+    expect(isLandslideKnownPlaceSetupRoute('/landslide/known-place-setup')).toBe(false);
+    expect(isLandslideKnownPlaceAnalysisRoute('/landslide/known-place-setup/analysis')).toBe(false);
   });
 
   it('recognizes the map and results routes', () => {
-    expect(isLandslideRoute('/landslide')).toBe(true);
-    expect(isLandslideRoute('/landslide/results')).toBe(true);
-    expect(isLandslideResultsRoute('/landslide/results')).toBe(true);
-    expect(isLandslideResultsRoute('/landslide/results?from=map')).toBe(true);
-    expect(isLandslideResultsRoute('/landslide')).toBe(false);
+    expect(isLandslideRoute('/landslide')).toBe(false);
+    expect(isLandslideRoute('/landslide/results')).toBe(false);
+    expect(isLandslideResultsRoute('/landslide/results')).toBe(false);
     expect(isLandslideRoute('/')).toBe(false);
   });
 
@@ -65,6 +58,6 @@ describe('client-side route recognition', () => {
     expect(isLandslideRoute('/find-displacement/displacements')).toBe(true);
     expect(isLandslideDisplacementRoute('/find-displacement/displacements')).toBe(true);
     expect(isLandslideResultsRoute('/find-displacement/results')).toBe(true);
-    expect(isLandslideDisplacementRoute('/landslide/displacements')).toBe(true);
+    expect(isLandslideDisplacementRoute('/landslide/displacements')).toBe(false);
   });
 });

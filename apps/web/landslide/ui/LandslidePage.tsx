@@ -2580,8 +2580,9 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         </div>
       </div>}
       {isResultViewsPage && <ScientificResultsPage jobId={resultJobId} user={user} onBack={onBackToMap} />}
-      {isKnownPlaceAnalysisPage && <div className="nisar-results-page">
-        {renderWorkspaceHeader('KNOWN PLACE ANALYSIS', 'Dedicated GOFF research workflow', 'Back to map', onBackToMap)}
+      {isKnownPlaceAnalysisPage && <div className="home-page claude-home claude-how-page known-place-analysis-shell">
+        <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
+        <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage hideProfile />
         <KnownPlaceAnalysisPanel
           user={user}
           aoiWkt={catalogValidation.valid ? catalogValidation.payload.aoi_wkt : null}
