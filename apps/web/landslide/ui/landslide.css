@@ -1033,13 +1033,6 @@
   border-radius: 9px;
   background: rgba(5, 35, 51, .62);
 }
-.known-place-setup-controls { position: absolute; z-index: 1; inset: 0; overflow: hidden; padding: 70px 30px 245px; pointer-events: none; }
-.known-place-setup-controls .known-place-polygon-editor,
-.known-place-setup-controls .known-place-additional-settings { pointer-events: auto; }
-.known-place-setup-controls .known-place-polygon-editor { margin: 0; padding: 12px; border: 0; background: transparent; }
-.known-place-setup-controls .known-place-map-editor-wrap { background: #d6e4ea; box-shadow: 0 16px 45px rgba(3, 20, 28, .3); }
-.known-place-setup-controls .known-place-polygon-map { height: calc(100dvh - 540px); min-height: 430px; }
-.known-place-setup-controls .known-place-additional-settings { margin: 6px 12px 0; }
 .known-place-geometry-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .known-place-geometry-heading h2 { margin: 5px 0; color: #f5fbff; font: 700 18px 'Manrope', sans-serif; }
 .known-place-geometry-heading p { margin: 0; color: rgba(231, 247, 255, .75); font-size: 11px; line-height: 1.5; }

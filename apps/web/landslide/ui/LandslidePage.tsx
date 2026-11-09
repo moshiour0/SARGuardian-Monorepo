@@ -2221,7 +2221,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       />
 
       <main className="map-main">
-          {!isKnownPlaceSetupPage && <MapCanvas
+          <MapCanvas
           location={location}
           searchText={searchText}
             coordinates={isKnownPlaceSetupPage ? [] : coordinates}
@@ -2235,7 +2235,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           onMapReady={handleMapReady}
           onPlacesReady={handlePlacesReady}
           isVisible={!isResultsPage && !isDisplacementPage && !isKnownPlaceAnalysisPage}
-        />}
+        />
 
         <form className="map-search glass-float" onSubmit={handleSearch}>
           <div className="workspace-search-input">
@@ -2247,7 +2247,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           <small role="status">{searchState || 'Search a place, then draw your study area.'}</small>
         </form>
 
-        {!isKnownPlaceSetupPage && <div className="map-tools glass-float" role="group" aria-label="Map controls" aria-disabled={!mapReady}>
+        <div className="map-tools glass-float" role="group" aria-label="Map controls" aria-disabled={!mapReady}>
           <button type="button" aria-label="Zoom in" disabled={!mapReady} onClick={() => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 5) + 1)}><Icon name="plus" /></button>
           <button type="button" aria-label="Zoom out" disabled={!mapReady} onClick={() => mapRef.current?.setZoom(Math.max(MIN_MAP_ZOOM, (mapRef.current.getZoom() ?? DEFAULT_MAP_ZOOM) - 1))}><Icon name="minus" /></button>
           <div className="layers-menu-wrap">
@@ -2270,7 +2270,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
             )}
           </div>
           <button type="button" aria-label="Fullscreen map" disabled={!mapReady} onClick={() => document.querySelector('.map-canvas-wrap')?.requestFullscreen()}><Icon name="fullscreen" /></button>
-        </div>}
+        </div>
 
         {visibleError && (
           <div id="catalog-validation-error" className="validation-toast validation-toast--floating" role="alert" aria-live="assertive">
