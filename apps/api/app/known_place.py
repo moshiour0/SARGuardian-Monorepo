@@ -26,16 +26,15 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from .config import RuntimeSettings
 from science_adapter.geometry import validate_wkt
 
-# Generic two-polygon measurement runs in the scientific backend repository.
-KNOWN_PLACE_REPOSITORY = "moshiour0/SARGuardian-backend"
+# Generic two-polygon measurement runs in this repository's Actions worker.
+KNOWN_PLACE_REPOSITORY = "shourov-04/SARGuardian"
 KNOWN_PLACE_WORKFLOW = "know-place-aoi-dispatcher.yml"
 KNOWN_PLACE_REF = "main"
 KNOWN_PLACE_WORKFLOW_PAGE = (
     f"https://github.com/{KNOWN_PLACE_REPOSITORY}/actions/workflows/{KNOWN_PLACE_WORKFLOW}"
 )
 
-# The fixed author-exact paper launcher remains separate from the generic AOI workflow,
-# but its entry point lives in the backend repository covered by the server Actions token.
+# The fixed author-exact paper launcher remains separate from the generic AOI workflow.
 KNOWN_PLACE_PAPER_REPOSITORY = "moshiour0/SARGuardian-backend"
 KNOWN_PLACE_PAPER_WORKFLOW = "know-place-paper-reproduction-dispatcher.yml"
 KNOWN_PLACE_PAPER_REF = "main"
@@ -59,6 +58,12 @@ def _workflow_target(
         repository = getattr(settings, "known_place_github_actions_repository", KNOWN_PLACE_REPOSITORY)
         workflow = getattr(settings, "known_place_github_actions_workflow", KNOWN_PLACE_WORKFLOW)
         ref = getattr(settings, "known_place_github_actions_ref", KNOWN_PLACE_REF)
+
+    # Older API deployments may still carry the retired compatibility value in
+    # their environment. Keep the generic Known Place runner on this repo even
+    # before that environment variable is removed from the deployment.
+    if not paper_reproduction and repository == "moshiour0/SARGuardian-backend":
+        repository = KNOWN_PLACE_REPOSITORY
 
     if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise KnownPlaceWorkflowError("The configured Known Place repository is invalid.")

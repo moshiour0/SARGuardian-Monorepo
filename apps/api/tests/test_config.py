@@ -127,7 +127,7 @@ def test_enabled_river_shift_actions_accept_valid_https_callback_configuration()
 
 def test_known_place_workflow_targets_keep_backend_compatibility_defaults() -> None:
     settings = config.get_settings({})
-    assert settings.known_place_github_actions_repository == "moshiour0/SARGuardian-backend"
+    assert settings.known_place_github_actions_repository == "shourov-04/SARGuardian"
     assert settings.known_place_github_actions_workflow == "know-place-aoi-dispatcher.yml"
     assert settings.known_place_github_actions_ref == "main"
     assert settings.known_place_paper_github_actions_repository == "moshiour0/SARGuardian-backend"

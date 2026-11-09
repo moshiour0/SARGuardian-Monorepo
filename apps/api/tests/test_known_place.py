@@ -87,7 +87,7 @@ def test_dry_run_dispatch_does_not_include_raw_download_consent(monkeypatch: pyt
     assert response.execute_downloads is False
     assert observed["method"] == "POST"
     assert observed["path"] == (
-        "/repos/moshiour0/SARGuardian-backend/actions/workflows/"
+        "/repos/shourov-04/SARGuardian/actions/workflows/"
         "know-place-aoi-dispatcher.yml/dispatches"
     )
     assert observed["body"]["ref"] == "main"
@@ -112,7 +112,7 @@ def test_raw_analysis_dispatch_needs_confirmed_checkbox_and_sets_exact_marker(mo
 
     assert response.execute_downloads is True
     assert observed["method"] == "POST"
-    assert observed["path"].startswith("/repos/moshiour0/SARGuardian-backend/")
+    assert observed["path"].startswith("/repos/shourov-04/SARGuardian/")
     assert observed["path"].endswith("/know-place-aoi-dispatcher.yml/dispatches")
     assert observed["body"]["inputs"]["execute_downloads"] is True
     assert observed["body"]["inputs"]["consent_marker"] == "[run-know-place]"
@@ -123,7 +123,7 @@ def test_status_is_matched_by_random_request_id_and_workflow_identity(monkeypatc
 
     def fake_request(_settings, method, path, body=None):
         assert method == "GET"
-        assert "/repos/moshiour0/SARGuardian-backend/actions/workflows/know-place-aoi-dispatcher.yml/runs" in path
+        assert "/repos/shourov-04/SARGuardian/actions/workflows/know-place-aoi-dispatcher.yml/runs" in path
         return 200, {
             "workflow_runs": [
                 {
@@ -305,7 +305,7 @@ def test_gunw_candidate_cannot_be_sent_to_goff_known_place_measurement() -> None
 
 
 def test_generic_known_place_dispatch_is_backend_owned_and_paper_reproduction_stays_separate() -> None:
-    assert known_place.KNOWN_PLACE_REPOSITORY == "moshiour0/SARGuardian-backend"
+    assert known_place.KNOWN_PLACE_REPOSITORY == "shourov-04/SARGuardian"
     assert known_place.KNOWN_PLACE_WORKFLOW == "know-place-aoi-dispatcher.yml"
     assert known_place.KNOWN_PLACE_REF == "main"
     assert known_place.KNOWN_PLACE_PAPER_REPOSITORY == "moshiour0/SARGuardian-backend"

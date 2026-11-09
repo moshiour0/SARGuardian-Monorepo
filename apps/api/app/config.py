@@ -105,10 +105,9 @@ def get_settings(environ: Mapping[str, str] | None = None) -> RuntimeSettings:
         github_actions_workflow=values.get("GITHUB_ACTIONS_WORKFLOW", "sarguardian-displacement.yml").strip(),
         github_actions_ref=values.get("GITHUB_ACTIONS_REF", "main").strip(),
         displacement_callback_secret=values.get("DISPLACEMENT_CALLBACK_SECRET", "").strip(),
-        # Keep the working backend dispatch target as the compatibility default.
-        # Production cutover to Monorepo root workflows is an explicit env change.
+        # Generic Known Place runs use the Actions worker in this repository.
         known_place_github_actions_repository=values.get(
-            "KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY", "moshiour0/SARGuardian-backend"
+            "KNOWN_PLACE_GITHUB_ACTIONS_REPOSITORY", "shourov-04/SARGuardian"
         ).strip(),
         known_place_github_actions_workflow=values.get(
             "KNOWN_PLACE_GITHUB_ACTIONS_WORKFLOW", "know-place-aoi-dispatcher.yml"
