@@ -219,14 +219,16 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
   }, [aoiOverlays, coordinates, areaClosed, drawing, selectedVertexIndex]);
 
   const secondaryOverlaysRef = useRef<Record<'measurement' | 'reference', google.maps.Polygon | null>>({ measurement: null, reference: null });
+  const secondaryVertexDotsRef = useRef<Record<'measurement' | 'reference', google.maps.Marker[]>>({ measurement: [], reference: [] });
   useEffect(() => {
     if (!readyMap) return undefined;
     const overlays = secondaryOverlaysRef.current;
+    const dots = secondaryVertexDotsRef.current;
     (['measurement', 'reference'] as const).forEach((role) => {
       overlays[role] = new google.maps.Polygon({
         map: readyMap,
-        strokeColor: role === 'measurement' ? '#f7c66b' : '#38bdf8',
-        fillColor: role === 'measurement' ? '#f7c66b' : '#38bdf8',
+        strokeColor: role === 'measurement' ? '#38bdf8' : '#ef4444',
+        fillColor: role === 'measurement' ? '#38bdf8' : '#ef4444',
         strokeOpacity: .95,
         fillOpacity: .18,
         strokeWeight: 3,
@@ -238,15 +240,37 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
     return () => {
       overlays.measurement?.setMap(null);
       overlays.reference?.setMap(null);
+      dots.measurement.forEach((dot) => dot.setMap(null));
+      dots.reference.forEach((dot) => dot.setMap(null));
       overlays.measurement = null;
       overlays.reference = null;
     };
   }, [readyMap]);
 
   useEffect(() => {
+    if (!readyMap) return;
     secondaryOverlaysRef.current.measurement?.setPath(measurementCoordinates.map(([lng, lat]) => ({ lng, lat })));
     secondaryOverlaysRef.current.reference?.setPath(referenceCoordinates.map(([lng, lat]) => ({ lng, lat })));
-  }, [measurementCoordinates, referenceCoordinates]);
+    (['measurement', 'reference'] as const).forEach((role) => {
+      const points = role === 'measurement' ? measurementCoordinates : referenceCoordinates;
+      const dots = secondaryVertexDotsRef.current[role];
+      dots.forEach((dot) => dot.setMap(null));
+      secondaryVertexDotsRef.current[role] = points.map(([lng, lat]) => new google.maps.Marker({
+        map: readyMap,
+        position: { lng, lat },
+        clickable: false,
+        zIndex: 8,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5.8,
+          fillColor: role === 'measurement' ? '#38bdf8' : '#ef4444',
+          fillOpacity: 1,
+          strokeColor: '#f1ffff',
+          strokeWeight: 1.8,
+        },
+      }));
+    });
+  }, [measurementCoordinates, referenceCoordinates, readyMap]);
 
   useEffect(() => {
     if (!readyMap) return undefined;
@@ -2425,8 +2449,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 {isKnownPlaceSetupPage && <>
                   <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
                   <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
-                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm polygons</button>
                   <button type="button" onClick={clearAllKnownPlacePolygons}>Clear</button>
+                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm polygons</button>
                 </>}
                 {!isKnownPlaceSetupPage && drawing && (
                   <>
