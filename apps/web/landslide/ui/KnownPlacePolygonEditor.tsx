@@ -518,11 +518,6 @@ export function KnownPlacePolygonEditor({
   return (
     <section className="known-place-polygon-editor" aria-label="Known Place measurement geometry">
       <div className="known-place-geometry-heading">
-        <div>
-          <span className="result-kicker">GEOMETRY INPUT · WGS84 / EPSG:4326</span>
-          <h2>Draw the two analysis polygons</h2>
-          <p>The white boundary is the outer AOI. Draw one measurement area and a separate background/reference area inside it.</p>
-        </div>
         <span className="known-place-outer-aoi-status">{outerCoordinates ? 'Outer AOI loaded' : 'Outer AOI missing'}</span>
       </div>
       <div className="known-place-map-editor-wrap">

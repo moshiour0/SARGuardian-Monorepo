@@ -294,10 +294,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
-        <section className="known-place-custom-measurement" aria-labelledby="known-place-custom-title">
-          <span className="result-kicker">CUSTOM MEASUREMENT · GENERIC GOFF METHOD</span>
-          <h2 id="known-place-custom-title">Two-polygon known-place measurement</h2>
-          <p>This separate path measures a user-drawn target polygon relative to either a disjoint background polygon or an enclosing background region on the selected AOI/date window. When the reference encloses the target, the target footprint is subtracted before background statistics. This generic method is not the author-exact paper method and reports PAPER_REPRODUCTION_STATUS=NOT_EVALUATED_GENERIC_AOI.</p>
+        <section className="known-place-custom-measurement" aria-label="Known Place custom measurement">
         {!aoiWkt && <p className="catalog-error" role="alert">A valid outer AOI is required for custom measurement. Go back to the map and draw your polygon.</p>}
         {candidateTransfer && <div className="catalog-notice known-place-candidate-handoff" role="status">
           <strong>Suggested Measurement Polygon imported from Find Displacements</strong>
