@@ -21,6 +21,22 @@ import './workspace.css';
 
 const MIN_MAP_ZOOM = 5;
 const DEFAULT_MAP_ZOOM = 5;
+const KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX = 'sarguardian.knownPlaceGeometry.v1:';
+
+function loadKnownPlaceGeometryDraft(uid: string): { measurement: Coordinate[]; reference: Coordinate[] } {
+  try {
+    const raw = window.sessionStorage.getItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${uid}`);
+    if (!raw) return { measurement: [], reference: [] };
+    const parsed = JSON.parse(raw) as { measurementWkt?: string; referenceWkt?: string };
+    const parse = (wkt: string | undefined): Coordinate[] => {
+      if (!wkt) return [];
+      try { return parsePolygonWkt(wkt); } catch { return []; }
+    };
+    return { measurement: parse(parsed.measurementWkt), reference: parse(parsed.referenceWkt) };
+  } catch {
+    return { measurement: [], reference: [] };
+  }
+}
 
 type MapCanvasProps = {
   location: LocationSelection | null;
@@ -1178,33 +1194,12 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
   const [initialSessionState] = useState(() => {
     const saved = loadLandslideSessionState(user.uid, sessionScope);
-    if (!isKnownPlaceSetupPage) return saved;
-    return {
-      ...saved,
-      searchText: '',
-      searchState: '',
-      location: null,
-      coordinates: [],
-      areaClosed: false,
-      drawing: false,
-      windowStart: '',
-      windowEnd: '',
-      catalogResult: null,
-      selectedHarmonyProduct: null,
-    };
+    return saved;
   });
   useEffect(() => {
     if (!isKnownPlaceSetupPage) return;
-    setMeasurementCoordinates([]);
-    setReferenceCoordinates([]);
-    setMeasurementClosed(false);
-    setReferenceClosed(false);
-    setPolygonDrawingRole(null);
-    setWindowStart('');
-    setWindowEnd('');
     try {
       window.sessionStorage.removeItem(`sarguardian.knownPlaceAnalysis.v1:${user.uid}`);
-      window.sessionStorage.removeItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`);
     } catch { /* session storage is optional */ }
   }, [isKnownPlaceSetupPage, user.uid]);
   const [searchText, setSearchText] = useState(initialSessionState.searchText);
@@ -1218,10 +1213,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [coordinates, setCoordinates] = useState<Coordinate[]>(initialSessionState.coordinates);
   const [areaClosed, setAreaClosed] = useState(initialSessionState.areaClosed);
   const [drawing, setDrawing] = useState(initialSessionState.drawing);
-  const [measurementCoordinates, setMeasurementCoordinates] = useState<Coordinate[]>([]);
-  const [referenceCoordinates, setReferenceCoordinates] = useState<Coordinate[]>([]);
-  const [measurementClosed, setMeasurementClosed] = useState(false);
-  const [referenceClosed, setReferenceClosed] = useState(false);
+  const [initialKnownPlaceGeometry] = useState(() => isKnownPlaceSetupPage ? loadKnownPlaceGeometryDraft(user.uid) : { measurement: [], reference: [] });
+  const [measurementCoordinates, setMeasurementCoordinates] = useState<Coordinate[]>(initialKnownPlaceGeometry.measurement);
+  const [referenceCoordinates, setReferenceCoordinates] = useState<Coordinate[]>(initialKnownPlaceGeometry.reference);
+  const [measurementClosed, setMeasurementClosed] = useState(initialKnownPlaceGeometry.measurement.length >= 3);
+  const [referenceClosed, setReferenceClosed] = useState(initialKnownPlaceGeometry.reference.length >= 3);
   const [polygonDrawingRole, setPolygonDrawingRole] = useState<'measurement' | 'reference' | null>(null);
   const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
   const [windowStart, setWindowStart] = useState(initialSessionState.windowStart);
@@ -1365,6 +1361,16 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       processingOptions,
     }, sessionScope);
   }, [areaClosed, catalogResult, coordinates, drawing, location, processingOptions, searchState, searchText, selectedHarmonyProduct, sessionScope, user.uid, windowEnd, windowStart]);
+
+  useEffect(() => {
+    if (!isKnownPlaceSetupPage) return;
+    try {
+      window.sessionStorage.setItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${user.uid}`, JSON.stringify({
+        measurementWkt: measurementCoordinates.length >= 3 ? polygonToWkt(measurementCoordinates) : '',
+        referenceWkt: referenceCoordinates.length >= 3 ? polygonToWkt(referenceCoordinates) : '',
+      }));
+    } catch { /* session storage is optional */ }
+  }, [isKnownPlaceSetupPage, measurementCoordinates, referenceCoordinates, user.uid]);
 
   useEffect(() => {
     setProfileImageFailed(false);
