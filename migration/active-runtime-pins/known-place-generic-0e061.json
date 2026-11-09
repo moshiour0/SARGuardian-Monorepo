@@ -45,7 +45,7 @@
     {
       "source_path": "tools/know_place/series.py",
       "destination_path": "engines/known-place/tools/know_place/series.py",
-      "source_blob_sha": "f1b67c9255706b8e10ad4e2e280e80640490b405",
+      "source_blob_sha": "63240179d45ddc37f3bd176594f2d2c7d75a11ab",
       "source_bytes": 17803
     },
     {
@@ -57,7 +57,7 @@
     {
       "source_path": "tools/tests/test_know_place_aoi_runner.py",
       "destination_path": "engines/known-place/tools/tests/test_know_place_aoi_runner.py",
-      "source_blob_sha": "1a48c7258d97ec4b98dd81d67cc425a73b02f8d8",
+      "source_blob_sha": "149afb88a2e08ee001ca75107139f3662f9e14bf",
       "source_bytes": 18791
     },
     {
@@ -69,7 +69,7 @@
     {
       "source_path": "tools/tests/test_know_place_series.py",
       "destination_path": "engines/known-place/tools/tests/test_know_place_series.py",
-      "source_blob_sha": "22acef6e41822e4b7f23d2902f467015e4a69099",
+      "source_blob_sha": "0d2e2e01f0c4792e2c7190c8613ac5b479a7e6fb",
       "source_bytes": 5809
     },
     {
