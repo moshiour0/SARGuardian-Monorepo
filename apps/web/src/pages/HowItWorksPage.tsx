@@ -111,7 +111,7 @@ function HardcodedMapDemo() {
   );
 }
 
-export function HowItWorksPage({ user, authState, onHome, onStart, onSignIn, onSignOut }: HowItWorksPageProps) {
+export function HowItWorksPage({ user, authState, onStart, onSignIn, onSignOut }: HowItWorksPageProps) {
   useGlassPointer();
   return (
     <div className="home-page claude-home claude-how-page">
