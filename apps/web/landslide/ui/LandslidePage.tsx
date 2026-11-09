@@ -1297,6 +1297,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     else setReferenceCoordinates(next);
     if (role === 'measurement') setMeasurementClosed(closed);
     else setReferenceClosed(closed);
+    setValidationAlertDismissed(false);
     if (closed) setPolygonDrawingRole(null);
   }, []);
 
@@ -1331,7 +1332,18 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     measurementClosed,
     referenceClosed,
   );
-  const knownPlacePolygonsReady = knownPlacePolygonValidation.valid;
+  const knownPlaceMeasurementAreaKm2 = calculateGeodesicAreaKm2(measurementCoordinates);
+  const knownPlaceReferenceAreaKm2 = calculateGeodesicAreaKm2(referenceCoordinates);
+  const knownPlacePolygonError = isKnownPlaceSetupPage && measurementCoordinates.length >= 3 && referenceCoordinates.length >= 3
+    ? !knownPlacePolygonValidation.valid
+      ? knownPlacePolygonValidation.message
+      : knownPlaceMeasurementAreaKm2 > 1000
+        ? `Analyze Area is ${knownPlaceMeasurementAreaKm2.toFixed(2)} km². Each polygon must be 1,000 km² or smaller.`
+        : knownPlaceReferenceAreaKm2 > 1000
+          ? `Reference Area is ${knownPlaceReferenceAreaKm2.toFixed(2)} km². Each polygon must be 1,000 km² or smaller.`
+          : ''
+    : '';
+  const knownPlacePolygonsReady = !knownPlacePolygonError;
   const mapRef = useRef<google.maps.Map | null>(null);
   const workflowGranuleName = selectedHarmonyProduct?.granule_name || qualityGranuleName.trim();
   const individualLayerJobs: Record<string, HarmonyQualityLayerJob> = {};
@@ -1501,7 +1513,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     : '';
   const actionableValidationError = aoiValidationError || dateValidationError;
   const validationPopupError = !validationAlertDismissed ? actionableValidationError : '';
-  const visibleError = catalogError || error || validationPopupError;
+  const visibleError = catalogError || error || (!validationAlertDismissed ? knownPlacePolygonError : '') || validationPopupError;
 
   useEffect(() => {
     if (!visibleError) return undefined;
@@ -2527,10 +2539,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   <button type="button" onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
-
-              {isKnownPlaceSetupPage && measurementCoordinates.length >= 3 && referenceCoordinates.length >= 3 && !knownPlacePolygonValidation.valid && (
-                <p className="known-place-polygon-error" role="alert">{knownPlacePolygonValidation.message}</p>
-              )}
 
               <div className="time-actions">
                 <span>Observation window</span>
