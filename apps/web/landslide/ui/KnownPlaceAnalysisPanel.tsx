@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { KnownPlacePolygonEditor } from './KnownPlacePolygonEditor';
+import { KnownPlacePolygonEditor, validatePolygonPair } from './KnownPlacePolygonEditor';
 import { KnownPlaceResultsDashboard } from './KnownPlaceResultsDashboard';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
@@ -190,6 +190,18 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const canSubmitGeometry = Boolean(aoiWkt && measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
+    if (!measurementWkt || !referenceWkt) {
+      setPolygonValidation({ valid: false, message: 'Return to the setup page and confirm all three polygons first.' });
+      return;
+    }
+    try {
+      setPolygonValidation(validatePolygonPair(null, parsePolygonWkt(measurementWkt), parsePolygonWkt(referenceWkt), true, true));
+    } catch {
+      setPolygonValidation({ valid: false, message: 'Saved polygon geometry is invalid. Return to the setup page and redraw the polygons.' });
+    }
+  }, [measurementWkt, referenceWkt]);
+
+  useEffect(() => {
     try {
       if (!measurementWkt && !referenceWkt) {
         sessionStorage.removeItem(geometryDraftKey(user.uid));
@@ -336,14 +348,14 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <span>{candidateTransfer.candidate.geometrySimplified ? `Boundary simplified from ${candidateTransfer.candidate.geometryOriginalVertices} to ${candidateTransfer.candidate.geometrySuggestedVertices} vertices; inspect and edit it before measurement.` : `${candidateTransfer.candidate.geometrySuggestedVertices} boundary vertices transferred; inspect and edit before measurement.`}</span>
           <span>Candidate evidence is not measured ground motion or a confirmed landslide. Draw a background polygon that is either disjoint from or fully encloses the proposed measurement area; partial overlap and boundary-touch are rejected.</span>
         </div>}
-        <KnownPlacePolygonEditor
+        {false && <KnownPlacePolygonEditor
           outerAoiWkt={aoiWkt}
           initialMeasurementWkt={measurementWkt || null}
           initialReferenceWkt={referenceWkt || null}
           onMeasurementChange={handleMeasurementChange}
           onReferenceChange={handleReferenceChange}
           onValidationChange={handlePolygonValidation}
-        />
+        />}
         <details className="known-place-additional-settings">
           <summary>Additional settings</summary>
           <div className="known-place-form-grid">

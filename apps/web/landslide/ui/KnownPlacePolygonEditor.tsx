@@ -115,14 +115,13 @@ function polygonsOverlapOrTouch(first: Coordinate[], second: Coordinate[]): bool
   return false;
 }
 
-function validatePolygonPair(
+export function validatePolygonPair(
   outer: Coordinate[] | null,
   measurement: Coordinate[],
   reference: Coordinate[],
   measurementClosed: boolean,
   referenceClosed: boolean,
 ): ValidationResult {
-  if (!outer || outer.length < 3) return { valid: false, message: 'The outer AOI boundary is unavailable or invalid.' };
   if (!measurementClosed || measurement.length < 3) {
     return { valid: false, message: 'Draw and close the Measurement Polygon first.' };
   }
@@ -131,10 +130,10 @@ function validatePolygonPair(
   }
   if (hasSelfIntersection(measurement)) return { valid: false, message: 'The Measurement Polygon crosses itself. Edit its vertices.' };
   if (hasSelfIntersection(reference)) return { valid: false, message: 'The Reference Polygon crosses itself. Edit its vertices.' };
-  if (!polygonInsideOuter(measurement, outer)) {
+  if (outer && !polygonInsideOuter(measurement, outer)) {
     return { valid: false, message: 'Every part of the Measurement Polygon must remain inside the outer AOI.' };
   }
-  if (!polygonInsideOuter(reference, outer)) {
+  if (outer && !polygonInsideOuter(reference, outer)) {
     return { valid: false, message: 'Every part of the Reference Polygon must remain inside the outer AOI.' };
   }
   const measurementInsideReference = polygonInsideOuter(measurement, reference);
