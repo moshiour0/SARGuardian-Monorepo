@@ -1238,7 +1238,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   }, []);
 
   const clearAllKnownPlacePolygons = () => {
-    clearGeometry();
     setMeasurementCoordinates([]);
     setReferenceCoordinates([]);
     setMeasurementClosed(false);
@@ -1247,9 +1246,16 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   };
 
   const confirmKnownPlacePolygons = () => {
-    if (coordinates.length < 3 || !areaClosed || measurementCoordinates.length < 3 || referenceCoordinates.length < 3) return;
+    if (measurementCoordinates.length < 3 || referenceCoordinates.length < 3) return;
     setMeasurementClosed(true);
     setReferenceClosed(true);
+    setPolygonDrawingRole(null);
+  };
+
+  const closeSecondaryPolygon = () => {
+    if (!polygonDrawingRole) return;
+    if (polygonDrawingRole === 'measurement' && measurementCoordinates.length >= 3) setMeasurementClosed(true);
+    if (polygonDrawingRole === 'reference' && referenceCoordinates.length >= 3) setReferenceClosed(true);
     setPolygonDrawingRole(null);
   };
 
@@ -2319,9 +2325,9 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         <MapCanvas
           location={location}
           searchText={searchText}
-          coordinates={coordinates}
-          areaClosed={areaClosed}
-          drawing={drawing}
+          coordinates={isKnownPlaceSetupPage ? [] : coordinates}
+          areaClosed={isKnownPlaceSetupPage ? false : areaClosed}
+          drawing={isKnownPlaceSetupPage ? false : drawing}
           selectedVertexIndex={selectedVertexIndex}
           onLocation={updateLocation}
           onCoordinates={handleCoordinates}
@@ -2405,7 +2411,13 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           <section className="action-bar glass-float" aria-label="Investigation controls">
           {!result ? (
             <>
-              {coordinates.length > 0 && (
+              {isKnownPlaceSetupPage ? (
+                <div className="geometry-summary known-place-two-polygon-summary" aria-live="polite">
+                  <span>Known Place polygons</span>
+                  <strong>Analyze {measurementCoordinates.length} vertices · {calculateGeodesicAreaKm2(measurementCoordinates).toFixed(2)} km²</strong>
+                  <small>Reference {referenceCoordinates.length} vertices · {calculateGeodesicAreaKm2(referenceCoordinates).toFixed(2)} km²</small>
+                </div>
+              ) : coordinates.length > 0 && (
                 <div className="geometry-summary" aria-live="polite">
                   <span>Study area</span>
                   <strong>{coordinates.length} vertices</strong>
@@ -2413,16 +2425,17 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 </div>
               )}
 
-              {coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
+              {!isKnownPlaceSetupPage && coordinates.length === 0 && <div className="geometry-summary workspace-empty-aoi"><span>STUDY AREA</span><strong>Draw a polygon to begin</strong><small>Choose at least three points</small></div>}
 
               <div className="draw-actions">
-                <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>
+                {!isKnownPlaceSetupPage && <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>}
                 {isKnownPlaceSetupPage && <>
                   <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
                   <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
-                  <button type="button" className="confirm-button" disabled={!isKnownPlaceSetupPage || !areaClosed || measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm 3 polygons</button>
+                  <button type="button" className="confirm-button" disabled={!polygonDrawingRole || (polygonDrawingRole === 'measurement' ? measurementCoordinates.length < 3 : referenceCoordinates.length < 3)} onClick={closeSecondaryPolygon}>Close polygon</button>
+                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm polygons</button>
                 </>}
-                {drawing && (
+                {!isKnownPlaceSetupPage && drawing && (
                   <>
                     <button type="button" disabled={!coordinates.length} onClick={undo}><Icon name="undo" />Undo</button>
                     <button type="button" disabled={!coordinates.length} onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
@@ -2431,7 +2444,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     )}
                   </>
                 )}
-                {!drawing && areaClosed && (
+                {!isKnownPlaceSetupPage && !drawing && areaClosed && (
                   <button type="button" onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
@@ -2478,10 +2491,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || !knownPlacePolygonsReady}
+                      disabled={isCatalogLoading || !windowStart || !windowEnd || !knownPlacePolygonsReady}
                       onClick={continueKnownPlace}
                     >
-                      {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to polygon inputs'}
+                      {isCatalogLoading ? 'Checking date window…' : 'Continue'}
                     </button>
                   ) : (
                     <button className="investigate-button find-displacement-primary" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>

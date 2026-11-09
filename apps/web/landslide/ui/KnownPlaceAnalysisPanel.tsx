@@ -187,7 +187,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const handleMeasurementChange = useCallback((wkt: string) => setMeasurementWkt(wkt), []);
   const handleReferenceChange = useCallback((wkt: string) => setReferenceWkt(wkt), []);
   const handlePolygonValidation = useCallback((result: { valid: boolean; message: string }) => setPolygonValidation(result), []);
-  const canSubmitGeometry = Boolean(aoiWkt && measurementWkt && referenceWkt && polygonValidation.valid);
+  const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
     if (!measurementWkt || !referenceWkt) {
@@ -277,8 +277,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [run, user]);
 
   const submit = async (executeDownloads: boolean) => {
-    if (!aoiWkt || !startDate || !endDate) {
-      setError('Return to the AOI map and create a valid outer AOI and date window first.');
+    if (!startDate || !endDate) {
+      setError('Return to the setup page and choose a valid date window first.');
       return;
     }
     if (!measurementWkt || !referenceWkt || !polygonValidation.valid) {
