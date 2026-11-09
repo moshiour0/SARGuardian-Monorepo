@@ -47,6 +47,33 @@ def test_known_place_request_rejects_bad_track_and_invalid_polygon() -> None:
         known_place.KnownPlaceAnalysisRequest(**(REQUEST | {"aoi_wkt": "POLYGON ((0 0, 1 0, 1 1))"}))
 
 
+def test_known_place_dry_run_summary_preserves_release_ids_without_motion_dynamics() -> None:
+    summary = known_place._known_place_result_summary({
+        "schema_version": "know-place-aoi-result/1.0",
+        "measurement_status": "NOT_RUN_DRY_RUN",
+        "request": {
+            "aoi": {"wkt": AOI},
+            "date_range": {"start": "2026-07-01", "end": "2026-07-20"},
+            "source_adapters": ["NISAR_GOFF"],
+            "product_selection": {"allowed_release_ids": [], "allowed_maturities": ["PROVISIONAL"]},
+        },
+        "pairwise_series_plan": {
+            "status": "PAIRWISE_SERIES_PLANNED",
+            "chain_count": 1,
+            "chains": [{
+                "chain_id": "098-A-HH-PROVISIONAL-P05023",
+                "geometry_key": {"track": "098", "direction": "A", "polarization": "HH"},
+                "processing_identity": {"release_id": "P05023", "maturity": "PROVISIONAL"},
+                "pair_count": 1,
+                "pairs": [],
+            }],
+        },
+    })
+
+    assert summary["pairwise_series_plan"]["chains"][0]["release_id"] == "P05023"
+    assert summary["motion_dynamics"]["status"] is None
+
+
 @pytest.mark.parametrize(
     "repository,workflow",
     [

@@ -779,6 +779,8 @@ def _known_place_pair_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
     dynamics = result.get("motion_dynamics")
     feature_pairs = dynamics.get("pairs") if isinstance(dynamics, dict) else None
     if not isinstance(raw_pairs, list) or not isinstance(feature_pairs, list):
+        if result.get("measurement_status") == "NOT_RUN_DRY_RUN":
+            return []
         raise KnownPlaceWorkflowError("The Known Place result is missing its pairwise measurement contract.")
 
     by_chain_interval: dict[tuple[Any, Any, Any], dict[str, Any]] = {}
@@ -848,8 +850,15 @@ def _known_place_result_summary(result: dict[str, Any]) -> dict[str, Any]:
     plan = result.get("pairwise_series_plan")
     dynamics = result.get("motion_dynamics")
     request = result.get("request")
-    if not isinstance(plan, dict) or not isinstance(dynamics, dict) or not isinstance(request, dict):
+    if not isinstance(plan, dict) or not isinstance(request, dict):
         raise KnownPlaceWorkflowError("The Known Place result is missing its versioned science summary.")
+    # Catalog-only runs intentionally stop before motion-dynamics computation.
+    # Preserve their series plan so the UI can show the selected release IDs.
+    if not isinstance(dynamics, dict):
+        if result.get("measurement_status") == "NOT_RUN_DRY_RUN":
+            dynamics = {}
+        else:
+            raise KnownPlaceWorkflowError("The Known Place result is missing its versioned science summary.")
     raw_chains = plan.get("chains")
     chains: list[dict[str, Any]] = []
     if isinstance(raw_chains, list):
