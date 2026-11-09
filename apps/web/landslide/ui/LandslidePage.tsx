@@ -2401,7 +2401,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         />
 
         <div className="aoi-controls-stack">
-          <section className="action-bar glass-float" aria-label="Investigation controls">
+          <section className={`action-bar glass-float${isKnownPlaceSetupPage ? ' known-place-setup-action-bar' : ''}`} aria-label="Investigation controls">
           {!result ? (
             <>
               {isKnownPlaceSetupPage ? (

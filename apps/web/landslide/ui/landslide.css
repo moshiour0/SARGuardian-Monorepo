@@ -1085,9 +1085,13 @@
 .known-place-inline-polygons { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; padding: 4px 0; color: #cdeaf7; font-size: 9px; font-weight: 700; }
 .known-place-inline-polygons span { padding: 6px 8px; border: 1px solid rgba(158,216,255,.22); border-radius: 5px; background: rgba(7,55,79,.45); }
 .known-place-two-polygon-summary { grid-template-columns: auto auto; min-width: 260px; gap: 4px 12px; padding: 8px 11px; }
-.known-place-two-polygon-summary span { grid-column: 1 / -1; }
-.known-place-two-polygon-summary strong, .known-place-two-polygon-summary small { white-space: nowrap; }
+.known-place-two-polygon-summary { display: flex; flex-direction: column; align-items: flex-start; min-width: 300px; gap: 3px; }
+.known-place-two-polygon-summary span { display: none; }
+.known-place-two-polygon-summary strong, .known-place-two-polygon-summary small { white-space: nowrap; color: var(--blue-900); font-size: 12px; font-weight: 750; }
 .known-place-setup-action-bar { gap: 8px; padding: 8px 10px; }
+.known-place-setup-action-bar .draw-actions { flex-wrap: wrap; justify-content: flex-end; }
+.known-place-setup-action-bar .draw-actions button { min-width: 145px; }
+.known-place-setup-action-bar .draw-actions button:last-child { min-width: 105px; }
 
 
 /* Separate fixed author-exact research replay from generic two-polygon measurement. */
