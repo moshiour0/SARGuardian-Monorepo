@@ -8,9 +8,10 @@ import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { parseDashboardView } from './dashboardDocument';
 import { LandslidePage } from '../landslide/ui/LandslidePage';
+import { KnownPlaceResultsPage } from '../landslide/ui/KnownPlaceResultsPage';
 import { RiverShiftPage } from './pages/RiverShiftPage';
 import { auth, firebaseConfigured, googleProvider, missingFirebaseConfig } from './firebase';
-import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_OUTPUTS_PATH, FIND_DISPLACEMENT_RESULTS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_SETUP_PATH, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultViewsRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_OUTPUTS_PATH, FIND_DISPLACEMENT_RESULTS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultViewsRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
@@ -242,6 +243,18 @@ function App() {
       );
     }
 
+    if (isKnownPlaceResultsRoute(pathname)) {
+      return (
+        <KnownPlaceResultsPage
+          user={user}
+          authState={authState}
+          onSignIn={handleSignIn}
+          onSignOut={handleSignOut}
+          onBack={() => navigateTo(KNOWN_PLACE_ANALYSIS_PATH)}
+        />
+      );
+    }
+
     return (
       <RiverShiftPage
         key={user.uid}
@@ -298,6 +311,7 @@ function App() {
         onDisplacements={() => navigateTo(FIND_DISPLACEMENT_DISPLACEMENT_PATH)}
         onViewResults={(jobId) => navigateTo(`${FIND_DISPLACEMENT_OUTPUTS_PATH}/${encodeURIComponent(jobId)}`)}
         onKnownPlaceAnalysis={() => navigateTo(KNOWN_PLACE_ANALYSIS_PATH)}
+        onShowKnownPlaceResults={() => navigateTo(KNOWN_PLACE_RESULTS_PATH)}
         onResults={() => navigateTo(FIND_DISPLACEMENT_RESULTS_PATH)}
         onBackToMap={() => navigateTo(
           isLandslideKnownPlaceSetupAnalysisRoute(pathname)

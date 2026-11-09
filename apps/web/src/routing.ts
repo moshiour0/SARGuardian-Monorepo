@@ -8,6 +8,7 @@ export const FIND_DISPLACEMENT_OUTPUTS_PATH = '/find-displacement/view-results';
 export const FIND_DISPLACEMENT_DISPLACEMENT_PATH = '/find-displacement/displacements';
 export const KNOWN_PLACE_SETUP_PATH = '/known-place-analysis';
 export const KNOWN_PLACE_ANALYSIS_PATH = '/known-place-analysis/analysis';
+export const KNOWN_PLACE_RESULTS_PATH = '/known-place-analysis/analysis/result';
 
 export function isDashboardRoute(pathname: string): boolean {
   return normalizePathname(pathname) === DASHBOARD_PATH;
@@ -44,6 +45,10 @@ export function isLandslideKnownPlaceAnalysisRoute(pathname: string): boolean {
   return normalizedPath === KNOWN_PLACE_ANALYSIS_PATH;
 }
 
+export function isKnownPlaceResultsRoute(pathname: string): boolean {
+  return normalizePathname(pathname) === KNOWN_PLACE_RESULTS_PATH;
+}
+
 export function normalizePathname(pathname: string): string {
   const pathOnly = pathname.split(/[?#]/, 1)[0];
   return pathOnly || '/';
@@ -54,7 +59,8 @@ export function isLandslideRoute(pathname: string): boolean {
   return normalizedPathname === FIND_DISPLACEMENT_PATH
     || normalizedPathname.startsWith(`${FIND_DISPLACEMENT_PATH}/`)
     || normalizedPathname === KNOWN_PLACE_SETUP_PATH
-    || normalizedPathname === KNOWN_PLACE_ANALYSIS_PATH;
+    || normalizedPathname === KNOWN_PLACE_ANALYSIS_PATH
+    || normalizedPathname === KNOWN_PLACE_RESULTS_PATH;
 }
 
 export function isLandslideResultsRoute(pathname: string): boolean {

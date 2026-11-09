@@ -1155,7 +1155,7 @@ function loadSubmittedHarmonyJobs(): SubmittedHarmonyLayerJob[] {
   }
 }
 
-export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
+export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onShowKnownPlaceResults, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
   user: User;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   onHome: () => void;
@@ -1172,6 +1172,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   isKnownPlaceSetupPage?: boolean;
   onDisplacements: () => void;
   onKnownPlaceAnalysis: () => void;
+  onShowKnownPlaceResults: () => void;
   onSignOut: () => void;
 }) {
   const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
@@ -2591,6 +2592,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           placeName={location?.name ?? null}
           aoiAreaKm2={polygonAreaKm2}
           onBack={onBackToMap}
+          onShowResults={onShowKnownPlaceResults}
         />
       </div>}
     </div>

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -26,10 +26,13 @@ describe('client-side route recognition', () => {
   it('recognizes the dedicated home-launched Known Place setup and two-polygon analysis routes', () => {
     expect(KNOWN_PLACE_SETUP_PATH).toBe('/known-place-analysis');
     expect(KNOWN_PLACE_ANALYSIS_PATH).toBe('/known-place-analysis/analysis');
+    expect(KNOWN_PLACE_RESULTS_PATH).toBe('/known-place-analysis/analysis/result');
     expect(isLandslideKnownPlaceSetupRoute(KNOWN_PLACE_SETUP_PATH)).toBe(true);
     expect(isLandslideRoute(KNOWN_PLACE_SETUP_PATH)).toBe(true);
     expect(isLandslideKnownPlaceSetupAnalysisRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
     expect(isLandslideKnownPlaceAnalysisRoute(KNOWN_PLACE_ANALYSIS_PATH)).toBe(true);
+    expect(isKnownPlaceResultsRoute(KNOWN_PLACE_RESULTS_PATH)).toBe(true);
+    expect(isLandslideRoute(KNOWN_PLACE_RESULTS_PATH)).toBe(true);
     expect(isLandslideKnownPlaceSetupRoute('/landslide/known-place-setup')).toBe(false);
     expect(isLandslideKnownPlaceAnalysisRoute('/landslide/known-place-setup/analysis')).toBe(false);
   });

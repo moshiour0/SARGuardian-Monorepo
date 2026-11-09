@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { KnownPlacePolygonEditor, validatePolygonPair } from './KnownPlacePolygonEditor';
-import { KnownPlaceResultsDashboard } from './KnownPlaceResultsDashboard';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
 import {
@@ -51,6 +50,7 @@ type Props = {
   placeName: string | null;
   aoiAreaKm2: number;
   onBack: () => void;
+  onShowResults: () => void;
 };
 
 const hazardModes: { value: KnownPlaceHazardMode; label: string }[] = [
@@ -104,7 +104,7 @@ function samePolygonGeometry(firstWkt: string, secondWkt: string): boolean {
 }
 
 
-function loadStoredRun(uid: string): StoredRun | null {
+export function loadStoredRun(uid: string): StoredRun | null {
   if (typeof window === 'undefined') return null;
   try {
     const value = sessionStorage.getItem(storageKey(uid));
@@ -119,6 +119,10 @@ function loadStoredRun(uid: string): StoredRun | null {
   }
 }
 
+export function loadKnownPlaceRunRequestId(uid: string): string | null {
+  return loadStoredRun(uid)?.request_id ?? null;
+}
+
 function resultLabel(run: StoredRun): string {
   if (run.status !== 'completed') return run.status === 'dispatching' ? 'Starting' : 'Running';
   if (run.conclusion === 'success') return 'Workflow completed';
@@ -126,7 +130,7 @@ function resultLabel(run: StoredRun): string {
   return 'Workflow failed';
 }
 
-export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack }: Props) {
+export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack, onShowResults }: Props) {
   const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
   const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
   const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>('HH');
@@ -465,7 +469,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           </section>
         )}
         {runSucceeded && run.execute_downloads && (
-          <KnownPlaceResultsDashboard requestId={run.request_id} user={user} />
+          <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
         <button type="button" className="workspace-nav-link known-place-back" onClick={onBack}>← Back to AOI map</button>
