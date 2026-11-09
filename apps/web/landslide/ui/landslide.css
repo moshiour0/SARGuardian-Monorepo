@@ -1040,6 +1040,13 @@
 .known-place-setup-controls .known-place-map-editor-wrap { background: #d6e4ea; box-shadow: 0 16px 45px rgba(3, 20, 28, .3); }
 .known-place-setup-controls .known-place-polygon-map { height: calc(100dvh - 540px); min-height: 430px; }
 .known-place-setup-controls .known-place-additional-settings { margin: 6px 12px 0; }
+.known-place-setup-controls .known-place-polygon-editor { position: static; }
+.known-place-setup-controls .known-place-map-editor-wrap { position: fixed; z-index: 0; inset: 0; border: 0; border-radius: 0; box-shadow: none; }
+.known-place-setup-controls .known-place-geometry-heading { position: fixed; z-index: 6; top: 78px; left: 30px; right: 30px; pointer-events: none; }
+.known-place-setup-controls .known-place-geometry-tools { position: fixed; z-index: 8; right: 30px; bottom: 265px; left: 30px; display: flex; justify-content: center; padding: 10px 14px; border: 1px solid rgba(158, 216, 255, .28); border-radius: 10px; background: rgba(12, 48, 65, .86); box-shadow: 0 12px 34px rgba(3, 20, 28, .25); }
+.known-place-setup-controls .known-place-polygon-summaries { position: fixed; z-index: 8; right: 30px; bottom: 185px; left: 30px; padding: 8px 14px; border: 1px solid rgba(158, 216, 255, .22); border-radius: 10px; background: rgba(12, 48, 65, .86); }
+.known-place-setup-controls .known-place-additional-settings { position: fixed; z-index: 8; right: 30px; bottom: 25px; left: 30px; margin: 0; background: rgba(12, 48, 65, .94); box-shadow: 0 12px 34px rgba(3, 20, 28, .25); }
+.known-place-setup-action-bar { z-index: 9; }
 .known-place-geometry-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .known-place-geometry-heading h2 { margin: 5px 0; color: #f5fbff; font: 700 18px 'Manrope', sans-serif; }
 .known-place-geometry-heading p { margin: 0; color: rgba(231, 247, 255, .75); font-size: 11px; line-height: 1.5; }

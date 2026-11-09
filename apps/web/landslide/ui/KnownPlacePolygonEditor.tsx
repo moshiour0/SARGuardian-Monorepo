@@ -476,7 +476,7 @@ export function KnownPlacePolygonEditor({
         <button type="button" className={activeRole === 'reference' ? 'active' : ''} onClick={() => beginDrawing('reference')}>Draw / replace reference</button>
         <button type="button" className="confirm-button" disabled={!drawingRole || (drawingRole === 'measurement' ? measurement.length : reference.length) < 3} onClick={finishDrawing}>Close polygon</button>
         <button type="button" disabled={!drawingRole || (drawingRole === 'measurement' ? measurement.length : reference.length) === 0} onClick={undoVertex}>Undo vertex</button>
-        <button type="button" disabled={drawingRole !== null && drawingRole !== activeRole} onClick={clearSelected}>Clear selected</button>
+        <button type="button" disabled={drawingRole !== null && drawingRole !== activeRole} onClick={clearSelected}>Clear polygon</button>
       </div>
       <div className="known-place-polygon-summaries">
         <button type="button" className={activeRole === 'measurement' ? 'selected' : ''} aria-pressed={activeRole === 'measurement'} onClick={() => setActiveRole('measurement')}>
