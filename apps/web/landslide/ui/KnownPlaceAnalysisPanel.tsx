@@ -341,7 +341,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
         <section className="known-place-custom-measurement" aria-label="Known Place custom measurement">
-        {!aoiWkt && <p className="catalog-error" role="alert">A valid outer AOI is required for custom measurement. Go back to the map and draw your polygon.</p>}
         {candidateTransfer && <div className="catalog-notice known-place-candidate-handoff" role="status">
           <strong>Suggested Measurement Polygon imported from Find Displacements</strong>
           <span>{candidateTransfer.candidate.candidateId} · GOFF offset-anomaly candidate · {candidateTransfer.candidate.supportPairs} supporting pair(s) · {candidateTransfer.candidate.pixelCount} pixels</span>

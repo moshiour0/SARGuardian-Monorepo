@@ -1091,9 +1091,9 @@
 .known-place-two-polygon-summary strong, .known-place-two-polygon-summary small { white-space: nowrap; color: var(--blue-900); font-size: 12px !important; font-weight: 750; }
 .known-place-setup-action-bar { gap: 8px; padding: 8px 10px; }
 .known-place-setup-action-bar .draw-actions { flex-wrap: wrap; justify-content: flex-end; }
-.known-place-setup-action-bar .draw-actions button { min-width: 145px; color: #fff; }
+.known-place-setup-action-bar .draw-actions button { min-width: 145px; color: #fff !important; }
 .known-place-setup-action-bar .draw-actions button:not(.active):not(.confirm-button) { background: linear-gradient(180deg, #67c6f7, #2498e2); color: #fff; }
-.known-place-setup-action-bar .draw-actions button.active { background: #123b72; border-color: #8bc8ff; color: #fff; }
+.known-place-setup-action-bar .draw-actions button.active { background: #123b72; border-color: #8bc8ff; color: #fff !important; }
 .known-place-setup-action-bar .draw-actions button:nth-child(3),
 .known-place-setup-action-bar .draw-actions button:nth-child(4) { min-width: 145px; }
 .button-label-short { display: none; }
