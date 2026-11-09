@@ -90,6 +90,17 @@ def test_multiple_orbit_geometries_are_returned_as_separate_chains():
         "048-D-HH-PROVISIONAL-X05026",
     }
 
+def test_processing_variants_are_kept_in_separate_chains():
+    urgent = PAIR_NAMES[2].replace("_PR_GOFF_", "_UR_GOFF_")
+    result = build([row(PAIR_NAMES[1]), row(urgent)])
+
+    assert result["chain_count"] == 2
+    assert {item["processing"] for item in result["pairs"]} == {"PR", "UR"}
+    assert {item["chain_id"] for item in result["pairs"]} == {
+        "098-A-HH-PROVISIONAL-P05023",
+        "098-A-HH-UR-PROVISIONAL-P05023",
+    }
+
 
 def test_date_window_filters_products_by_both_acquisition_dates():
     with pytest.raises(SeriesPlanError, match="NO_GOFF_PRODUCTS_FULLY_WITHIN_REQUEST_DATE_RANGE"):

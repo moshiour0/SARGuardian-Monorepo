@@ -155,7 +155,21 @@ def test_catalog_excludes_unexpected_product_type_without_aborting(monkeypatch):
     assert products == []
     assert manifest["result_count"] == 1
     assert manifest["candidates"][0]["decision"] == "EXCLUDED_PRODUCT_TYPE_MISMATCH"
-    assert manifest["candidates"][0]["expected_product_type"] == "NISAR_L2_PR_GOFF"
+    assert manifest["candidates"][0]["expected_product_type"] == "NISAR_L2_(PR|UR|OD)_GOFF"
+
+def test_catalog_accepts_urgent_response_goff_processing_variant(monkeypatch):
+    urgent = PAIR_NAMES[0].replace("_PR_GOFF_", "_UR_GOFF_")
+    fake = SimpleNamespace(
+        ASFSearchOptions=lambda **kwargs: SimpleNamespace(**kwargs),
+        search=lambda **kwargs: [product(urgent)],
+    )
+    monkeypatch.setitem(sys.modules, "asf_search", fake)
+
+    products, manifest = discover_nisar_goff(request())
+
+    assert [item["granule_name"] for item in products] == [urgent]
+    assert products[0]["processing"] == "UR"
+    assert manifest["candidates"][0]["decision"] == "ELIGIBLE_CATALOG_CANDIDATE"
 
 def test_explicit_release_allowlist_excludes_other_release_variants(monkeypatch):
     historical = PAIR_NAMES[0]

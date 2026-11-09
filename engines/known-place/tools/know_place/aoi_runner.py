@@ -61,6 +61,8 @@ MAX_PRODUCTS_PER_DOWNLOADED_JOB = 30
 MAX_AOI_GRID_CELLS = 2_000_000
 COHERENCE_CONTEXT_HALO_CELLS = 2
 TRUSTED_ASF_HOSTS = ("asf.alaska.edu", ".asf.earthdatacloud.nasa.gov")
+SUPPORTED_GOFF_PROCESSING = frozenset({"PR", "UR", "OD"})
+SUPPORTED_GOFF_PRODUCT_TYPE = "NISAR_L2_(PR|UR|OD)_GOFF"
 
 
 class AOIRunError(RuntimeError):
@@ -324,6 +326,12 @@ def _maturity(
     )
 
 
+def _goff_processing_from_name(name: str) -> str | None:
+    match = re.match(r"^NISAR_L2_([A-Z]{2})_GOFF_", name)
+    processing = match.group(1) if match else None
+    return processing if processing in SUPPORTED_GOFF_PROCESSING else None
+
+
 def _product_name(properties: dict[str, Any], urls: list[str]) -> str:
     for key in ("granuleName", "granule_name", "fileName", "filename", "sceneName", "productName", "fileID"):
         value = properties.get(key)
@@ -331,11 +339,11 @@ def _product_name(properties: dict[str, Any], urls: list[str]) -> str:
             candidate = Path(urlparse(value).path).name
             if candidate.lower().endswith(".h5"):
                 return candidate
-            if candidate.startswith("NISAR_L2_PR_GOFF_"):
+            if _goff_processing_from_name(candidate):
                 return candidate + ".h5"
     for url in urls:
         name = Path(urlparse(url).path).name
-        if name.startswith("NISAR_L2_PR_GOFF_") and name.lower().endswith(".h5"):
+        if _goff_processing_from_name(name) and name.lower().endswith(".h5"):
             return name
     raise AOIRunError("CATALOG_GRANULE_NAME_UNRESOLVED", "Catalog returned a GOFF product without an exact granule name")
 
@@ -400,11 +408,11 @@ def discover_nisar_goff(request: AOIRequest) -> tuple[list[dict[str, Any]], dict
         name = _product_name(properties, urls)
         # Search APIs can return collection-alias noise. Preserve and exclude
         # unexpected product types rather than parsing a GUNW/GSLC name as GOFF.
-        if not (name.startswith("NISAR_L2_PR_GOFF_") and name.lower().endswith(".h5")):
+        if not (name.lower().endswith(".h5") and _goff_processing_from_name(name)):
             all_rows.append({
                 "granule_name": name,
                 "decision": "EXCLUDED_PRODUCT_TYPE_MISMATCH",
-                "expected_product_type": "NISAR_L2_PR_GOFF",
+                "expected_product_type": SUPPORTED_GOFF_PRODUCT_TYPE,
             })
             continue
         trusted_urls = [url for url in urls if _trusted_download_url(url)]
@@ -453,6 +461,7 @@ def discover_nisar_goff(request: AOIRequest) -> tuple[list[dict[str, Any]], dict
             "secondary_date": identity.secondary_start.date().isoformat(),
             "track": identity.track,
             "direction": identity.direction,
+            "processing": identity.processing,
             "polarization": request.polarization,
             "polarization_evidence": (
                 "ASF catalog query filtered mainBandPolarization; exact HDF5 group is rechecked after download"
@@ -487,6 +496,7 @@ def discover_nisar_goff(request: AOIRequest) -> tuple[list[dict[str, Any]], dict
             "polarization_evidence_policy": "query filter is recorded; exact HDF5 polarization group must be validated before measurement",
             "allowed_maturities": list(request.allowed_maturities),
             "allowed_release_ids": list(request.allowed_release_ids),
+            "supported_processing_types": sorted(SUPPORTED_GOFF_PROCESSING),
             "short_name_filter": [f"NISAR_L2_GOFF_{value}_V1" for value in request.allowed_maturities],
             "maturity_evidence_policy": "returned metadata or trusted collection path; when omitted, singleton exact GOFF collection shortName filter; multi-maturity unresolved results fail closed",
         },
@@ -496,6 +506,7 @@ def discover_nisar_goff(request: AOIRequest) -> tuple[list[dict[str, Any]], dict
         "policy": {
             "maturity_not_in_allowlist": "excluded and preserved in manifest",
             "release_variant_substitution": "forbidden",
+            "processing_variant_handling": "PR, UR and OD GOFF products are accepted and retained as separate processing chains",
             "exact_source_checksums": "computed after downloads; not inferred from catalog names",
         },
     }
@@ -993,7 +1004,7 @@ def run_aoi_analysis(
             grid = inspect_goff_grid(
                 source_path, polarization=request.polarization, layer=2,
                 expected_track=planned["track"], expected_direction=planned["direction"],
-                expected_processing="PR",
+                expected_processing=planned["processing"],
             )
             grid_identity = _grid_identity_sha256(grid)
             chain_id = planned.get("chain_id", "UNASSIGNED")
@@ -1042,7 +1053,7 @@ def run_aoi_analysis(
             raw = read_raw_goff(
                 source_path, polarization=request.polarization, layer=2,
                 expected_track=planned["track"], expected_direction=planned["direction"],
-                expected_processing="PR", window_slices=(roi.row_slice, roi.col_slice),
+                expected_processing=planned["processing"], window_slices=(roi.row_slice, roi.col_slice),
                 expected_grid=grid,
             )
             cubes = read_geometry_cubes(source_path, expected_epsg=raw.epsg)

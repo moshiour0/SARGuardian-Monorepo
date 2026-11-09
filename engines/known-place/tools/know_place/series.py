@@ -48,6 +48,7 @@ class PairCandidate:
     secondary_start: datetime
     track: str
     direction: str
+    processing: str
     polarization: str
     release_id: str
     maturity: str
@@ -63,10 +64,10 @@ class PairCandidate:
         return self.track, self.direction, self.polarization
 
     @property
-    def processing_chain_key(self) -> tuple[str, str, str, str, str]:
-        # CRID/release identity is part of temporal comparability. Do not connect
-        # measurements across processing releases or maturity classes.
-        return self.track, self.direction, self.polarization, self.maturity, self.release_id
+    def processing_chain_key(self) -> tuple[str, str, str, str, str, str]:
+        # Processing type, CRID/release identity and maturity are part of temporal
+        # comparability. Do not connect measurements across any of these variants.
+        return self.track, self.direction, self.polarization, self.processing, self.maturity, self.release_id
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -78,6 +79,7 @@ class PairCandidate:
             "interval_days": (self.secondary_start - self.reference_start).total_seconds() / 86400.0,
             "track": self.track,
             "direction": self.direction,
+            "processing": self.processing,
             "polarization": self.polarization,
             "release_id": self.release_id,
             "catalog_maturity": self.maturity,
@@ -131,6 +133,7 @@ def _parse_candidate(record: dict[str, Any], *, requested_polarization: str) -> 
         secondary_start=identity.secondary_start.replace(tzinfo=timezone.utc),
         track=track,
         direction=direction,
+        processing=identity.processing,
         polarization=polarization,
         release_id=str(record.get("release_id") or identity.release_id or "UNKNOWN"),
         maturity=str(record.get("maturity") or record.get("catalog_maturity") or "UNVERIFIED").upper(),
@@ -251,7 +254,7 @@ def build_pairwise_series_plan(
 
     # Same sensor geometry is not enough to make products temporally comparable.
     # Keep distinct CRIDs/releases and maturity classes as separate chains.
-    chain_groups: dict[tuple[str, str, str, str, str], list[PairCandidate]] = {}
+    chain_groups: dict[tuple[str, str, str, str, str, str], list[PairCandidate]] = {}
     for candidate in candidates:
         chain_groups.setdefault(candidate.processing_chain_key, []).append(candidate)
 
@@ -264,9 +267,12 @@ def build_pairwise_series_plan(
                 candidate.reference_start, candidate.secondary_start, candidate.granule_name
             ),
         )
+        # Preserve the established PR chain-id shape for existing consumers;
+        # include non-PR processing variants explicitly so UR/OD pairs cannot be
+        # mistaken for the same comparable series.
         chain_id = (
             f"{chain_key[0]}-{chain_key[1]}-{chain_key[2]}-"
-            f"{chain_key[3]}-{chain_key[4]}"
+            + (f"{chain_key[4]}-{chain_key[5]}" if chain_key[3] == "PR" else f"{chain_key[3]}-{chain_key[4]}-{chain_key[5]}")
         )
         chain_rows: list[dict[str, Any]] = []
         previous: PairCandidate | None = None
@@ -314,8 +320,9 @@ def build_pairwise_series_plan(
                 "polarization": chain_key[2],
             },
             "processing_identity": {
-                "maturity": chain_key[3],
-                "release_id": chain_key[4],
+                "processing": chain_key[3],
+                "maturity": chain_key[4],
+                "release_id": chain_key[5],
             },
             "pair_count": len(chain_rows),
             "pairs": chain_rows,
