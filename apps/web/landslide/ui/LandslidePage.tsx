@@ -1175,7 +1175,23 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   onSignOut: () => void;
 }) {
   const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
-  const [initialSessionState] = useState(() => loadLandslideSessionState(user.uid, sessionScope));
+  const [initialSessionState] = useState(() => {
+    const saved = loadLandslideSessionState(user.uid, sessionScope);
+    if (!isKnownPlaceSetupPage) return saved;
+    return {
+      ...saved,
+      searchText: '',
+      searchState: '',
+      location: null,
+      coordinates: [],
+      areaClosed: false,
+      drawing: false,
+      windowStart: '',
+      windowEnd: '',
+      catalogResult: null,
+      selectedHarmonyProduct: null,
+    };
+  });
   const [searchText, setSearchText] = useState(initialSessionState.searchText);
   const [location, setLocation] = useState<LocationSelection | null>(initialSessionState.location);
   const [searchState, setSearchState] = useState(initialSessionState.searchState);
@@ -1599,7 +1615,13 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     setQualityAnalysis(null);
     setQualityError('');
     setQualityMessage('');
-    setError('');
+    if (windowEnd && value > windowEnd) {
+      setError('Starting date cannot be after ending date.');
+      setToastRevision((current) => current + 1);
+    } else if (value > today) {
+      setError('Starting date cannot be after today.');
+      setToastRevision((current) => current + 1);
+    } else setError('');
     setValidationAlertDismissed(false);
   };
 
@@ -2503,7 +2525,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={isCatalogLoading || !windowStart || !windowEnd || !knownPlacePolygonsReady}
+                      disabled={isCatalogLoading || !windowStart || !windowEnd || windowEnd < windowStart || windowStart > today || windowEnd > today || !knownPlacePolygonsReady}
                       onClick={continueKnownPlace}
                     >
                       {isCatalogLoading ? 'Checking date window…' : 'Continue'}
