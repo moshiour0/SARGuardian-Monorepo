@@ -344,7 +344,9 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           onReferenceChange={handleReferenceChange}
           onValidationChange={handlePolygonValidation}
         />
-        <div className="known-place-form-grid">
+        <details className="known-place-additional-settings">
+          <summary>Additional settings</summary>
+          <div className="known-place-form-grid">
           <label className="aoi-job-label">
             <span>Hazard context</span>
             <select value={hazardMode} onChange={(event) => setHazardMode(event.target.value as KnownPlaceHazardMode)}>
@@ -381,6 +383,14 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               {(['1', '5', '10', '15', '20', '25'] as const).map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
+          <label className="aoi-job-label">
+            <span>Constant ellipsoidal height in metres (optional sensitivity only)</span>
+            <input type="number" value={geometryHeight} onChange={(event) => setGeometryHeight(event.target.value)} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
+          </label>
+          </div>
+        </details>
+
+        <div className="known-place-form-grid">
           <label className="aoi-job-label known-place-wide">
             <span>Release selection</span>
             {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release IDs found by the catalog dry run">
@@ -389,10 +399,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 <span>{releaseId}</span>
               </label>)}
             </div> : <span className="catalog-field-hint">Run the catalog-only dry run to discover the release IDs available for this AOI and date window.</span>}
-          </label>
-          <label className="aoi-job-label">
-            <span>Constant ellipsoidal height in metres (optional sensitivity only)</span>
-            <input type="number" value={geometryHeight} onChange={(event) => setGeometryHeight(event.target.value)} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
           </label>
         </div>
 

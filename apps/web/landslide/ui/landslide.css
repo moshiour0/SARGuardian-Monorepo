@@ -1037,6 +1037,12 @@
 .known-place-geometry-heading h2 { margin: 5px 0; color: #f5fbff; font: 700 18px 'Manrope', sans-serif; }
 .known-place-geometry-heading p { margin: 0; color: rgba(231, 247, 255, .75); font-size: 11px; line-height: 1.5; }
 .known-place-outer-aoi-status { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(220, 248, 255, .28); border-radius: 5px; color: #d9f3ff; font-size: 9px; }
+.known-place-additional-settings { margin: 24px 0 18px; border: 1px solid rgba(126, 214, 231, .24); border-radius: 10px; background: rgba(8, 42, 58, .46); }
+.known-place-additional-settings > summary { cursor: pointer; list-style: none; padding: 15px 18px; color: #dff8ff; font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+.known-place-additional-settings > summary::-webkit-details-marker { display: none; }
+.known-place-additional-settings > summary::before { content: '›'; display: inline-block; margin-right: 10px; color: #48d8e6; font-size: 20px; line-height: 10px; transform: rotate(0deg); transition: transform .15s ease; }
+.known-place-additional-settings[open] > summary::before { transform: rotate(90deg); }
+.known-place-additional-settings > .known-place-form-grid { margin: 0; padding: 0 18px 18px; }
 .known-place-map-editor-wrap { position: relative; min-width: 0; overflow: hidden; border: 1px solid rgba(174, 216, 255, .35); border-radius: 7px; background: #d6e4ea; }
 .known-place-polygon-map { width: 100%; height: min(58vh, 560px); min-height: 340px; }
 .known-place-map-error, .known-place-map-instruction { position: absolute; z-index: 5; top: 12px; left: 12px; max-width: min(520px, calc(100% - 24px)); padding: 9px 12px; border: 1px solid rgba(220, 248, 255, .4); border-radius: 6px; background: rgba(5, 42, 58, .92); color: #f6fbff; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 25px rgba(5, 30, 40, .2); }
