@@ -5,6 +5,7 @@ import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
 import {
   getKnownPlaceAnalysisStatus,
+  getKnownPlaceAnalysisResults,
   startKnownPlaceAnalysis,
   type KnownPlaceAnalysisInput,
   type KnownPlaceAnalysisMode,
@@ -142,6 +143,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
+  const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
+  const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
   const createAnalysisInput = (executeDownloads: boolean): KnownPlaceAnalysisInput => ({
@@ -233,6 +236,31 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
   }, [runRequestId, runStatus, user]);
+
+  useEffect(() => {
+    if (!run || run.status !== 'completed' || run.conclusion !== 'success' || run.execute_downloads !== false) {
+      setCatalogReleaseIds([]);
+      setCatalogReleaseError('');
+      return undefined;
+    }
+    let active = true;
+    setCatalogReleaseIds([]);
+    setCatalogReleaseError('');
+    void getKnownPlaceAnalysisResults(run.request_id, user)
+      .then((payload) => {
+        if (!active) return;
+        const ids = Array.from(new Set(
+          payload.result.pairwise_series_plan.chains
+            .map((chain) => chain.release_id)
+            .filter((releaseId): releaseId is string => Boolean(releaseId)),
+        ));
+        setCatalogReleaseIds(ids);
+      })
+      .catch((reason: unknown) => {
+        if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
+      });
+    return () => { active = false; };
+  }, [run, user]);
 
   const submit = async (executeDownloads: boolean) => {
     if (!aoiWkt || !startDate || !endDate) {
@@ -397,6 +425,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             {runSucceeded && (run.execute_downloads
               ? <p className="catalog-notice">Workflow succeeded. Inspect the measurement, uncertainty and reference-method reports in the run artifact; a completed run is not independent hazard-detection validation.</p>
               : <p className="catalog-notice">Catalog-only preflight passed. No raw NISAR products were downloaded. You may now separately authorize a raw GOFF run for these unchanged settings.</p>)}
+            {runSucceeded && !run.execute_downloads && (
+              <p className="catalog-notice" role="status">
+                <b>Selected release ID{catalogReleaseIds.length === 1 ? '' : 's'}:</b>{' '}
+                {catalogReleaseIds.length ? catalogReleaseIds.join(', ') : (catalogReleaseError || 'Loading from the verified dry-run result…')}
+                {' '}Leave the release filter blank for this successful, unambiguous preflight unless you want to pin a specific revision.
+              </p>
+            )}
             {runFailed && (run.execute_downloads
               ? <p className="catalog-error">Raw GOFF workflow ended with {run.conclusion || 'an error'}. Open the run link above to inspect the failing stage.</p>
               : <p className="catalog-error">Catalog-only preflight failed; no raw download was requested. Open the run summary and artifact for the exact failing pair and candidate release IDs. Enter the intended release filter, then rerun the catalog-only preflight before authorizing downloads.</p>)}
