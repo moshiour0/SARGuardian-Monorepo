@@ -2430,7 +2430,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
             <>
               {isKnownPlaceSetupPage ? (
                 <div className="geometry-summary known-place-two-polygon-summary" aria-live="polite">
-                  <span>Known Place polygons</span>
+                  <span className="known-place-brand">Known Place Analysis</span>
                   <strong>Analyze Area : {calculateGeodesicAreaKm2(measurementCoordinates).toFixed(2)} km²</strong>
                   <small>Reference Area : {calculateGeodesicAreaKm2(referenceCoordinates).toFixed(2)} km²</small>
                 </div>
@@ -2447,10 +2447,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               <div className="draw-actions">
                 {!isKnownPlaceSetupPage && <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>}
                 {isKnownPlaceSetupPage && <>
-                  <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
-                  <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
-                  <button type="button" onClick={clearAllKnownPlacePolygons}>Clear</button>
-                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm polygons</button>
+                  <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" /><span className="button-label-full">Analyze area</span><span className="button-label-short">Analyze</span></button>
+                  <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" /><span className="button-label-full">Reference area</span><span className="button-label-short">Reference</span></button>
+                  <button type="button" onClick={clearAllKnownPlacePolygons}><span className="button-label-full">Clear</span><span className="button-label-short">Clear</span></button>
+                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}><span className="button-label-full">Confirm polygons</span><span className="button-label-short">Confirm</span></button>
                 </>}
                 {!isKnownPlaceSetupPage && drawing && (
                   <>

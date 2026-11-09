@@ -1086,12 +1086,30 @@
 .known-place-inline-polygons span { padding: 6px 8px; border: 1px solid rgba(158,216,255,.22); border-radius: 5px; background: rgba(7,55,79,.45); }
 .known-place-two-polygon-summary { grid-template-columns: auto auto; min-width: 260px; gap: 4px 12px; padding: 8px 11px; }
 .known-place-two-polygon-summary { display: flex; flex-direction: column; align-items: flex-start; min-width: 300px; gap: 3px; }
-.known-place-two-polygon-summary span { display: none; }
+.known-place-two-polygon-summary span { display: block; }
+.known-place-two-polygon-summary .known-place-brand { color: var(--home-ice); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .known-place-two-polygon-summary strong, .known-place-two-polygon-summary small { white-space: nowrap; color: var(--blue-900); font-size: 12px !important; font-weight: 750; }
 .known-place-setup-action-bar { gap: 8px; padding: 8px 10px; }
 .known-place-setup-action-bar .draw-actions { flex-wrap: wrap; justify-content: flex-end; }
 .known-place-setup-action-bar .draw-actions button { min-width: 145px; }
-.known-place-setup-action-bar .draw-actions button:last-child { min-width: 105px; }
+.known-place-setup-action-bar .draw-actions button.active { background: #123b72; border-color: #8bc8ff; color: #fff; }
+.known-place-setup-action-bar .draw-actions button:nth-child(3),
+.known-place-setup-action-bar .draw-actions button:nth-child(4) { min-width: 145px; }
+.button-label-short { display: none; }
+
+@media (max-width: 640px) {
+  .known-place-setup-action-bar .draw-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  .known-place-setup-action-bar .draw-actions button,
+  .known-place-setup-action-bar .draw-actions button:first-child,
+  .known-place-setup-action-bar .draw-actions .confirm-button { grid-column: auto; }
+  .known-place-setup-action-bar .draw-actions button,
+  .known-place-setup-action-bar .draw-actions button:nth-child(3),
+  .known-place-setup-action-bar .draw-actions button:nth-child(4) { min-width: 0; width: 100%; padding: 0 5px; gap: 3px; font-size: 10px; }
+  .known-place-setup-action-bar .draw-actions button svg { width: 13px; height: 13px; }
+  .known-place-setup-action-bar .button-label-full { display: none; }
+  .known-place-setup-action-bar .button-label-short { display: inline; }
+  .known-place-two-polygon-summary { min-width: 0; }
+}
 
 
 /* Separate fixed author-exact research replay from generic two-polygon measurement. */
