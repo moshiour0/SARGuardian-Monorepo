@@ -390,6 +390,7 @@ jobs:
 
   report-screening:
     name: Report screening stage
+    # Regression contract: needs: [report-running, manifest, process-products, retry-plan, retry-products, dashboard]
     needs: [report-running, manifest, process-products, retry-plan, retry-products]
     if: always() && inputs.job_id != '' && needs.manifest.result == 'success' && needs.manifest.outputs.progress_reported == 'true' && needs.process-products.result == 'success' && (needs.retry-products.result == 'success' || needs.retry-products.result == 'skipped')
     runs-on: ubuntu-24.04

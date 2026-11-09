@@ -169,48 +169,6 @@
     },
     {
       "promotion_scope": "Dynamic frontend promotion",
-      "source_path": "migration/source-snapshots/dynamic/Frontend/src/App.tsx",
-      "destination_path": "apps/web/src/App.tsx",
-      "source_blob_sha": "f11f9197bd5abf4befe21203517338e6bc3a1ad3",
-      "destination_blob_sha": "825acfe098744d39675f193d8b7929de217f06ff",
-      "mode": "100644",
-      "object_type": "blob",
-      "reason": "Expose a user-visible authenticated API and Monorepo Supabase read-check state after Google sign-in without dispatching a processing workflow.",
-      "implementation_commits": [
-        "0403c800e5d37642725880f8b37a6e6ef0c03ee2",
-        "9214fc17b2625e6432c0c5cc58300557ab2c116a",
-        "72eda2cc99446cf59ec086b4bc7356574b40716c",
-        "2c0f775c525f4e072cac2c8b1a82873a14aa66f1",
-        "ff4637abdf62afc9d559d822c7c8526fb441e028",
-        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652"
-      ],
-      "verification_paths": [
-        "apps/web/src/authGating.test.ts"
-      ]
-    },
-    {
-      "promotion_scope": "Dynamic frontend promotion",
-      "source_path": "migration/source-snapshots/dynamic/Frontend/src/pages/Home.tsx",
-      "destination_path": "apps/web/src/pages/Home.tsx",
-      "source_blob_sha": "cd84dc5d9609e9306d83d8b022e08b65d8ffe544",
-      "destination_blob_sha": "b8efb5640e2f5ee4c79e3ee79303f1e226c90da4",
-      "mode": "100644",
-      "object_type": "blob",
-      "reason": "Display the authenticated backend readiness outcome clearly on Home and consume the tested shared notice helper.",
-      "implementation_commits": [
-        "0403c800e5d37642725880f8b37a6e6ef0c03ee2",
-        "9214fc17b2625e6432c0c5cc58300557ab2c116a",
-        "72eda2cc99446cf59ec086b4bc7356574b40716c",
-        "2c0f775c525f4e072cac2c8b1a82873a14aa66f1",
-        "ff4637abdf62afc9d559d822c7c8526fb441e028",
-        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652"
-      ],
-      "verification_paths": [
-        "apps/web/src/authGating.test.ts"
-      ]
-    },
-    {
-      "promotion_scope": "Dynamic frontend promotion",
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/authGating.ts",
       "destination_path": "apps/web/src/authGating.ts",
       "source_blob_sha": "244ffe08dec599810ad08c46b0990aca15730857",

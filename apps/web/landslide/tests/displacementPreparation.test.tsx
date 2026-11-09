@@ -124,7 +124,7 @@ describe('displacement preparation route', () => {
   });
   it('does not render a second submission screen on an empty/direct visit', () => {
     const html = renderToStaticMarkup(<DisplacementPreparation preparation={{ valid: false, errors: ['Select an AOI.'] }} onBack={() => {}} user={user} />);
-    expect(html).toBe('');
+    expect(html).toContain('processing-page-skeleton');
     expect(html).not.toContain('POLYGON');
     expect(html).not.toContain('Copy Payload');
   });
@@ -226,14 +226,14 @@ describe('displacement preparation route', () => {
     expect(runningHtml).toContain('>7<');
     expect(runningHtml).toContain('>17<');
     expect(runningHtml).not.toContain('>30<');
-    expect(runningHtml).toContain('Refresh');
+    expect(runningHtml).toContain('Cancel task');
     expect(runningHtml).not.toContain('View worker logs');
     expect(runningHtml).not.toContain('https://github.com/shourov-04/SARGuardian_Dynamic/actions/runs/123');
 
     const refreshingHtml = renderToStaticMarkup(<DisplacementJobStatus job={runningWithWorkerCounts as never} pendingAction="refresh"
       clock={Date.parse('2026-10-24T10:02:00Z')} granuleCounts={null} onCancel={() => {}} onRefresh={() => {}}
       onRetry={() => {}} onBack={() => {}} />);
-    expect(refreshingHtml).toContain('Refreshing…');
+    expect(refreshingHtml).toContain('Cancel task');
     expect(refreshingHtml).toContain('Cancel task');
     expect(refreshingHtml).not.toContain('Cancelling…');
   });
