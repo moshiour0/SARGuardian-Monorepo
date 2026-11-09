@@ -74,9 +74,15 @@ async function firebaseToken(user: Pick<User, 'getIdToken'> | null): Promise<str
 }
 
 async function readPayload<T>(response: Response, fallback: string): Promise<T> {
-  const payload = await response.json().catch(() => ({})) as { detail?: string; message?: string };
+  const payload = await response.json().catch(() => ({})) as { detail?: unknown; message?: unknown };
   if (!response.ok) {
-    throw new Error(payload.detail || payload.message || `${fallback} (${response.status}).`);
+    const detail = payload.detail ?? payload.message;
+    const message = typeof detail === 'string'
+      ? detail
+      : Array.isArray(detail)
+        ? detail.map((item) => typeof item === 'string' ? item : (item && typeof item === 'object' && 'msg' in item ? String((item as { msg?: unknown }).msg) : JSON.stringify(item))).join('; ')
+        : detail && typeof detail === 'object' ? JSON.stringify(detail) : '';
+    throw new Error(message || `${fallback} (${response.status}).`);
   }
   return payload as T;
 }

@@ -9,6 +9,7 @@ import { isPointInsidePolygon, parsePolygonWkt, polygonToWkt, prepareInvestigati
 import { DisplacementPreparation } from './DisplacementPreparation';
 import { ScientificResultsPage } from './ScientificResults';
 import { KnownPlaceAnalysisPanel } from './KnownPlaceAnalysisPanel';
+import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { countCatalogGranules, type GranuleCounts } from './processingStatus';
 import { scheduleErrorToastDismissal } from './errorToast';
 import { createAoiOverlayController } from './mapOverlays';
@@ -271,22 +272,33 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
       const points = role === 'measurement' ? measurementCoordinates : referenceCoordinates;
       const dots = secondaryVertexDotsRef.current[role];
       dots.forEach((dot) => dot.setMap(null));
-      secondaryVertexDotsRef.current[role] = points.map(([lng, lat]) => new google.maps.Marker({
-        map: readyMap,
-        position: { lng, lat },
-        clickable: false,
-        zIndex: 8,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 5.8,
-          fillColor: role === 'measurement' ? '#38bdf8' : '#ef4444',
-          fillOpacity: 1,
-          strokeColor: '#f1ffff',
-          strokeWeight: 1.8,
-        },
-      }));
+      secondaryVertexDotsRef.current[role] = points.map(([lng, lat], index) => {
+        const marker = new google.maps.Marker({
+          map: readyMap,
+          position: { lng, lat },
+          clickable: false,
+          draggable: true,
+          zIndex: 8,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 5.8,
+            fillColor: role === 'measurement' ? '#38bdf8' : '#ef4444',
+            fillOpacity: 1,
+            strokeColor: '#f1ffff',
+            strokeWeight: 1.8,
+          },
+        });
+        marker.addListener('dragend', (event: google.maps.MapMouseEvent) => {
+          if (!event.latLng) return;
+          const next = points.map((point, pointIndex) => pointIndex === index
+            ? [Number(event.latLng!.lng().toFixed(6)), Number(event.latLng!.lat().toFixed(6))] as Coordinate
+            : point);
+          onPolygonCoordinates(role, next, true);
+        });
+        return marker;
+      });
     });
-  }, [measurementCoordinates, referenceCoordinates, readyMap]);
+  }, [measurementCoordinates, referenceCoordinates, readyMap, onPolygonCoordinates]);
 
   useEffect(() => {
     if (!readyMap) return undefined;
@@ -1312,7 +1324,14 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     } catch { /* session storage is optional */ }
     onKnownPlaceAnalysis();
   };
-  const knownPlacePolygonsReady = measurementClosed && referenceClosed && measurementCoordinates.length >= 3 && referenceCoordinates.length >= 3;
+  const knownPlacePolygonValidation = validatePolygonPair(
+    null,
+    measurementCoordinates,
+    referenceCoordinates,
+    measurementClosed,
+    referenceClosed,
+  );
+  const knownPlacePolygonsReady = knownPlacePolygonValidation.valid;
   const mapRef = useRef<google.maps.Map | null>(null);
   const workflowGranuleName = selectedHarmonyProduct?.granule_name || qualityGranuleName.trim();
   const individualLayerJobs: Record<string, HarmonyQualityLayerJob> = {};
@@ -2493,7 +2512,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" /><span className="button-label-full">Analyze area</span><span className="button-label-short">Analyze</span></button>
                   <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" /><span className="button-label-full">Reference area</span><span className="button-label-short">Reference</span></button>
                   <button type="button" onClick={clearAllKnownPlacePolygons}><span className="button-label-full">Clear</span><span className="button-label-short">Clear</span></button>
-                  <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}><span className="button-label-full">Confirm polygons</span><span className="button-label-short">Confirm</span></button>
+                  <button type="button" className="confirm-button" disabled={!knownPlacePolygonValidation.valid} onClick={confirmKnownPlacePolygons}><span className="button-label-full">Confirm polygons</span><span className="button-label-short">Confirm</span></button>
                 </>}
                 {!isKnownPlaceSetupPage && drawing && (
                   <>
@@ -2508,6 +2527,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   <button type="button" onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
+
+              {isKnownPlaceSetupPage && measurementCoordinates.length >= 3 && referenceCoordinates.length >= 3 && !knownPlacePolygonValidation.valid && (
+                <p className="known-place-polygon-error" role="alert">{knownPlacePolygonValidation.message}</p>
+              )}
 
               <div className="time-actions">
                 <span>Observation window</span>

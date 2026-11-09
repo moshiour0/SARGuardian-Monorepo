@@ -1096,6 +1096,7 @@
 .known-place-setup-action-bar .draw-actions button.active { background: #123b72; border-color: #8bc8ff; color: #fff !important; }
 .known-place-setup-action-bar .draw-actions button:nth-child(3),
 .known-place-setup-action-bar .draw-actions button:nth-child(4) { min-width: 145px; }
+.known-place-polygon-error { grid-column: 1 / -1; margin: 0; padding: 7px 10px; border-left: 3px solid #ff6b6b; border-radius: 4px; background: rgba(120, 28, 36, .78); color: #fff1f1; font-size: 11px; font-weight: 700; }
 .button-label-short { display: none; }
 
 @media (max-width: 640px) {
