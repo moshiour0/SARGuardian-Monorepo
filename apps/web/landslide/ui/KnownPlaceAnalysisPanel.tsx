@@ -5,9 +5,7 @@ import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
 import {
   getKnownPlaceAnalysisStatus,
-  getKnownPlacePaperReproductionStatus,
   startKnownPlaceAnalysis,
-  startKnownPlacePaperReproduction,
   type KnownPlaceAnalysisInput,
   type KnownPlaceAnalysisMode,
   type KnownPlaceAnalysisRun,
@@ -70,24 +68,6 @@ function storageKey(uid: string): string {
   return `sarguardian.knownPlaceAnalysis.v1:${uid}`;
 }
 
-function paperReproductionStorageKey(uid: string): string {
-  return `sarguardian.knownPlacePaperReproduction.v1:${uid}`;
-}
-
-function loadPaperReproductionRun(uid: string): StoredRun | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.sessionStorage.getItem(paperReproductionStorageKey(uid));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<StoredRun>;
-    if (typeof parsed.request_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(parsed.request_id)) return null;
-    if (!['dispatching', 'queued', 'in_progress', 'completed'].includes(String(parsed.status))) return null;
-    return { ...parsed, execute_downloads: true } as StoredRun;
-  } catch {
-    return null;
-  }
-}
-
 function geometryDraftKey(uid: string): string {
   return `sarguardian.knownPlaceGeometry.v1:${uid}`;
 }
@@ -145,7 +125,7 @@ function resultLabel(run: StoredRun): string {
   return 'Workflow failed';
 }
 
-export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, placeName, aoiAreaKm2, onBack }: Props) {
+export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack }: Props) {
   const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
   const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
   const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>('HH');
@@ -160,11 +140,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, plac
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
   const [geometryHeight, setGeometryHeight] = useState('');
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
-  const [paperRawConsent, setPaperRawConsent] = useState(false);
-  const [paperPending, setPaperPending] = useState(false);
-  const [paperRun, setPaperRun] = useState<StoredRun | null>(() => loadPaperReproductionRun(user.uid));
-  const [paperError, setPaperError] = useState('');
-  const [paperPollError, setPaperPollError] = useState('');
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
   const [error, setError] = useState('');
@@ -228,44 +203,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, plac
     }
     try { sessionStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* session storage is optional */ }
   }, [run, user.uid]);
-
-  useEffect(() => {
-    if (!paperRun) {
-      try { sessionStorage.removeItem(paperReproductionStorageKey(user.uid)); } catch { /* session storage is optional */ }
-      return;
-    }
-    try { sessionStorage.setItem(paperReproductionStorageKey(user.uid), JSON.stringify(paperRun)); } catch { /* session storage is optional */ }
-  }, [paperRun, user.uid]);
-
-  const paperRunRequestId = paperRun?.request_id ?? null;
-  const paperRunStatus = paperRun?.status ?? null;
-
-  useEffect(() => {
-    const requestId = paperRunRequestId;
-    if (!requestId || paperRunStatus === 'completed') return undefined;
-    let active = true;
-    let timeoutId: number | undefined;
-    const poll = async () => {
-      try {
-        const next = await getKnownPlacePaperReproductionStatus(requestId, user);
-        if (!active) return;
-        setPaperPollError('');
-        setPaperRun((current) => current && current.request_id === next.request_id
-          ? { ...current, ...next, execute_downloads: true }
-          : current);
-        if (next.status !== 'completed' && active) timeoutId = window.setTimeout(poll, 3500);
-      } catch (statusError) {
-        if (!active) return;
-        setPaperPollError(statusError instanceof Error ? statusError.message : 'Could not refresh paper-reproduction status yet.');
-        timeoutId = window.setTimeout(poll, 8000);
-      }
-    };
-    timeoutId = window.setTimeout(poll, 1200);
-    return () => {
-      active = false;
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-    };
-  }, [paperRunRequestId, paperRunStatus, user]);
 
   const runRequestId = run?.request_id ?? null;
   const runStatus = run?.status ?? null;
@@ -351,85 +288,12 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, plac
     }
   };
 
-  const submitPaperReproduction = async () => {
-    if (!paperRawConsent) {
-      setPaperError('Explicitly authorize the fixed five-pair P05023 raw-source replay before continuing.');
-      return;
-    }
-    setPaperPending(true);
-    setPaperError('');
-    setPaperPollError('');
-    try {
-      const submitted = await startKnownPlacePaperReproduction({ confirm_raw_downloads: true }, user);
-      setPaperRun({ ...submitted, execute_downloads: true });
-    } catch (submitError) {
-      setPaperError(submitError instanceof Error ? submitError.message : 'Could not submit the author-exact paper reproduction.');
-    } finally {
-      setPaperPending(false);
-    }
-  };
-
-  const paperRunTerminal = paperRun?.status === 'completed';
-  const paperRunSucceeded = paperRunTerminal && paperRun?.conclusion === 'success';
-  const paperRunFailed = paperRunTerminal && !paperRunSucceeded;
-
   const runTerminal = run?.status === 'completed';
   const runSucceeded = runTerminal && run?.conclusion === 'success';
   const runFailed = runTerminal && !runSucceeded;
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
-      <section className="nisar-results-summary">
-        <span className="result-kicker">KNOWN PLACE · TWO DISTINCT SCIENCE PATHS</span>
-        <h1>Known Place Analysis</h1>
-        <p>Use the fixed Bhote Koshi author-exact benchmark to reproduce the research workflow, or use the custom two-polygon path for a separate generic GOFF measurement. Neither path is merged into target-free Find Displacements.</p>
-        <div className="catalog-stats">
-          <div><span>Known place</span><strong>{placeName || 'AOI only — no named place'}</strong></div>
-          <div><span>AOI area</span><strong>{Number.isFinite(aoiAreaKm2) && aoiAreaKm2 > 0 ? `${aoiAreaKm2.toFixed(2)} km²` : 'Not validated'}</strong></div>
-          <div><span>Start date</span><strong>{startDate || 'Not selected'}</strong></div>
-          <div><span>End date</span><strong>{endDate || 'Not selected'}</strong></div>
-        </div>
-        <p className="catalog-notice">The original map AOI is retained as the outer selection boundary. The Measurement Polygon is the area whose pairwise motion is summarized. The Reference Polygon may be disjoint, or may enclose the Measurement Polygon; in the enclosing case, measurement cells are excluded from background statistics. Reference-ground stability is not independently verified.</p>
-        <section className="known-place-paper-reproduction" aria-labelledby="known-place-paper-title">
-          <div className="known-place-paper-heading">
-            <span className="result-kicker">FIXED RESEARCH BENCHMARK · AUTHOR-EXACT P05023</span>
-            <h2 id="known-place-paper-title">Bhote Koshi 2026 paper reproduction</h2>
-            <p>Replays the five author-specified ascending T098 HH GOFF pairs from 20 June–31 August 2026 using the separately pinned P05023 source path, author terrain inputs, numerical parity checks and derived-only retention.</p>
-          </div>
-          <div className="known-place-paper-facts">
-            <div><span>Author release</span><strong>P05023 only</strong></div>
-            <div><span>Study site</span><strong>Bhote Koshi, Nepal</strong></div>
-            <div><span>Five intervals</span><strong>20 Jun → 31 Aug 2026</strong></div>
-            <div><span>Output retention</span><strong>Derived-only + Drive receipt</strong></div>
-          </div>
-          <p className="catalog-notice">Scientific claim boundary: the backend's current whole-paper status is PARTIAL. A successful raw replay is not by itself full-paper parity; the original crown vector/golden mask, displacement-null draw history, RGI 6.0 overlay and terrain provenance remain separate evidence gates. Hazard detection remains NOT_EVALUATED.</p>
-          <div className="known-place-paper-consent">
-            <label>
-              <input type="checkbox" checked={paperRawConsent} onChange={(event) => setPaperRawConsent(event.target.checked)} />
-              <span><b>I explicitly authorize a new author-exact raw-data replay.</b> This requests the five pinned P05023 GOFF products. Earthdata and Google Drive credentials are checked before acquisition; raw HDF5 stays temporary and derived results/receipts are retained.</span>
-            </label>
-            <button type="button" className="investigate-button" disabled={!paperRawConsent || paperPending} onClick={() => void submitPaperReproduction()}>
-              {paperPending ? 'Submitting paper reproduction…' : 'Run Bhote Koshi author-exact replay'}
-            </button>
-          </div>
-          {paperError && <p className="catalog-error" role="alert">{paperError}</p>}
-          {paperRun && (
-            <div className="known-place-paper-run" aria-live="polite">
-              <div className="known-place-run-heading">
-                <span className="result-kicker">AUTHOR-EXACT RUN STATUS</span>
-                <strong>{resultLabel(paperRun)}</strong>
-              </div>
-              <p><b>Request ID:</b> <code>{paperRun.request_id}</code></p>
-              {paperRun.github_run_id && <p><b>GitHub Actions run:</b> <code>{paperRun.github_run_id}</code></p>}
-              {paperRun.conclusion && <p><b>Conclusion:</b> {paperRun.conclusion}</p>}
-              {paperRun.notice && <p className="catalog-notice">{paperRun.notice}</p>}
-              {paperPollError && !paperRunTerminal && <p className="action-hint" role="status">{paperPollError} Automatic status checks will retry.</p>}
-              {paperRun.github_run_url && <a className="known-place-run-link" href={paperRun.github_run_url} target="_blank" rel="noreferrer">Open author-exact GitHub run and result bundle</a>}
-              {paperRunSucceeded && <p className="catalog-notice">The workflow completed. Inspect the actual P05023 hashes, comparison counts, remaining PARITY status and Drive receipt before describing the paper as reproduced.</p>}
-              {paperRunFailed && <p className="catalog-error">The author-exact workflow ended with {paperRun.conclusion || 'an error'}. Open the run link to inspect the credential gate or failed scientific stage.</p>}
-            </div>
-          )}
-        </section>
         <section className="known-place-custom-measurement" aria-labelledby="known-place-custom-title">
           <span className="result-kicker">CUSTOM MEASUREMENT · GENERIC GOFF METHOD</span>
           <h2 id="known-place-custom-title">Two-polygon known-place measurement</h2>
@@ -546,7 +410,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, plac
         )}
         </section>
         <button type="button" className="workspace-nav-link known-place-back" onClick={onBack}>← Back to AOI map</button>
-      </section>
     </main>
   );
 }
