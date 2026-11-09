@@ -1082,6 +1082,9 @@
 .known-place-apply-wkt { align-self: flex-start; margin-top: 6px; padding: 6px 9px; border: 1px solid rgba(220, 248, 255, .3); border-radius: 5px; background: rgba(73, 184, 242, .12); color: #eaf7ff; cursor: pointer; font-size: 9px; font-weight: 700; }
 .known-place-apply-wkt:hover { border-color: rgba(158, 216, 255, .85); background: rgba(73, 184, 242, .2); }
 
+.known-place-inline-polygons { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; padding: 4px 0; color: #cdeaf7; font-size: 9px; font-weight: 700; }
+.known-place-inline-polygons span { padding: 6px 8px; border: 1px solid rgba(158,216,255,.22); border-radius: 5px; background: rgba(7,55,79,.45); }
+
 
 /* Separate fixed author-exact research replay from generic two-polygon measurement. */
 .known-place-paper-reproduction,

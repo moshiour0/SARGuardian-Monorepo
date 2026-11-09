@@ -5,7 +5,7 @@ import type { User } from 'firebase/auth';
 import { analyzeGunwAoiQuality, createDisplacementJob, createQueuedJob, DEFAULT_DISPLACEMENT_OPTIONS, getNisarHarmonyJobStatus, getProcessingJob, inspectNisarAoiWindow, listProcessingJobs, searchNisarCatalog, startGunwQualityLayers, startNisarHarmonyLayerJob, verifyGunwNativeSourceMask } from '../../src/api/catalog';
 import type { AoiWindowResponse, CatalogProduct, CatalogResponse, GunwQualityAnalysisResponse, HarmonyLayerRole, HarmonyQualityLayerBundle, HarmonyQualityLayerJob, NativeSourceMaskVerificationResponse, NisarProductType, ProcessingJob, SubmittedHarmonyLayerJob } from '../../src/api/catalog';
 import { calculateGeodesicAreaKm2, canSubmitCatalogPreflight, validateCatalogPreflight, validatePolyline } from '../engine/validation';
-import { isPointInsidePolygon, parsePolygonWkt, prepareInvestigation } from '../engine/investigation';
+import { isPointInsidePolygon, parsePolygonWkt, polygonToWkt, prepareInvestigation } from '../engine/investigation';
 import { DisplacementPreparation } from './DisplacementPreparation';
 import { ScientificResultsPage } from './ScientificResults';
 import { KnownPlaceAnalysisPanel } from './KnownPlaceAnalysisPanel';
@@ -36,9 +36,13 @@ type MapCanvasProps = {
   onSearchText: (value: string) => void;
   onMapReady: (map: google.maps.Map | null) => void;
   onPlacesReady: (ready: boolean, message?: string) => void;
+  measurementCoordinates: Coordinate[];
+  referenceCoordinates: Coordinate[];
+  polygonDrawingRole: 'measurement' | 'reference' | null;
+  onPolygonCoordinates: (role: 'measurement' | 'reference', coordinates: Coordinate[], closed: boolean) => void;
 };
 
-function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, selectedVertexIndex, isVisible, onLocation, onCoordinates, onSelectedVertex, onSearchText, onMapReady, onPlacesReady }: MapCanvasProps) {
+function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, selectedVertexIndex, isVisible, onLocation, onCoordinates, onSelectedVertex, onSearchText, onMapReady, onPlacesReady, measurementCoordinates, referenceCoordinates, polygonDrawingRole, onPolygonCoordinates }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(drawing);
   const coordinatesRef = useRef(coordinates);
@@ -46,6 +50,10 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
   const onCoordinatesRef = useRef(onCoordinates);
   const onLocationRef = useRef(onLocation);
   const onSelectedVertexRef = useRef(onSelectedVertex);
+  const measurementRef = useRef(measurementCoordinates);
+  const referenceRef = useRef(referenceCoordinates);
+  const polygonDrawingRoleRef = useRef(polygonDrawingRole);
+  const onPolygonCoordinatesRef = useRef(onPolygonCoordinates);
   const onSearchTextRef = useRef(onSearchText);
   const autocompleteRef = useRef<google.maps.places.PlaceAutocompleteElement | null>(null);
   const [readyMap, setReadyMap] = useState<google.maps.Map | null>(null);
@@ -68,6 +76,10 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
   onCoordinatesRef.current = onCoordinates;
   onLocationRef.current = onLocation;
   onSelectedVertexRef.current = onSelectedVertex;
+  measurementRef.current = measurementCoordinates;
+  referenceRef.current = referenceCoordinates;
+  polygonDrawingRoleRef.current = polygonDrawingRole;
+  onPolygonCoordinatesRef.current = onPolygonCoordinates;
   onSearchTextRef.current = onSearchText;
 
   // Keep the manual target fields aligned with place search, including when the map API fails.
@@ -113,8 +125,22 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
         });
 
         mapClickListener = map.addListener('click', (event: google.maps.MapMouseEvent) => {
-          if (!drawingRef.current || !event.latLng) return;
+          if ((!drawingRef.current && !polygonDrawingRoleRef.current) || !event.latLng) return;
           const next: Coordinate = [Number(event.latLng.lng().toFixed(6)), Number(event.latLng.lat().toFixed(6))];
+          const polygonRole = polygonDrawingRoleRef.current;
+          if (polygonRole) {
+            const current = [...(polygonRole === 'measurement' ? measurementRef.current : referenceRef.current)];
+            if (current.length >= 2) {
+              const first = current[0];
+              const distanceKm = Math.hypot(next[0] - first[0], next[1] - first[1]) * 111;
+              if (distanceKm < 0.1) {
+                onPolygonCoordinatesRef.current(polygonRole, current, true);
+                return;
+              }
+            }
+            onPolygonCoordinatesRef.current(polygonRole, [...current, next], false);
+            return;
+          }
           const existing = [...coordinatesRef.current];
           if (existing.length >= 2) {
             const first = existing[0];
@@ -191,6 +217,36 @@ function MapCanvas({ location, searchText, coordinates, areaClosed, drawing, sel
   useEffect(() => {
     aoiOverlays.update({ coordinates, areaClosed, drawing, selectedVertexIndex });
   }, [aoiOverlays, coordinates, areaClosed, drawing, selectedVertexIndex]);
+
+  const secondaryOverlaysRef = useRef<Record<'measurement' | 'reference', google.maps.Polygon | null>>({ measurement: null, reference: null });
+  useEffect(() => {
+    if (!readyMap) return undefined;
+    const overlays = secondaryOverlaysRef.current;
+    (['measurement', 'reference'] as const).forEach((role) => {
+      overlays[role] = new google.maps.Polygon({
+        map: readyMap,
+        strokeColor: role === 'measurement' ? '#f7c66b' : '#38bdf8',
+        fillColor: role === 'measurement' ? '#f7c66b' : '#38bdf8',
+        strokeOpacity: .95,
+        fillOpacity: .18,
+        strokeWeight: 3,
+        clickable: false,
+        editable: false,
+        zIndex: role === 'measurement' ? 4 : 3,
+      });
+    });
+    return () => {
+      overlays.measurement?.setMap(null);
+      overlays.reference?.setMap(null);
+      overlays.measurement = null;
+      overlays.reference = null;
+    };
+  }, [readyMap]);
+
+  useEffect(() => {
+    secondaryOverlaysRef.current.measurement?.setPath(measurementCoordinates.map(([lng, lat]) => ({ lng, lat })));
+    secondaryOverlaysRef.current.reference?.setPath(referenceCoordinates.map(([lng, lat]) => ({ lng, lat })));
+  }, [measurementCoordinates, referenceCoordinates]);
 
   useEffect(() => {
     if (!readyMap) return undefined;
@@ -1107,6 +1163,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [coordinates, setCoordinates] = useState<Coordinate[]>(initialSessionState.coordinates);
   const [areaClosed, setAreaClosed] = useState(initialSessionState.areaClosed);
   const [drawing, setDrawing] = useState(initialSessionState.drawing);
+  const [measurementCoordinates, setMeasurementCoordinates] = useState<Coordinate[]>([]);
+  const [referenceCoordinates, setReferenceCoordinates] = useState<Coordinate[]>([]);
+  const [measurementClosed, setMeasurementClosed] = useState(false);
+  const [referenceClosed, setReferenceClosed] = useState(false);
+  const [polygonDrawingRole, setPolygonDrawingRole] = useState<'measurement' | 'reference' | null>(null);
   const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
   const [windowStart, setWindowStart] = useState(initialSessionState.windowStart);
   const [windowEnd, setWindowEnd] = useState(initialSessionState.windowEnd);
@@ -1166,6 +1227,32 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [isSourceMaskVerifying, setIsSourceMaskVerifying] = useState(false);
   const [sourceMaskVerificationError, setSourceMaskVerificationError] = useState('');
   const [sourceMaskVerification, setSourceMaskVerification] = useState<NativeSourceMaskVerificationResponse | null>(null);
+  const [knownPlaceSetupReady, setKnownPlaceSetupReady] = useState(false);
+
+  const handleKnownPlacePolygonCoordinates = useCallback((role: 'measurement' | 'reference', next: Coordinate[], closed: boolean) => {
+    if (role === 'measurement') setMeasurementCoordinates(next);
+    else setReferenceCoordinates(next);
+    if (role === 'measurement') setMeasurementClosed(closed);
+    else setReferenceClosed(closed);
+    if (closed) setPolygonDrawingRole(null);
+  }, []);
+
+  const clearKnownPlacePolygon = (role: 'measurement' | 'reference') => {
+    if (role === 'measurement') { setMeasurementCoordinates([]); setMeasurementClosed(false); }
+    else { setReferenceCoordinates([]); setReferenceClosed(false); }
+    setPolygonDrawingRole(null);
+  };
+
+  const continueKnownPlace = () => {
+    try {
+      sessionStorage.setItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`, JSON.stringify({
+        measurementWkt: measurementCoordinates.length >= 3 ? polygonToWkt(measurementCoordinates) : '',
+        referenceWkt: referenceCoordinates.length >= 3 ? polygonToWkt(referenceCoordinates) : '',
+      }));
+    } catch { /* session storage is optional */ }
+    onKnownPlaceAnalysis();
+  };
+  const knownPlacePolygonsReady = measurementClosed && referenceClosed && measurementCoordinates.length >= 3 && referenceCoordinates.length >= 3;
   const mapRef = useRef<google.maps.Map | null>(null);
   const workflowGranuleName = selectedHarmonyProduct?.granule_name || qualityGranuleName.trim();
   const individualLayerJobs: Record<string, HarmonyQualityLayerJob> = {};
@@ -2232,6 +2319,10 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           onSearchText={setSearchText}
           onMapReady={handleMapReady}
           onPlacesReady={handlePlacesReady}
+          measurementCoordinates={measurementCoordinates}
+          referenceCoordinates={referenceCoordinates}
+          polygonDrawingRole={polygonDrawingRole}
+          onPolygonCoordinates={handleKnownPlacePolygonCoordinates}
           isVisible={!isResultsPage && !isDisplacementPage && !isKnownPlaceAnalysisPage}
         />
 
@@ -2316,6 +2407,12 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
 
               <div className="draw-actions">
                 <button type="button" className={!drawing && !areaClosed ? 'active' : ''} disabled={!mapReady} onClick={beginGeometry}><Icon name="area" />{areaClosed ? 'Redraw' : 'Draw area'}</button>
+                {isKnownPlaceSetupPage && <>
+                  <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
+                  <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
+                  {measurementCoordinates.length > 0 && <button type="button" onClick={() => clearKnownPlacePolygon('measurement')}>Clear analyze</button>}
+                  {referenceCoordinates.length > 0 && <button type="button" onClick={() => clearKnownPlacePolygon('reference')}>Clear reference</button>}
+                </>}
                 {drawing && (
                   <>
                     <button type="button" disabled={!coordinates.length} onClick={undo}><Icon name="undo" />Undo</button>
@@ -2329,6 +2426,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   <button type="button" onClick={clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
+
+              {isKnownPlaceSetupPage && <div className="known-place-inline-polygons" aria-live="polite">
+                <span>Analyze area: {measurementClosed ? `${measurementCoordinates.length} vertices · ready` : `${measurementCoordinates.length} vertices · draw required`}</span>
+                <span>Reference area: {referenceClosed ? `${referenceCoordinates.length} vertices · ready` : `${referenceCoordinates.length} vertices · draw required`}</span>
+              </div>}
 
               <div className="time-actions">
                 <span>Observation window</span>
@@ -2367,8 +2469,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading)}
-                      onClick={onKnownPlaceAnalysis}
+                      disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || !knownPlacePolygonsReady}
+                      onClick={continueKnownPlace}
                     >
                       {isCatalogLoading ? 'Checking AOI and date window…' : 'Continue to polygon inputs'}
                     </button>
