@@ -1193,6 +1193,20 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
       selectedHarmonyProduct: null,
     };
   });
+  useEffect(() => {
+    if (!isKnownPlaceSetupPage) return;
+    setMeasurementCoordinates([]);
+    setReferenceCoordinates([]);
+    setMeasurementClosed(false);
+    setReferenceClosed(false);
+    setPolygonDrawingRole(null);
+    setWindowStart('');
+    setWindowEnd('');
+    try {
+      window.sessionStorage.removeItem(`sarguardian.knownPlaceAnalysis.v1:${user.uid}`);
+      window.sessionStorage.removeItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`);
+    } catch { /* session storage is optional */ }
+  }, [isKnownPlaceSetupPage, user.uid]);
   const [searchText, setSearchText] = useState(initialSessionState.searchText);
   const [location, setLocation] = useState<LocationSelection | null>(initialSessionState.location);
   const [searchState, setSearchState] = useState(initialSessionState.searchState);

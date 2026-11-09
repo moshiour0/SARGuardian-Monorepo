@@ -120,7 +120,8 @@ export function loadStoredRun(uid: string): StoredRun | null {
 }
 
 export function loadKnownPlaceRunRequestId(uid: string): string | null {
-  return loadStoredRun(uid)?.request_id ?? null;
+  const run = loadStoredRun(uid);
+  return run?.execute_downloads === true && run.conclusion === 'success' ? run.request_id : null;
 }
 
 function resultLabel(run: StoredRun): string {
@@ -146,7 +147,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [geometryHeight, setGeometryHeight] = useState('');
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
-  const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
+  const [run, setRun] = useState<StoredRun | null>(null);
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
