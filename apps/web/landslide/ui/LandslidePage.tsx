@@ -1237,9 +1237,19 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     if (closed) setPolygonDrawingRole(null);
   }, []);
 
-  const clearKnownPlacePolygon = (role: 'measurement' | 'reference') => {
-    if (role === 'measurement') { setMeasurementCoordinates([]); setMeasurementClosed(false); }
-    else { setReferenceCoordinates([]); setReferenceClosed(false); }
+  const clearAllKnownPlacePolygons = () => {
+    clearGeometry();
+    setMeasurementCoordinates([]);
+    setReferenceCoordinates([]);
+    setMeasurementClosed(false);
+    setReferenceClosed(false);
+    setPolygonDrawingRole(null);
+  };
+
+  const confirmKnownPlacePolygons = () => {
+    if (coordinates.length < 3 || !areaClosed || measurementCoordinates.length < 3 || referenceCoordinates.length < 3) return;
+    setMeasurementClosed(true);
+    setReferenceClosed(true);
     setPolygonDrawingRole(null);
   };
 
@@ -2410,20 +2420,19 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 {isKnownPlaceSetupPage && <>
                   <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
                   <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
-                  {measurementCoordinates.length > 0 && <button type="button" onClick={() => clearKnownPlacePolygon('measurement')}>Clear analyze</button>}
-                  {referenceCoordinates.length > 0 && <button type="button" onClick={() => clearKnownPlacePolygon('reference')}>Clear reference</button>}
+                  <button type="button" className="confirm-button" disabled={!isKnownPlaceSetupPage || !areaClosed || measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm 3 polygons</button>
                 </>}
                 {drawing && (
                   <>
                     <button type="button" disabled={!coordinates.length} onClick={undo}><Icon name="undo" />Undo</button>
-                    <button type="button" disabled={!coordinates.length} onClick={clearGeometry}><Icon name="clear" />Clear</button>
+                    <button type="button" disabled={!coordinates.length} onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                     {coordinates.length > 2 && !areaClosed && (
                       <button type="button" className="confirm-button" onClick={completeGeometry}>Close area</button>
                     )}
                   </>
                 )}
                 {!drawing && areaClosed && (
-                  <button type="button" onClick={clearGeometry}><Icon name="clear" />Clear</button>
+                  <button type="button" onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
 
