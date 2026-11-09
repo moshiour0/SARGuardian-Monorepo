@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { KnownPlacePolygonEditor } from './KnownPlacePolygonEditor';
+import { loadKnownPlaceGeometry, loadKnownPlaceSettings } from './KnownPlaceSetupControls';
+import { KnownPlacePolygonEditor, validatePolygonPair } from './KnownPlacePolygonEditor';
 import { KnownPlaceResultsDashboard } from './KnownPlaceResultsDashboard';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
@@ -73,23 +74,6 @@ function geometryDraftKey(uid: string): string {
   return `sarguardian.knownPlaceGeometry.v1:${uid}`;
 }
 
-type GeometryDraft = { measurementWkt: string; referenceWkt: string };
-
-function loadGeometryDraft(uid: string): GeometryDraft {
-  if (typeof window === 'undefined') return { measurementWkt: '', referenceWkt: '' };
-  try {
-    const raw = window.sessionStorage.getItem(geometryDraftKey(uid));
-    if (!raw) return { measurementWkt: '', referenceWkt: '' };
-    const parsed = JSON.parse(raw) as Partial<GeometryDraft>;
-    return {
-      measurementWkt: typeof parsed.measurementWkt === 'string' ? parsed.measurementWkt : '',
-      referenceWkt: typeof parsed.referenceWkt === 'string' ? parsed.referenceWkt : '',
-    };
-  } catch {
-    return { measurementWkt: '', referenceWkt: '' };
-  }
-}
-
 function samePolygonGeometry(firstWkt: string, secondWkt: string): boolean {
   try {
     const first = parsePolygonWkt(firstWkt);
@@ -127,19 +111,20 @@ function resultLabel(run: StoredRun): string {
 }
 
 export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack }: Props) {
-  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
-  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
-  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>('HH');
-  const [track, setTrack] = useState('ANY');
-  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>('ANY');
-  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>('1');
+  const savedSettings = loadKnownPlaceSettings(user.uid);
+  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>(savedSettings.hazardMode);
+  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>(savedSettings.analysisMode);
+  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>(savedSettings.polarization);
+  const [track, setTrack] = useState(savedSettings.track);
+  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>(savedSettings.direction);
+  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>(savedSettings.coherenceNeighbours);
   const [allowedReleaseIds, setAllowedReleaseIds] = useState('');
   const [candidateTransfer] = useState<CandidateTransfer | null>(() => consumeCandidateTransfer());
-  const [geometryDraft] = useState<GeometryDraft>(() => loadGeometryDraft(user.uid));
+  const [geometryDraft] = useState(() => loadKnownPlaceGeometry(user.uid));
   const [measurementWkt, setMeasurementWkt] = useState(() => candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '');
   const [referenceWkt, setReferenceWkt] = useState(() => geometryDraft.referenceWkt);
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
-  const [geometryHeight, setGeometryHeight] = useState('');
+  const [geometryHeight, setGeometryHeight] = useState(savedSettings.geometryHeight);
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
@@ -187,7 +172,19 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const handleMeasurementChange = useCallback((wkt: string) => setMeasurementWkt(wkt), []);
   const handleReferenceChange = useCallback((wkt: string) => setReferenceWkt(wkt), []);
   const handlePolygonValidation = useCallback((result: { valid: boolean; message: string }) => setPolygonValidation(result), []);
-  const canSubmitGeometry = Boolean(aoiWkt && measurementWkt && referenceWkt && polygonValidation.valid);
+  const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
+
+  useEffect(() => {
+    if (!measurementWkt || !referenceWkt) {
+      setPolygonValidation({ valid: false, message: 'Draw and close the Measurement and Reference Polygons on the setup page.' });
+      return;
+    }
+    try {
+      setPolygonValidation(validatePolygonPair(null, parsePolygonWkt(measurementWkt), parsePolygonWkt(referenceWkt), true, true));
+    } catch {
+      setPolygonValidation({ valid: false, message: 'The saved polygon geometry is invalid. Return to the setup page and redraw both polygons.' });
+    }
+  }, [measurementWkt, referenceWkt]);
 
   useEffect(() => {
     try {
@@ -265,8 +262,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [run, user]);
 
   const submit = async (executeDownloads: boolean) => {
-    if (!aoiWkt || !startDate || !endDate) {
-      setError('Return to the AOI map and create a valid outer AOI and date window first.');
+    if (!startDate || !endDate) {
+      setError('Return to the setup page and choose a valid date window first.');
       return;
     }
     if (!measurementWkt || !referenceWkt || !polygonValidation.valid) {
@@ -336,15 +333,16 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <span>{candidateTransfer.candidate.geometrySimplified ? `Boundary simplified from ${candidateTransfer.candidate.geometryOriginalVertices} to ${candidateTransfer.candidate.geometrySuggestedVertices} vertices; inspect and edit it before measurement.` : `${candidateTransfer.candidate.geometrySuggestedVertices} boundary vertices transferred; inspect and edit before measurement.`}</span>
           <span>Candidate evidence is not measured ground motion or a confirmed landslide. Draw a background polygon that is either disjoint from or fully encloses the proposed measurement area; partial overlap and boundary-touch are rejected.</span>
         </div>}
-        <KnownPlacePolygonEditor
+        {/* Geometry and settings are collected on the setup page before this analysis step. */}
+        {false && <KnownPlacePolygonEditor
           outerAoiWkt={aoiWkt}
           initialMeasurementWkt={measurementWkt || null}
           initialReferenceWkt={referenceWkt || null}
           onMeasurementChange={handleMeasurementChange}
           onReferenceChange={handleReferenceChange}
           onValidationChange={handlePolygonValidation}
-        />
-        <details className="known-place-additional-settings">
+        />}
+        {false && <details className="known-place-additional-settings">
           <summary>Additional settings</summary>
           <div className="known-place-form-grid">
           <label className="aoi-job-label">
@@ -388,7 +386,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             <input type="number" value={geometryHeight} onChange={(event) => setGeometryHeight(event.target.value)} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
           </label>
           </div>
-        </details>
+        </details>}
 
         <div className="known-place-form-grid">
           <label className="aoi-job-label known-place-wide">
