@@ -1252,13 +1252,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     setPolygonDrawingRole(null);
   };
 
-  const closeSecondaryPolygon = () => {
-    if (!polygonDrawingRole) return;
-    if (polygonDrawingRole === 'measurement' && measurementCoordinates.length >= 3) setMeasurementClosed(true);
-    if (polygonDrawingRole === 'reference' && referenceCoordinates.length >= 3) setReferenceClosed(true);
-    setPolygonDrawingRole(null);
-  };
-
   const continueKnownPlace = () => {
     try {
       sessionStorage.setItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`, JSON.stringify({
@@ -2414,8 +2407,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
               {isKnownPlaceSetupPage ? (
                 <div className="geometry-summary known-place-two-polygon-summary" aria-live="polite">
                   <span>Known Place polygons</span>
-                  <strong>Analyze {measurementCoordinates.length} vertices · {calculateGeodesicAreaKm2(measurementCoordinates).toFixed(2)} km²</strong>
-                  <small>Reference {referenceCoordinates.length} vertices · {calculateGeodesicAreaKm2(referenceCoordinates).toFixed(2)} km²</small>
+                  <strong>Analyze Area : {calculateGeodesicAreaKm2(measurementCoordinates).toFixed(2)} km²</strong>
+                  <small>Reference Area : {calculateGeodesicAreaKm2(referenceCoordinates).toFixed(2)} km²</small>
                 </div>
               ) : coordinates.length > 0 && (
                 <div className="geometry-summary" aria-live="polite">
@@ -2432,8 +2425,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                 {isKnownPlaceSetupPage && <>
                   <button type="button" className={polygonDrawingRole === 'measurement' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('measurement')}><Icon name="area" />Analyze area</button>
                   <button type="button" className={polygonDrawingRole === 'reference' ? 'active' : ''} disabled={!mapReady} onClick={() => setPolygonDrawingRole('reference')}><Icon name="area" />Reference area</button>
-                  <button type="button" className="confirm-button" disabled={!polygonDrawingRole || (polygonDrawingRole === 'measurement' ? measurementCoordinates.length < 3 : referenceCoordinates.length < 3)} onClick={closeSecondaryPolygon}>Close polygon</button>
                   <button type="button" className="confirm-button" disabled={measurementCoordinates.length < 3 || referenceCoordinates.length < 3} onClick={confirmKnownPlacePolygons}>Confirm polygons</button>
+                  <button type="button" onClick={clearAllKnownPlacePolygons}>Clear</button>
                 </>}
                 {!isKnownPlaceSetupPage && drawing && (
                   <>
@@ -2448,11 +2441,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                   <button type="button" onClick={isKnownPlaceSetupPage ? clearAllKnownPlacePolygons : clearGeometry}><Icon name="clear" />Clear</button>
                 )}
               </div>
-
-              {isKnownPlaceSetupPage && <div className="known-place-inline-polygons" aria-live="polite">
-                <span>Analyze area: {measurementClosed ? `${measurementCoordinates.length} vertices · ready` : `${measurementCoordinates.length} vertices · draw required`}</span>
-                <span>Reference area: {referenceClosed ? `${referenceCoordinates.length} vertices · ready` : `${referenceCoordinates.length} vertices · draw required`}</span>
-              </div>}
 
               <div className="time-actions">
                 <span>Observation window</span>

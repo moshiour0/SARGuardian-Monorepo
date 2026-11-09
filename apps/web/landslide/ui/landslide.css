@@ -1084,6 +1084,10 @@
 
 .known-place-inline-polygons { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; padding: 4px 0; color: #cdeaf7; font-size: 9px; font-weight: 700; }
 .known-place-inline-polygons span { padding: 6px 8px; border: 1px solid rgba(158,216,255,.22); border-radius: 5px; background: rgba(7,55,79,.45); }
+.known-place-two-polygon-summary { grid-template-columns: auto auto; min-width: 260px; gap: 4px 12px; padding: 8px 11px; }
+.known-place-two-polygon-summary span { grid-column: 1 / -1; }
+.known-place-two-polygon-summary strong, .known-place-two-polygon-summary small { white-space: nowrap; }
+.known-place-setup-action-bar { gap: 8px; padding: 8px 10px; }
 
 
 /* Separate fixed author-exact research replay from generic two-polygon measurement. */
