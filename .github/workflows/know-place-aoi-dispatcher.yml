@@ -90,6 +90,11 @@ on:
         required: false
         default: ""
         type: string
+      preferred_granules:
+        description: "Optional comma-separated exact GOFF granules selected by processing variant"
+        required: false
+        default: ""
+        type: string
       reference_wkt:
         description: "Optional independent reference/background polygon WKT"
         required: false
@@ -160,6 +165,7 @@ jobs:
       track: ${{ inputs.track }}
       direction: ${{ inputs.direction }}
       allowed_release_ids: ${{ inputs.allowed_release_ids }}
+      preferred_granules: ${{ inputs.preferred_granules }}
       reference_wkt: ${{ inputs.reference_wkt }}
       candidate_context_json: ${{ inputs.candidate_context_json }}
       consent_marker: ${{ inputs.consent_marker }}
