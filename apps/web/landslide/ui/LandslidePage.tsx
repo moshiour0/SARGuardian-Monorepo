@@ -1511,7 +1511,22 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const dateValidationError = windowStart && windowEnd
     ? fieldValidationErrors.find((message) => /date|archive search|time window/i.test(message)) || ''
     : '';
-  const actionableValidationError = aoiValidationError || dateValidationError;
+  // Known Place setup uses two polygons instead of the displacement AOI, so
+  // the displacement preflight above cannot validate its date window. Keep the
+  // same 90-day archive limit here as an explicit setup-page guard.
+  const knownPlaceDateValidationError = isKnownPlaceSetupPage && windowStart && windowEnd
+    ? (() => {
+      const start = Date.parse(`${windowStart}T00:00:00Z`);
+      const end = Date.parse(`${windowEnd}T00:00:00Z`);
+      const todayUtc = Date.parse(`${today}T00:00:00Z`);
+      if (Number.isNaN(start) || Number.isNaN(end)) return 'Choose valid archive dates.';
+      if (end < start) return 'Archive end date must be on or after the start date.';
+      if (end > todayUtc) return 'Archive end date cannot be in the future.';
+      const windowDays = Math.ceil((end - start) / 86400000);
+      return windowDays > 90 ? 'Archive searches are limited to 90 days; shorten the time window.' : '';
+    })()
+    : '';
+  const actionableValidationError = aoiValidationError || dateValidationError || knownPlaceDateValidationError;
   const validationPopupError = !validationAlertDismissed ? actionableValidationError : '';
   const visibleError = catalogError || error || (!validationAlertDismissed ? knownPlacePolygonError : '') || validationPopupError;
 
@@ -2577,7 +2592,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={isCatalogLoading || !windowStart || !windowEnd || Boolean(dateValidationError) || windowEnd < windowStart || windowStart > today || windowEnd > today || !knownPlacePolygonsReady}
+                      disabled={isCatalogLoading || !windowStart || !windowEnd || Boolean(dateValidationError || knownPlaceDateValidationError) || windowEnd < windowStart || windowStart > today || windowEnd > today || !knownPlacePolygonsReady}
                       onClick={continueKnownPlace}
                     >
                       {isCatalogLoading ? 'Checking date window…' : 'Continue'}
