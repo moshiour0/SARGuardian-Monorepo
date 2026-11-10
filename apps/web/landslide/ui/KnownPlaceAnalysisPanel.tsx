@@ -288,8 +288,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           const match = /^NISAR_L2_([A-Z]{2})_GOFF_/.exec(granule);
           if (!match) continue;
           const processing = match[1];
-          const key = `${ids.join(',')}::${processing}`;
-          const current = variants.get(key) || { key, releaseId: ids[0] || '', processing, granules: [] };
+          // A diagnostics payload can contain multiple release IDs in the
+          // same processing variant. Pin only granules belonging to the
+          // release option the user selected, never the whole PR/UR set.
+          const releaseMatches = Array.from(granule.matchAll(/_([A-Z]\d{5})_/g)).map((item) => item[1]);
+          const releaseId = releaseMatches.length ? releaseMatches[releaseMatches.length - 1] : (ids[0] || '');
+          const key = `${releaseId}::${processing}`;
+          const current: VariantOption = variants.get(key) || { key, releaseId, processing, granules: [] };
           current.granules.push(granule);
           variants.set(key, current);
         }
