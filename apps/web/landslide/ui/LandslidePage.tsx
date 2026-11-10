@@ -1329,8 +1329,11 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     null,
     measurementCoordinates,
     referenceCoordinates,
-    measurementClosed,
-    referenceClosed,
+    // The setup UI uses a single confirmation action instead of a separate
+    // "close" button. Treat three-point rings as shape-valid for that button;
+    // confirmation below is still what marks both polygons closed/ready.
+    measurementClosed || measurementCoordinates.length >= 3,
+    referenceClosed || referenceCoordinates.length >= 3,
   );
   const knownPlaceMeasurementAreaKm2 = calculateGeodesicAreaKm2(measurementCoordinates);
   const knownPlaceReferenceAreaKm2 = calculateGeodesicAreaKm2(referenceCoordinates);
@@ -1343,7 +1346,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
           ? `Reference Area is ${knownPlaceReferenceAreaKm2.toFixed(2)} km². Each polygon must be 1,000 km² or smaller.`
           : ''
     : '';
-  const knownPlacePolygonsReady = !knownPlacePolygonError;
+  const knownPlacePolygonsReady = measurementClosed && referenceClosed && !knownPlacePolygonError;
   const mapRef = useRef<google.maps.Map | null>(null);
   const workflowGranuleName = selectedHarmonyProduct?.granule_name || qualityGranuleName.trim();
   const individualLayerJobs: Record<string, HarmonyQualityLayerJob> = {};
