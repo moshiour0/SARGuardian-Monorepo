@@ -342,6 +342,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       const analysisInput = {
         ...createAnalysisInput(executeDownloads),
         geometry_height_m: height,
+        // A new catalog dry run must discover candidates for the current
+        // polygons/date window; never carry an older pinned release/variant
+        // into that discovery request.
+        ...(executeDownloads ? {} : {
+          allowed_release_ids: '',
+          preferred_granules: '',
+        }),
       };
       const requestFingerprint = knownPlaceRequestFingerprint(analysisInput);
       const submitted = await startKnownPlaceAnalysis(analysisInput, user);
@@ -350,6 +357,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         execute_downloads: executeDownloads,
         request_fingerprint: requestFingerprint,
       });
+      if (!executeDownloads) {
+        setAllowedReleaseIds('');
+        setPreferredGranules('');
+      }
       if (executeDownloads) {
         try {
           sessionStorage.removeItem('sarguardian.knownPlaceCandidate.v1');
