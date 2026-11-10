@@ -50,6 +50,11 @@ on:
         required: false
         default: ""
         type: string
+      preferred_granules:
+        description: "Optional comma-separated exact GOFF granules selected by processing variant"
+        required: false
+        default: ""
+        type: string
       reference_wkt:
         required: false
         default: ""
@@ -191,6 +196,7 @@ jobs:
           TRACK: ${{ inputs.track }}
           DIRECTION: ${{ inputs.direction }}
           ALLOWED_RELEASE_IDS: ${{ inputs.allowed_release_ids }}
+          PREFERRED_GRANULES: ${{ inputs.preferred_granules }}
           REFERENCE_WKT: ${{ inputs.reference_wkt }}
           CANDIDATE_CONTEXT_JSON: ${{ inputs.candidate_context_json }}
           CONSENT_MARKER: ${{ inputs.consent_marker || '' }}
@@ -203,7 +209,7 @@ jobs:
 
           selection = {
               "allowed_maturities": ["PROVISIONAL"],
-              "preferred_granules": [],
+              "preferred_granules": [item.strip() for item in os.environ.get("PREFERRED_GRANULES", "").split(",") if item.strip()],
               "allowed_release_ids": [item.strip().upper() for item in os.environ.get("ALLOWED_RELEASE_IDS", "").split(",") if item.strip()],
           }
           if os.environ["TRACK"].strip().upper() != "ANY":

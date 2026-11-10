@@ -37,6 +37,7 @@ export type KnownPlaceAnalysisInput = {
   direction: 'ANY' | 'A' | 'D';
   coherence_neighbours: '1' | '5' | '10' | '15' | '20' | '25';
   allowed_release_ids: string;
+  preferred_granules: string;
   reference_wkt: string;
   geometry_height_m: number | null;
   execute_downloads: boolean;
@@ -281,6 +282,9 @@ export type KnownPlaceAnalysisResults = {
       known_nisar_data_gaps_intersecting_requested_pairs: unknown;
       candidate_release_ids: string[];
       selection_required: boolean;
+      selection_diagnostics?: {
+        ambiguous_pairs?: Array<{ candidate_granules?: string[] }>;
+      } | null;
       chains: KnownPlaceChain[];
     };
     pairs: KnownPlacePairResult[];

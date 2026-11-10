@@ -17,6 +17,7 @@ import {
 } from './knownPlacePreflight';
 
 type StoredRun = KnownPlaceAnalysisRun & { execute_downloads: boolean; request_fingerprint?: string };
+type VariantOption = { key: string; releaseId: string; processing: string; granules: string[] };
 
 type CandidateTransfer = {
   schemaVersion: 'sarguardian-known-place-candidate/1.0';
@@ -139,6 +140,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>('ANY');
   const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>('1');
   const [allowedReleaseIds, setAllowedReleaseIds] = useState('');
+  const [preferredGranules, setPreferredGranules] = useState('');
   const [candidateTransfer] = useState<CandidateTransfer | null>(() => consumeCandidateTransfer());
   const [geometryDraft] = useState<GeometryDraft>(() => loadGeometryDraft(user.uid));
   const [measurementWkt, setMeasurementWkt] = useState(() => candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '');
@@ -149,6 +151,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(null);
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
+  const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
@@ -164,6 +167,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     direction,
     coherence_neighbours: coherenceNeighbours,
     allowed_release_ids: allowedReleaseIds.trim(),
+    preferred_granules: preferredGranules.trim(),
     reference_wkt: referenceWkt,
     candidate_context: candidateTransfer ? {
       source: 'FIND_DISPLACEMENTS',
@@ -257,6 +261,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   useEffect(() => {
     if (!run || run.status !== 'completed' || run.conclusion !== 'success' || run.execute_downloads !== false) {
       setCatalogReleaseIds([]);
+      setCatalogVariantOptions([]);
       setCatalogReleaseError('');
       return undefined;
     }
@@ -274,6 +279,21 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             .filter((releaseId): releaseId is string => Boolean(releaseId)),
         ));
         setCatalogReleaseIds(ids);
+        const diagnostics = payload.result.pairwise_series_plan.selection_diagnostics;
+        const granules = Array.from(new Set(
+          (diagnostics?.ambiguous_pairs || []).flatMap((pair) => pair.candidate_granules || []),
+        ));
+        const variants = new Map<string, VariantOption>();
+        for (const granule of granules) {
+          const match = /^NISAR_L2_([A-Z]{2})_GOFF_/.exec(granule);
+          if (!match) continue;
+          const processing = match[1];
+          const key = `${ids.join(',')}::${processing}`;
+          const current = variants.get(key) || { key, releaseId: ids[0] || '', processing, granules: [] };
+          current.granules.push(granule);
+          variants.set(key, current);
+        }
+        setCatalogVariantOptions(Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing)));
       })
       .catch((reason: unknown) => {
         if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
@@ -296,6 +316,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
     if (executeDownloads && catalogReleaseIds.length > 0 && !allowedReleaseIds.trim()) {
       setError('Select one release ID from the successful dry-run result before starting the raw GOFF measurement.');
+      return;
+    }
+    if (executeDownloads && catalogVariantOptions.length > 0 && !preferredGranules.trim()) {
+      setError('Select one processing variant (PR or UR) from the successful dry-run result before starting the raw GOFF measurement.');
       return;
     }
     if (executeDownloads && !confirmRawDownloads) {
@@ -409,8 +433,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         <div className="known-place-form-grid">
           <label className="aoi-job-label known-place-wide">
             <span>Release selection</span>
-            {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release IDs found by the catalog dry run">
-              {catalogReleaseIds.map((releaseId) => <label key={releaseId}>
+            {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
+              {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
+                <input type="radio" name="known-place-release" value={option.key} checked={preferredGranules === option.granules.join(',')} onChange={() => { setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
+                <span>{option.releaseId} — {option.processing}</span>
+              </label>) : catalogReleaseIds.map((releaseId) => <label key={releaseId}>
                 <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />
                 <span>{releaseId}</span>
               </label>)}

@@ -115,6 +115,7 @@ class KnownPlaceAnalysisRequest(BaseModel):
     direction: Literal["ANY", "A", "D"] = "ANY"
     coherence_neighbours: Literal["1", "5", "10", "15", "20", "25"] = "1"
     allowed_release_ids: str = Field(default="", max_length=200)
+    preferred_granules: str = Field(default="", max_length=20_000)
     reference_wkt: str | None = Field(default=None, max_length=100_000)
     candidate_context: dict[str, Any] | None = None
     geometry_height_m: float | None = Field(default=None, ge=-500, le=100_000)
@@ -208,6 +209,14 @@ class KnownPlaceAnalysisRequest(BaseModel):
         cleaned = ",".join(part.strip().upper() for part in value.split(",") if part.strip())
         if cleaned and not re.fullmatch(r"[A-Z0-9_-]+(?:,[A-Z0-9_-]+)*", cleaned):
             raise ValueError("ALLOWED_RELEASE_IDS_INVALID")
+        return cleaned
+
+    @field_validator("preferred_granules")
+    @classmethod
+    def validate_preferred_granules(cls, value: str) -> str:
+        cleaned = ",".join(part.strip() for part in value.split(",") if part.strip())
+        if cleaned and any(len(part) > 512 for part in cleaned.split(",")):
+            raise ValueError("PREFERRED_GRANULES_INVALID")
         return cleaned
 
     @field_validator("geometry_height_m")
@@ -323,6 +332,7 @@ def dispatch_known_place_analysis(
         "direction": payload.direction,
         "coherence_neighbours": payload.coherence_neighbours,
         "allowed_release_ids": payload.allowed_release_ids,
+        "preferred_granules": payload.preferred_granules,
         "reference_wkt": payload.reference_wkt or "",
         "candidate_context_json": json.dumps(payload.candidate_context, separators=(",", ":"), allow_nan=False) if payload.candidate_context is not None else "",
         "geometry_height_m": "" if payload.geometry_height_m is None else str(payload.geometry_height_m),
@@ -944,6 +954,7 @@ def _known_place_result_summary(result: dict[str, Any]) -> dict[str, Any]:
             "known_nisar_data_gaps_intersecting_requested_pairs": plan.get("known_nisar_data_gaps_intersecting_requested_pairs"),
             "candidate_release_ids": plan.get("candidate_release_ids") if isinstance(plan.get("candidate_release_ids"), list) else [],
             "selection_required": bool(plan.get("selection_required", False)),
+            "selection_diagnostics": plan.get("selection_diagnostics") if isinstance(plan.get("selection_diagnostics"), dict) else None,
             "chains": chains,
         },
         "pairs": _known_place_pair_rows(result),
