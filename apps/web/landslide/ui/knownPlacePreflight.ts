@@ -16,6 +16,10 @@ export function knownPlaceRequestFingerprint(input: KnownPlaceAnalysisInput): st
   // Release IDs are selected from the immediately preceding catalog result;
   // choosing one must not force the user to repeat the discovery dry run.
   delete scienceRequest.allowed_release_ids;
+  // Processing variants are also selected from that same dry-run result. The
+  // selected exact granules are passed to the raw run, but must not invalidate
+  // the catalog snapshot that discovered them.
+  delete scienceRequest.preferred_granules;
   return JSON.stringify(scienceRequest);
 }
 
