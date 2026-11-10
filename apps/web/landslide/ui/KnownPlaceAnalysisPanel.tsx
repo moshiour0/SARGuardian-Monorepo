@@ -298,6 +298,15 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           current.granules.push(granule);
           variants.set(key, current);
         }
+        // Successful, unambiguous dry runs expose the selected processing
+        // identity on their chains rather than in ambiguity diagnostics.
+        for (const chain of payload.result.pairwise_series_plan.chains || []) {
+          const processing = (chain.processing || '').toUpperCase();
+          const releaseId = chain.release_id || '';
+          if (!processing || !releaseId) continue;
+          const key = `${releaseId}::${processing}`;
+          if (!variants.has(key)) variants.set(key, { key, releaseId, processing, granules: [] });
+        }
         setCatalogVariantOptions(Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing)));
       })
       .catch((reason: unknown) => {
@@ -323,7 +332,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       setError('Select one release ID from the successful dry-run result before starting the raw GOFF measurement.');
       return;
     }
-    if (executeDownloads && catalogVariantOptions.length > 0 && !preferredGranules.trim()) {
+    if (executeDownloads && catalogVariantOptions.some((option) => option.granules.length > 0) && !preferredGranules.trim()) {
       setError('Select one processing variant (PR or UR) from the successful dry-run result before starting the raw GOFF measurement.');
       return;
     }

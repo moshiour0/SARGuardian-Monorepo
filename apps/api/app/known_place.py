@@ -896,6 +896,7 @@ def _known_place_result_summary(result: dict[str, Any]) -> dict[str, Any]:
                 "track": geometry.get("track"),
                 "direction": geometry.get("direction"),
                 "polarization": geometry.get("polarization"),
+                "processing": processing.get("processing"),
                 "release_id": processing.get("release_id"),
                 "maturity": processing.get("maturity"),
                 "pair_count": chain.get("pair_count"),

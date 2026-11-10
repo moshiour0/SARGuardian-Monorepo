@@ -222,6 +222,7 @@ export type KnownPlaceChain = {
   track: string | null;
   direction: string | null;
   polarization: string | null;
+  processing: string | null;
   release_id: string | null;
   maturity: string | null;
   pair_count: number | null;
