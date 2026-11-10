@@ -220,7 +220,7 @@ function App() {
     );
   }
 
-  if (isRiverShiftRoute(pathname)) {
+  if (isKnownPlaceResultsRoute(pathname)) {
     if (!user) {
       return (
         <Home
@@ -242,15 +242,36 @@ function App() {
         />
       );
     }
+    return (
+      <KnownPlaceResultsPage
+        user={user}
+        authState={authState}
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
+        onBack={() => navigateTo(KNOWN_PLACE_ANALYSIS_PATH)}
+      />
+    );
+  }
 
-    if (isKnownPlaceResultsRoute(pathname)) {
+  if (isRiverShiftRoute(pathname)) {
+    if (!user) {
       return (
-        <KnownPlaceResultsPage
+        <Home
           user={user}
           authState={authState}
+          authError={authError}
+          apiConnectionStatus={apiConnectionStatus}
+          apiConnectionError={apiConnectionError}
+          firebaseConfigured={firebaseConfigured}
+          missingFirebaseConfig={missingFirebaseConfig}
+          showAuthModal={true}
+          onCloseAuthModal={() => { setAuthModalOpen(false); setPendingRoute(null); }}
           onSignIn={handleSignIn}
           onSignOut={handleSignOut}
-          onBack={() => navigateTo(KNOWN_PLACE_ANALYSIS_PATH)}
+          onSelectEngine={handleSelectEngine}
+          onOpenWorkspace={handleOpenWorkspace}
+          onOpenArchive={handleOpenArchive}
+          onOpenHowItWorks={handleOpenHowItWorks}
         />
       );
     }
