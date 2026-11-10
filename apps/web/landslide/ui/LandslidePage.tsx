@@ -2577,7 +2577,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                       id="investigation-mode-title"
                       className="investigate-button find-displacement-primary"
                       type="button"
-                      disabled={isCatalogLoading || !windowStart || !windowEnd || windowEnd < windowStart || windowStart > today || windowEnd > today || !knownPlacePolygonsReady}
+                      disabled={isCatalogLoading || !windowStart || !windowEnd || Boolean(dateValidationError) || windowEnd < windowStart || windowStart > today || windowEnd > today || !knownPlacePolygonsReady}
                       onClick={continueKnownPlace}
                     >
                       {isCatalogLoading ? 'Checking date window…' : 'Continue'}
