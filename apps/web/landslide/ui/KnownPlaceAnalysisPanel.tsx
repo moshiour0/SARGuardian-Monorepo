@@ -251,7 +251,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     confirm_raw_downloads: executeDownloads,
   });
   const currentRequestFingerprint = knownPlaceRequestFingerprint(createAnalysisInput(false));
-  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(run, currentRequestFingerprint);
+  // Persisted runs belong to the exact geometry/date/settings fingerprint that
+  // created them. A changed setup must not resurrect an older completed run.
+  const activeRun = run?.request_fingerprint === currentRequestFingerprint ? run : null;
+  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(activeRun, currentRequestFingerprint);
   const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
@@ -281,8 +284,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     try { localStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* local storage is optional */ }
   }, [run, user.uid]);
 
-  const runRequestId = run?.request_id ?? null;
-  const runStatus = run?.status ?? null;
+  const runRequestId = activeRun?.request_id ?? null;
+  const runStatus = activeRun?.status ?? null;
 
   useEffect(() => {
     const requestId = runRequestId;
@@ -312,7 +315,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [runRequestId, runStatus, user]);
 
   useEffect(() => {
-    if (!run || run.status !== 'completed' || run.conclusion !== 'success' || run.execute_downloads !== false) {
+    if (!activeRun || activeRun.status !== 'completed' || activeRun.conclusion !== 'success' || activeRun.execute_downloads !== false) {
       setCatalogReleaseIds([]);
       setCatalogVariantOptions([]);
       setCatalogSummary(null);
@@ -324,7 +327,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     setCatalogVariantOptions([]);
     setCatalogSummary(null);
     setCatalogReleaseError('');
-    void getKnownPlaceAnalysisResults(run.request_id, user)
+    void getKnownPlaceAnalysisResults(activeRun.request_id, user)
       .then((payload) => {
         if (!active) return;
         const ids = Array.from(new Set(
@@ -395,7 +398,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
       });
     return () => { active = false; };
-  }, [run, user]);
+  }, [activeRun, user]);
 
   const submit = async (executeDownloads: boolean) => {
     if (!startDate || !endDate) {
@@ -480,13 +483,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
   };
 
-  const runTerminal = run?.status === 'completed';
-  const runSucceeded = runTerminal && run?.conclusion === 'success';
-  const runCancelled = runTerminal && run?.conclusion === 'cancelled';
-  const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
-  const analysisProgress = getAnalysisProgress(pendingAction, run);
-  const lookupStarted = lookupStartedAt ?? (run?.created_at ? Date.parse(run.created_at) : null);
-  const lookupFinished = runTerminal && run?.updated_at ? Date.parse(run.updated_at) : null;
+  const runTerminal = activeRun?.status === 'completed';
+  const runSucceeded = runTerminal && activeRun?.conclusion === 'success';
+  const runCancelled = runTerminal && activeRun?.conclusion === 'cancelled';
+  const releaseLookupProgress = getReleaseLookupProgress(pendingAction, activeRun);
+  const analysisProgress = getAnalysisProgress(pendingAction, activeRun);
+  const lookupStarted = lookupStartedAt ?? (activeRun?.created_at ? Date.parse(activeRun.created_at) : null);
+  const lookupFinished = runTerminal && activeRun?.updated_at ? Date.parse(activeRun.updated_at) : null;
   const elapsed = formatElapsed(lookupStarted, lookupFinished, clock);
 
   useEffect(() => {
@@ -561,8 +564,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
                 <div className="known-place-status-actions">
-                  {run && run.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
-                  <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run ? resultLabel(run) : 'Processing'}</span>
+                  {activeRun && activeRun.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+                  <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{activeRun ? resultLabel(activeRun) : 'Processing'}</span>
                 </div>
               </div>
               <div
@@ -608,7 +611,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <div className="known-place-status-heading">
             <h2>Run status</h2>
             <div className="known-place-status-actions">
-              {run && !runTerminal && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+              {activeRun && !runTerminal && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
               <span className={`known-place-status-chip is-${analysisProgress.tone}`}><i />{analysisProgress.tone === 'complete' ? 'Complete' : analysisProgress.tone === 'failed' ? (runCancelled ? 'Cancelled' : 'Failed') : 'Running'}</span>
             </div>
           </div>
@@ -623,7 +626,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <div className="known-place-progress-meta"><span>{analysisProgress.stage}</span><b>{analysisProgress.percent}% · {elapsed}</b></div>
         </section>}
 
-        {runSucceeded && run.execute_downloads && (
+        {runSucceeded && activeRun?.execute_downloads && (
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
