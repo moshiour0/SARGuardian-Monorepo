@@ -510,6 +510,18 @@ def main() -> int:
         "tests/test_known_place.py",
     }
     dynamic_api_destination_only = {"supabase/migrations/20261107120000_displacement_job_retention.sql"}
+    # Reviewed destination-only Known Place result route and the exact CSS
+    # transformation already introduced by commits 72cc1dde and 978862c0.
+    # Blob pins keep later edits visible to this provenance gate.
+    dynamic_frontend_destination_only = {
+        "landslide/ui/KnownPlaceResultsPage.tsx": "9aaa674bf3a028aa86018e189687132a6695316b",
+    }
+    dynamic_frontend_changed_blob_pins = {
+        "landslide/ui/landslide.css": (
+            "554b975bff72abde25fa268d5e85b94c6110dc66",
+            "4891a2529405a4fbf95d924da666fa4bf5d59794",
+        ),
+    }
     dynamic_shared_tools_baseline_exceptions = {"run_export_science_diagnostics.py"}
     find_tools_baseline_exceptions = {"run_export_science_diagnostics.py"}
     for label, source_prefix, destination_prefix, excluded_prefixes in promoted_paths:
@@ -534,7 +546,17 @@ def main() -> int:
                 label == "Dynamic active API promotion"
                 and path[len(destination_prefix) :] in dynamic_api_destination_only
             )
+            and not (
+                label == "Dynamic frontend promotion"
+                and path[len(destination_prefix) :] in dynamic_frontend_destination_only
+            )
         }
+        if label == "Dynamic frontend promotion":
+            for relative_path, expected_sha in dynamic_frontend_destination_only.items():
+                actual_entry = target_entries.get(f"{destination_prefix}{relative_path}")
+                if actual_entry != ("100644", "blob", expected_sha):
+                    raise RuntimeError(f"Reviewed frontend destination-only blob changed: {relative_path}")
+                print(f"PROMOTED_FRONTEND_ADDITION_PASS apps/web/{relative_path}: {expected_sha}")
         missing = sorted(set(source_view) - set(destination_view))
         extra = sorted(set(destination_view) - set(source_view))
         changed = sorted(
@@ -549,6 +571,11 @@ def main() -> int:
             if label == "Dynamic frontend promotion" and relative_path in dynamic_frontend_baseline_exceptions:
                 print(f"PROMOTED_FRONTEND_BASELINE_PASS apps/web/{relative_path}")
                 continue
+            if label == "Dynamic frontend promotion" and relative_path in dynamic_frontend_changed_blob_pins:
+                source_sha, destination_sha = dynamic_frontend_changed_blob_pins[relative_path]
+                if source_view[relative_path] == ("100644", "blob", source_sha) and destination_view[relative_path] == ("100644", "blob", destination_sha):
+                    print(f"PROMOTED_FRONTEND_TRANSFORMATION_PASS apps/web/{relative_path}: {source_sha} -> {destination_sha}")
+                    continue
             if label == "Dynamic active API promotion" and relative_path in dynamic_api_baseline_exceptions:
                 print(f"PROMOTED_API_BASELINE_PASS apps/api/{relative_path}")
                 continue
