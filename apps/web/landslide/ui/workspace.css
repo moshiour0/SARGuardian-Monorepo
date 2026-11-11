@@ -732,7 +732,8 @@
 .landslide-route-shell .known-place-analysis .known-place-run-options,
 .landslide-route-shell .known-place-analysis .known-place-release-finder,
 .landslide-route-shell .known-place-analysis .known-place-release-progress,
-.landslide-route-shell .known-place-analysis .known-place-consent {
+.landslide-route-shell .known-place-analysis .known-place-consent,
+.landslide-route-shell .known-place-analysis .known-place-run-action {
   margin: 0;
   border: 1px solid rgba(255, 255, 255, .7);
   border-radius: 28px;
@@ -837,6 +838,7 @@
 .landslide-route-shell .known-place-release-finder { display: grid; gap: 14px; padding: 22px 24px 0; }
 .landslide-route-shell .known-place-analysis .known-place-find-release,
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button,
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button,
 .landslide-route-shell .known-place-analysis .known-place-show-results {
   min-height: 48px;
   border: 0;
@@ -850,6 +852,7 @@
 .landslide-route-shell .known-place-analysis .known-place-find-release { width: fit-content; min-width: 170px; margin: 0; padding: 0 24px; }
 .landslide-route-shell .known-place-analysis .known-place-find-release:hover:not(:disabled),
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button:hover:not(:disabled),
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button:hover:not(:disabled),
 .landslide-route-shell .known-place-analysis .known-place-show-results:hover:not(:disabled) {
   background: linear-gradient(180deg, #38a8f6, #0878d1);
 }
@@ -972,6 +975,11 @@
 .landslide-route-shell .known-place-analysis .known-place-consent b { color: var(--known-ink); }
 .landslide-route-shell .known-place-analysis .known-place-consent input { accent-color: var(--known-blue); }
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button { width: 100%; }
+.landslide-route-shell .known-place-analysis .known-place-run-action {
+  margin-top: 18px;
+  padding: 16px 20px;
+}
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button { width: 100%; }
 .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 24px 26px; }
 .landslide-route-shell .known-place-analysis .known-place-run-status p,
 .landslide-route-shell .known-place-analysis .known-place-run-status code { color: var(--known-ink); }
@@ -1006,6 +1014,7 @@
   .landslide-route-shell .known-place-analysis .known-place-release-finder,
   .landslide-route-shell .known-place-analysis .known-place-release-progress,
   .landslide-route-shell .known-place-analysis .known-place-consent,
+  .landslide-route-shell .known-place-analysis .known-place-run-action,
   .landslide-route-shell .known-place-analysis .known-place-run-status { border-radius: 22px; }
   .landslide-route-shell .known-place-analysis .known-place-release-progress,
   .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 20px 18px; }

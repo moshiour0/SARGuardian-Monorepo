@@ -566,7 +566,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 <span>{runCancelled ? 'Cancelled' : releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
                 <b>{releaseLookupProgress.percent}% · {elapsed}</b>
               </div>
-              {runCancelled ? <p className="known-place-progress-message">Run cancelled.</p> : releaseLookupProgress.tone === 'complete' ? <p className="known-place-progress-message">Select an available release below.</p> : releaseLookupProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseLookupProgress.detail ? <p className="known-place-progress-message">{releaseLookupProgress.detail}</p> : null}
+              {runCancelled ? <p className="known-place-progress-message">Run cancelled.</p> : releaseLookupProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseLookupProgress.detail ? <p className="known-place-progress-message">{releaseLookupProgress.detail}</p> : null}
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
               {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
                 <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
@@ -587,11 +587,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 </div> : <p className="known-place-release-loading">{catalogReleaseError || 'Loading release IDs from the verified dry-run result…'}</p>}
               </div>}
           </section>}
-          <div className="known-place-consent">
-            <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
-              {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
-            </button>
-          </div>
           {error && <p className="catalog-error" role="alert">{error}</p>}
         </section>
 
@@ -599,6 +594,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
+        <div className="known-place-run-action">
+          <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
+            {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
+          </button>
+        </div>
         <button type="button" className="workspace-nav-link known-place-back" onClick={onBack}>← Back to AOI map</button>
     </main>
   );
