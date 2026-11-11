@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Engine } from './data/engineData';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
-import { listDisplacementJobs } from './api/catalog';
+import { hasActiveDisplacementJob } from './api/catalog';
 import { Home } from './pages/Home';
 import { ArchivePage } from './pages/ArchivePage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -41,8 +41,8 @@ function App() {
 
   const refreshDisplacementTaskState = useCallback(async (currentUser: User) => {
     try {
-      const jobs = await listDisplacementJobs(currentUser);
-      setHasActiveDisplacementTask(jobs.some((job) => ['queued', 'dispatching', 'running'].includes(job.state)));
+      const hasActiveJob = await hasActiveDisplacementJob(currentUser);
+      setHasActiveDisplacementTask(hasActiveJob);
       setApiConnectionStatus('ready');
       setApiConnectionError(null);
     } catch (error: unknown) {
@@ -62,7 +62,7 @@ function App() {
     }
     setApiConnectionStatus((current) => current === 'ready' ? current : 'checking');
     void refreshDisplacementTaskState(user);
-    const timer = window.setInterval(() => { void refreshDisplacementTaskState(user); }, 5000);
+    const timer = window.setInterval(() => { void refreshDisplacementTaskState(user); }, 30_000);
     return () => window.clearInterval(timer);
   }, [refreshDisplacementTaskState, user]);
 
