@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
@@ -160,18 +160,18 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cance
   }
   if (!run) return null;
   if (run.status === 'dispatching') {
-    return { percent: 20, stage: 'Starting', detail: 'Finding available releases.', tone: 'running' };
+    return { percent: 20, stage: 'Starting', detail: '', tone: 'running' };
   }
   if (run.status === 'queued') {
     return { percent: 38, stage: 'Queued', detail: '', tone: 'running' };
   }
   if (run.status === 'in_progress') {
     return run.execute_downloads
-      ? { percent: 72, stage: 'Processing', detail: 'Computing the Known Place measurement.', tone: 'running' }
-      : { percent: 72, stage: 'Searching catalog', detail: 'Finding releases and planning a consistent series.', tone: 'running' };
+      ? { percent: 72, stage: 'Processing', detail: '', tone: 'running' }
+      : { percent: 72, stage: 'Searching catalog', detail: '', tone: 'running' };
   }
   if (run.conclusion === 'success') {
-    return { percent: 100, stage: 'Complete', detail: run.execute_downloads ? 'Analysis complete.' : 'Choose an available release below.', tone: 'complete' };
+    return { percent: 100, stage: 'Complete', detail: '', tone: 'complete' };
   }
   if (run.conclusion === 'cancelled') return null;
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
@@ -315,13 +315,17 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [runRequestId, runStatus, user]);
 
   useEffect(() => {
-    if (!activeRun || activeRun.status !== 'completed' || activeRun.conclusion !== 'success' || activeRun.execute_downloads !== false) {
+    if (!activeRun) {
       setCatalogReleaseIds([]);
       setCatalogVariantOptions([]);
       setCatalogSummary(null);
       setCatalogReleaseError('');
       return undefined;
     }
+    // Keep the verified release options visible while the subsequent raw
+    // analysis run is processing.
+    if (activeRun.execute_downloads !== false) return undefined;
+    if (activeRun.status !== 'completed' || activeRun.conclusion !== 'success') return undefined;
     let active = true;
     setCatalogReleaseIds([]);
     setCatalogVariantOptions([]);
@@ -486,17 +490,21 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const runTerminal = activeRun?.status === 'completed';
   const runSucceeded = runTerminal && activeRun?.conclusion === 'success';
   const runCancelled = runTerminal && activeRun?.conclusion === 'cancelled';
-  const releaseLookupProgress = getReleaseLookupProgress(pendingAction, activeRun);
-  const analysisProgress = getAnalysisProgress(pendingAction, activeRun);
+  const releaseLookupProgress = useMemo(() => getReleaseLookupProgress(pendingAction, activeRun), [pendingAction, activeRun]);
+  const analysisProgress = useMemo(() => getAnalysisProgress(pendingAction, activeRun), [pendingAction, activeRun]);
+  const catalogSelectionAvailable = Boolean(catalogSummary || catalogReleaseIds.length > 0);
+  const releaseDisplayProgress = useMemo(() => analysisProgress
+    ? (catalogSelectionAvailable ? { percent: 100, stage: 'Release ready', detail: '', tone: 'complete' as const } : null)
+    : releaseLookupProgress, [analysisProgress, catalogSelectionAvailable, releaseLookupProgress]);
   const lookupStarted = lookupStartedAt ?? (activeRun?.created_at ? Date.parse(activeRun.created_at) : null);
   const lookupFinished = runTerminal && activeRun?.updated_at ? Date.parse(activeRun.updated_at) : null;
   const elapsed = formatElapsed(lookupStarted, lookupFinished, clock);
 
   useEffect(() => {
-    if (!releaseLookupProgress && !analysisProgress) return undefined;
+    if (!releaseDisplayProgress && !analysisProgress) return undefined;
     const interval = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(interval);
-  }, [releaseLookupProgress, analysisProgress]);
+  }, [releaseDisplayProgress, analysisProgress]);
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
@@ -560,12 +568,12 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
             </button>
           </div>
-          {releaseLookupProgress && !analysisProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
+          {releaseDisplayProgress && <section className={`known-place-release-progress is-${releaseDisplayProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
                 <div className="known-place-status-actions">
                   {activeRun && activeRun.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
-                  <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{activeRun ? resultLabel(activeRun) : 'Processing'}</span>
+                  <span className={`known-place-status-chip is-${releaseDisplayProgress.tone}`}><i />{releaseDisplayProgress.tone === 'complete' ? 'Complete' : activeRun ? resultLabel(activeRun) : 'Processing'}</span>
                 </div>
               </div>
               <div
@@ -574,23 +582,23 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 aria-label="Release ID lookup progress"
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={releaseLookupProgress.percent}
-                aria-valuetext={releaseLookupProgress.stage}
+                aria-valuenow={releaseDisplayProgress.percent}
+                aria-valuetext={releaseDisplayProgress.stage}
               >
-                <i style={{ width: `${releaseLookupProgress.percent}%` }} />
+                <i style={{ width: `${releaseDisplayProgress.percent}%` }} />
               </div>
               <div className="known-place-progress-meta">
-                <span>{runCancelled ? 'Cancelled' : releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
-                <b>{releaseLookupProgress.percent}% · {elapsed}</b>
+                <span>{runCancelled && !analysisProgress ? 'Cancelled' : releaseDisplayProgress.tone === 'complete' ? 'Complete' : releaseDisplayProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
+                <b>{releaseDisplayProgress.percent}% · {elapsed}</b>
               </div>
-              {runCancelled ? <p className="known-place-progress-message">Run cancelled.</p> : releaseLookupProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseLookupProgress.detail ? <p className="known-place-progress-message">{releaseLookupProgress.detail}</p> : null}
+              {runCancelled && !analysisProgress ? <p className="known-place-progress-message">Run cancelled.</p> : releaseDisplayProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseDisplayProgress.detail ? <p className="known-place-progress-message">{releaseDisplayProgress.detail}</p> : null}
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
               {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
                 <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
                 <div><span>Releases</span><strong>{catalogSummary.releases}</strong></div>
                 <div><span>Series planned</span><strong>{catalogSummary.series}</strong></div>
               </div>}
-              {runSucceeded && run?.execute_downloads === false && <div className="known-place-release-results">
+              {catalogSelectionAvailable && <div className="known-place-release-results">
                 <h3>Select a release</h3>
                 {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
                   {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
@@ -630,7 +638,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
-        {!analysisProgress && <div className="known-place-run-action">
+        {(!analysisProgress || runTerminal) && <div className="known-place-run-action">
           <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
             {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
           </button>
