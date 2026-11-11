@@ -571,27 +571,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           {error && <p className="catalog-error" role="alert">{error}</p>}
         </section>
 
-        {run?.execute_downloads === true && (
-          <section className="known-place-run-status" aria-live="polite">
-            <div className="known-place-run-heading">
-              <span className="result-kicker">RUN STATUS</span>
-              <strong>{resultLabel(run)}</strong>
-            </div>
-            <p><b>Request ID:</b> <code>{run.request_id}</code></p>
-            {run.github_run_id && <p><b>GitHub Actions run:</b> <code>{run.github_run_id}</code></p>}
-            <p><b>Mode:</b> {run.execute_downloads ? 'GOFF measurement with raw-data download opt-in' : 'Catalog-only dry run — no raw download'}</p>
-            {run.conclusion && <p><b>Conclusion:</b> {run.conclusion}</p>}
-            {run.notice && <p className="catalog-notice">{run.notice}</p>}
-            {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
-            {run.github_run_url && <a className="known-place-run-link" href={run.github_run_url} target="_blank" rel="noreferrer">Open GitHub run and view the result bundle</a>}
-            {runSucceeded && (run.execute_downloads
-              ? <p className="catalog-notice">Workflow succeeded. Inspect the measurement, uncertainty and reference-method reports in the run artifact; a completed run is not independent hazard-detection validation.</p>
-              : <p className="catalog-notice">Catalog-only preflight passed. No raw NISAR products were downloaded. You may now separately authorize a raw GOFF run for these unchanged settings.</p>)}
-            {runFailed && (run.execute_downloads
-              ? <p className="catalog-error">Raw GOFF workflow ended with {run.conclusion || 'an error'}. Open the run link above to inspect the failing stage.</p>
-              : <p className="catalog-error">Catalog-only preflight failed; no raw download was requested. Open the run summary and artifact for the exact failing pair and candidate release IDs. Enter the intended release filter, then rerun the catalog-only preflight before authorizing downloads.</p>)}
-          </section>
-        )}
         {runSucceeded && run.execute_downloads && (
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}

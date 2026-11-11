@@ -746,13 +746,33 @@
   color: var(--known-ink);
   font-size: 16px;
   letter-spacing: 0;
+  transition: padding .32s cubic-bezier(.22, 1, .36, 1);
 }
-.landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before { color: var(--known-blue); }
+.landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before {
+  color: var(--known-blue);
+  transition: transform .32s cubic-bezier(.22, 1, .36, 1);
+}
 .landslide-route-shell .known-place-analysis .known-place-additional-settings[open] > summary { padding: 18px 22px 12px; }
 .landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+  max-height: 0;
+  margin-top: 0;
+  padding: 0 22px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: max-height .42s cubic-bezier(.22, 1, .36, 1), padding .32s cubic-bezier(.22, 1, .36, 1), opacity .24s ease, transform .32s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .42s;
+}
+.landslide-route-shell .known-place-analysis .known-place-additional-settings[open] > .known-place-form-grid {
+  max-height: 720px;
   padding: 0 22px 22px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 .landslide-route-shell .known-place-analysis .known-place-setting-wide { grid-column: 1 / -1; }
 .landslide-route-shell .known-place-analysis .known-place-form-grid { margin-top: 0; }
@@ -968,6 +988,9 @@
 @media (prefers-reduced-motion: reduce) {
   .known-place-release-progress.is-running .known-place-progress-track i::after { animation: none; }
   .known-place-progress-track i { transition: none; }
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary,
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before,
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid { transition: none; }
 }
 
 /* Frontend V2 processing workspace: real job state, no simulated progress. */
