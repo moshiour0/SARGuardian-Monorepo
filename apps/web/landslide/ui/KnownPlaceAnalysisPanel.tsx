@@ -81,7 +81,7 @@ type GeometryDraft = { measurementWkt: string; referenceWkt: string };
 function loadGeometryDraft(uid: string): GeometryDraft {
   if (typeof window === 'undefined') return { measurementWkt: '', referenceWkt: '' };
   try {
-    const raw = window.sessionStorage.getItem(geometryDraftKey(uid));
+    const raw = window.localStorage.getItem(geometryDraftKey(uid));
     if (!raw) return { measurementWkt: '', referenceWkt: '' };
     const parsed = JSON.parse(raw) as Partial<GeometryDraft>;
     return {
@@ -111,7 +111,7 @@ function samePolygonGeometry(firstWkt: string, secondWkt: string): boolean {
 export function loadStoredRun(uid: string): StoredRun | null {
   if (typeof window === 'undefined') return null;
   try {
-    const value = sessionStorage.getItem(storageKey(uid));
+    const value = localStorage.getItem(storageKey(uid));
     if (!value) return null;
     const parsed = JSON.parse(value) as Partial<StoredRun>;
     if (typeof parsed.request_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(parsed.request_id)) return null;
@@ -192,7 +192,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [geometryHeight, setGeometryHeight] = useState('');
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | 'cancel' | null>(null);
-  const [run, setRun] = useState<StoredRun | null>(null);
+  const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
   const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
   const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(null);
@@ -256,19 +256,16 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   useEffect(() => {
     try {
       if (!measurementWkt && !referenceWkt) {
-        sessionStorage.removeItem(geometryDraftKey(user.uid));
+        localStorage.removeItem(geometryDraftKey(user.uid));
       } else {
-        sessionStorage.setItem(geometryDraftKey(user.uid), JSON.stringify({ measurementWkt, referenceWkt }));
+        localStorage.setItem(geometryDraftKey(user.uid), JSON.stringify({ measurementWkt, referenceWkt }));
       }
-    } catch { /* session storage is optional; current component state remains authoritative */ }
+    } catch { /* local storage is optional; current component state remains authoritative */ }
   }, [measurementWkt, referenceWkt, user.uid]);
 
   useEffect(() => {
-    if (!run) {
-      try { sessionStorage.removeItem(storageKey(user.uid)); } catch { /* session storage is optional */ }
-      return;
-    }
-    try { sessionStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* session storage is optional */ }
+    if (!run) return;
+    try { localStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* local storage is optional */ }
   }, [run, user.uid]);
 
   const runRequestId = run?.request_id ?? null;
@@ -452,12 +449,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         setAllowedReleaseIds('');
         setPreferredGranules('');
         setSelectedVariantKey('');
-      }
-      if (executeDownloads) {
-        try {
-          sessionStorage.removeItem('sarguardian.knownPlaceCandidate.v1');
-          sessionStorage.removeItem(geometryDraftKey(user.uid));
-        } catch { /* accepted raw workflow request remains authoritative */ }
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Could not submit Known Place Analysis.');

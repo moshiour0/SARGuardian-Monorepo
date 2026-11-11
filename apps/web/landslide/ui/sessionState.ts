@@ -109,10 +109,14 @@ function storageKey(uid: string, scope: LandslideSessionScope): string {
   return `${STORAGE_KEY_PREFIX}.${scope}.${uid}`;
 }
 
+function storageForScope(scope: LandslideSessionScope): Storage {
+  return scope === 'known-place' ? window.localStorage : window.sessionStorage;
+}
+
 export function loadLandslideSessionState(uid: string, scope: LandslideSessionScope = 'find-displacement'): LandslideSessionState {
   const fallback = emptyState();
   try {
-    const raw = window.sessionStorage.getItem(storageKey(uid, scope));
+    const raw = storageForScope(scope).getItem(storageKey(uid, scope));
     if (!raw) return fallback;
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) return fallback;
@@ -155,8 +159,8 @@ export function loadLandslideSessionState(uid: string, scope: LandslideSessionSc
 export function persistLandslideSessionState(uid: string, state: LandslideSessionState, scope: LandslideSessionScope = 'find-displacement'): void {
   try {
     const { searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions } = state;
-    window.sessionStorage.setItem(storageKey(uid, scope), JSON.stringify({ searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions }));
+    storageForScope(scope).setItem(storageKey(uid, scope), JSON.stringify({ searchText, searchState, location, coordinates, areaClosed, drawing, windowStart, windowEnd, catalogResult, selectedHarmonyProduct, processingOptions }));
   } catch {
-    // Session storage is optional; the mounted LandslidePage remains the primary route state.
+    // Browser storage is optional; the mounted LandslidePage remains the primary route state.
   }
 }

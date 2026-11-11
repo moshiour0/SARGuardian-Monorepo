@@ -26,7 +26,7 @@ const KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX = 'sarguardian.knownPlaceGeometry.v1:'
 
 function loadKnownPlaceGeometryDraft(uid: string): { measurement: Coordinate[]; reference: Coordinate[] } {
   try {
-    const raw = window.sessionStorage.getItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${uid}`);
+    const raw = window.localStorage.getItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${uid}`);
     if (!raw) return { measurement: [], reference: [] };
     const parsed = JSON.parse(raw) as { measurementWkt?: string; referenceWkt?: string };
     const parse = (wkt: string | undefined): Coordinate[] => {
@@ -1208,12 +1208,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     const saved = loadLandslideSessionState(user.uid, sessionScope);
     return saved;
   });
-  useEffect(() => {
-    if (!isKnownPlaceSetupPage) return;
-    try {
-      window.sessionStorage.removeItem(`sarguardian.knownPlaceAnalysis.v1:${user.uid}`);
-    } catch { /* session storage is optional */ }
-  }, [isKnownPlaceSetupPage, user.uid]);
   const [searchText, setSearchText] = useState(initialSessionState.searchText);
   const [location, setLocation] = useState<LocationSelection | null>(initialSessionState.location);
   const [searchState, setSearchState] = useState(initialSessionState.searchState);
@@ -1317,7 +1311,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
 
   const continueKnownPlace = () => {
     try {
-      sessionStorage.setItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`, JSON.stringify({
+      localStorage.setItem(`sarguardian.knownPlaceGeometry.v1:${user.uid}`, JSON.stringify({
         measurementWkt: measurementCoordinates.length >= 3 ? polygonToWkt(measurementCoordinates) : '',
         referenceWkt: referenceCoordinates.length >= 3 ? polygonToWkt(referenceCoordinates) : '',
       }));
@@ -1398,7 +1392,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   useEffect(() => {
     if (!isKnownPlaceSetupPage) return;
     try {
-      window.sessionStorage.setItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${user.uid}`, JSON.stringify({
+      window.localStorage.setItem(`${KNOWN_PLACE_GEOMETRY_STORAGE_PREFIX}${user.uid}`, JSON.stringify({
         measurementWkt: measurementCoordinates.length >= 3 ? polygonToWkt(measurementCoordinates) : '',
         referenceWkt: referenceCoordinates.length >= 3 ? polygonToWkt(referenceCoordinates) : '',
       }));
