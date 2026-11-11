@@ -53,6 +53,18 @@ class DisplacementStore:
     def get_displacement_job(self, owner, job_id):
         return next((row for row in self.rows if row["owner_uid"] == owner and row["id"] == str(job_id)), None)
 
+    def get_displacement_job_status(self, owner, job_id):
+        return self.get_displacement_job(owner, job_id)
+
+    def update_displacement_job_status(self, job_id, values):
+        return self.update_displacement_job(job_id, values)
+
+    def has_active_displacement_job(self, owner):
+        return any(
+            row["owner_uid"] == owner and row["state"] in {"queued", "dispatching", "running"}
+            for row in self.rows
+        )
+
     def get_displacement_job_unscoped(self, job_id):
         return next((row for row in self.rows if row["id"] == str(job_id)), None)
 
@@ -136,6 +148,56 @@ def test_account_job_list_and_duplicate_active_request_reuse_the_existing_job(mo
     assert duplicate.json()["id"] == first.json()["id"]
     assert len(dispatched) == 1
     assert [job["id"] for job in listed.json()] == [first.json()["id"]]
+
+
+def test_job_list_returns_compact_metadata_without_scientific_result_json(monkeypatch) -> None:
+    store = DisplacementStore()
+    api = client(monkeypatch, store)
+    created = api.post("/api/displacement-jobs", json=payload())
+    assert created.status_code == 200
+    store.row["result_summary"] = {"products": [{"large": "x" * 100_000}]}
+    store.row["artifact_url"] = "https://private.example.invalid/result.zip"
+
+    listed = api.get("/api/displacement-jobs")
+
+    assert listed.status_code == 200
+    assert listed.json()[0]["id"] == created.json()["id"]
+    assert "result_summary" not in listed.json()[0]
+    assert "artifact_url" not in listed.json()[0]
+
+
+def test_active_job_guard_returns_only_a_boolean(monkeypatch) -> None:
+    store = DisplacementStore()
+    api = client(monkeypatch, store)
+
+    assert api.get("/api/displacement-jobs/active").json() == {"has_active_job": False}
+    created = api.post("/api/displacement-jobs", json=payload())
+    assert created.status_code == 200
+    assert api.get("/api/displacement-jobs/active").json() == {"has_active_job": True}
+
+
+def test_status_endpoint_is_owner_scoped_and_excludes_result_json(monkeypatch) -> None:
+    store = DisplacementStore()
+    api = client(monkeypatch, store)
+    created = api.post("/api/displacement-jobs", json=payload())
+    assert created.status_code == 200
+    store.row["result_summary"] = {"products": [{"large": "x" * 100_000}]}
+    monkeypatch.setattr(
+        main_module,
+        "get_settings",
+        lambda: SimpleNamespace(displacement_actions_enabled=False, displacement_dispatch_timeout_seconds=120),
+    )
+    monkeypatch.setattr(main_module, "is_dispatch_timed_out", lambda *_args: False)
+
+    status = api.get(f"/api/displacement-jobs/{created.json()['id']}/status")
+
+    assert status.status_code == 200, status.text
+    body = status.json()
+    assert body["id"] == created.json()["id"]
+    assert body["state"] == "dispatching"
+    assert body["aoi_wkt"] == payload()["aoi_wkt"]
+    assert "result_summary" not in body
+    assert "artifact_url" not in body
 
 
 def test_confirmed_resubmit_cancels_the_old_run_before_dispatching_one_replacement(monkeypatch) -> None:
