@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
@@ -152,6 +152,8 @@ type ReleaseLookupProgress = {
   tone: 'running' | 'complete' | 'failed';
 };
 
+type AnalysisProgress = ReleaseLookupProgress & { step: number };
+
 function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | null, run: StoredRun | null): ReleaseLookupProgress | null {
   if (pendingAction === 'dry-run') {
     return { percent: 8, stage: 'Starting', detail: 'Sending the catalog request…', tone: 'running' };
@@ -173,6 +175,17 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cance
   }
   if (run.conclusion === 'cancelled') return null;
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
+}
+
+function getAnalysisProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | null, run: StoredRun | null): AnalysisProgress | null {
+  if (pendingAction === 'analysis') return { percent: 8, stage: 'Initializing', detail: '', tone: 'running', step: 0 };
+  if (!run || run.execute_downloads !== true) return null;
+  if (run.status === 'dispatching') return { percent: 20, stage: 'Initializing', detail: '', tone: 'running', step: 0 };
+  if (run.status === 'queued') return { percent: 38, stage: 'Processing', detail: '', tone: 'running', step: 1 };
+  if (run.status === 'in_progress') return { percent: 72, stage: 'Processing', detail: '', tone: 'running', step: 1 };
+  if (run.conclusion === 'success') return { percent: 100, stage: 'Complete', detail: '', tone: 'complete', step: 3 };
+  if (run.conclusion === 'cancelled') return { percent: 100, stage: 'Cancelled', detail: '', tone: 'failed', step: 3 };
+  return { percent: 100, stage: 'Failed', detail: '', tone: 'failed', step: 3 };
 }
 
 export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack, onShowResults }: Props) {
@@ -471,15 +484,16 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const runSucceeded = runTerminal && run?.conclusion === 'success';
   const runCancelled = runTerminal && run?.conclusion === 'cancelled';
   const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
+  const analysisProgress = getAnalysisProgress(pendingAction, run);
   const lookupStarted = lookupStartedAt ?? (run?.created_at ? Date.parse(run.created_at) : null);
   const lookupFinished = runTerminal && run?.updated_at ? Date.parse(run.updated_at) : null;
   const elapsed = formatElapsed(lookupStarted, lookupFinished, clock);
 
   useEffect(() => {
-    if (!releaseLookupProgress) return undefined;
+    if (!releaseLookupProgress && !analysisProgress) return undefined;
     const interval = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(interval);
-  }, [releaseLookupProgress]);
+  }, [releaseLookupProgress, analysisProgress]);
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
@@ -543,7 +557,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
             </button>
           </div>
-          {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
+          {releaseLookupProgress && !analysisProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
                 <div className="known-place-status-actions">
@@ -590,15 +604,34 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           {error && <p className="catalog-error" role="alert">{error}</p>}
         </section>
 
+        {analysisProgress && <section className={`known-place-analysis-progress is-${analysisProgress.tone}`} aria-live="polite">
+          <div className="known-place-status-heading">
+            <h2>Run status</h2>
+            <div className="known-place-status-actions">
+              {run && !runTerminal && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+              <span className={`known-place-status-chip is-${analysisProgress.tone}`}><i />{analysisProgress.tone === 'complete' ? 'Complete' : analysisProgress.tone === 'failed' ? (runCancelled ? 'Cancelled' : 'Failed') : 'Running'}</span>
+            </div>
+          </div>
+          <div className="known-place-analysis-progress-body">
+            <div className="known-place-analysis-timer" style={{ '--known-place-progress': `${analysisProgress.percent}%` } as CSSProperties}>
+              <strong>{analysisProgress.stage}</strong><span>{elapsed}</span>
+            </div>
+            <div className="known-place-analysis-stepper" aria-label="Known Place analysis progress">
+              {['Initializing', 'Processing', 'Screening', 'Complete'].map((label, index) => <div className={index <= analysisProgress.step ? 'is-active' : ''} key={label}><i /><span>{label}</span></div>)}
+            </div>
+          </div>
+          <div className="known-place-progress-meta"><span>{analysisProgress.stage}</span><b>{analysisProgress.percent}% · {elapsed}</b></div>
+        </section>}
+
         {runSucceeded && run.execute_downloads && (
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
-        <div className="known-place-run-action">
+        {!analysisProgress && <div className="known-place-run-action">
           <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
             {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
           </button>
-        </div>
+        </div>}
         <button type="button" className="workspace-nav-link known-place-back" onClick={onBack}>← Back to AOI map</button>
     </main>
   );
