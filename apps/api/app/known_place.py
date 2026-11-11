@@ -234,8 +234,11 @@ class KnownPlaceAnalysisRequest(BaseModel):
             raise ValueError(f"DATE_WINDOW_EXCEEDS_{KNOWN_PLACE_MAX_DATE_WINDOW_DAYS}_DAYS")
         if self.end_date > date.today():
             raise ValueError("END_DATE_CANNOT_BE_IN_THE_FUTURE")
-        if self.execute_downloads and not self.confirm_raw_downloads:
-            raise ValueError("EXPLICIT_RAW_DOWNLOAD_CONSENT_REQUIRED")
+        # Generic Known Place raw processing is an explicit user action at the
+        # final Run button; the API owns the consent marker and does not rely on
+        # a duplicated client checkbox.
+        if self.execute_downloads:
+            self.confirm_raw_downloads = True
         return self
 
 
@@ -337,9 +340,9 @@ def dispatch_known_place_analysis(
         "candidate_context_json": json.dumps(payload.candidate_context, separators=(",", ":"), allow_nan=False) if payload.candidate_context is not None else "",
         "geometry_height_m": "" if payload.geometry_height_m is None else str(payload.geometry_height_m),
         "execute_downloads": payload.execute_downloads,
-        # The UI's explicit checkbox is converted to the exact workflow marker here;
-        # clients cannot supply or override a raw-download consent string directly.
-        "consent_marker": "[run-know-place]" if payload.execute_downloads and payload.confirm_raw_downloads else "",
+        # The API owns the exact raw-download consent marker for the generic
+        # Known Place Run button; clients cannot supply or override it.
+        "consent_marker": "[run-know-place]" if payload.execute_downloads else "",
     }
     status, _ = _github_request(
         settings,

@@ -171,9 +171,7 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cance
   if (run.conclusion === 'success') {
     return { percent: 100, stage: 'Complete', detail: run.execute_downloads ? 'Analysis complete.' : 'Choose an available release below.', tone: 'complete' };
   }
-  if (run.conclusion === 'cancelled') {
-    return { percent: 100, stage: 'Cancelled', detail: 'Run cancelled.', tone: 'failed' };
-  }
+  if (run.conclusion === 'cancelled') return null;
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
 }
 
@@ -193,7 +191,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const referenceWkt = geometryDraft.referenceWkt;
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
   const [geometryHeight, setGeometryHeight] = useState('');
-  const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | 'cancel' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
@@ -238,7 +235,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     } : null,
     geometry_height_m: geometryHeight.trim() ? Number(geometryHeight) : null,
     execute_downloads: executeDownloads,
-    confirm_raw_downloads: executeDownloads && confirmRawDownloads,
+    confirm_raw_downloads: executeDownloads,
   });
   const currentRequestFingerprint = knownPlaceRequestFingerprint(createAnalysisInput(false));
   const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(run, currentRequestFingerprint);
@@ -410,10 +407,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
     if (executeDownloads && catalogVariantOptions.some((option) => option.granules.length > 0) && !preferredGranules.trim()) {
       setError('Select one processing variant (PR or UR) from the successful dry-run result before starting the raw GOFF measurement.');
-      return;
-    }
-    if (executeDownloads && !confirmRawDownloads) {
-      setError('Confirm raw-data download permission before starting the GOFF measurement run.');
       return;
     }
     if (track.trim().toUpperCase() !== 'ANY' && !/^\d{3}$/.test(track.trim())) {
@@ -595,11 +588,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               </div>}
           </section>}
           <div className="known-place-consent">
-            <label>
-              <input type="checkbox" checked={confirmRawDownloads} onChange={(event) => setConfirmRawDownloads(event.target.checked)} />
-              <span><b>I explicitly authorize raw NISAR GOFF downloads for this request.</b> The workflow checks Earthdata/Drive credentials before downloading, processes selected products one at a time, and retains derived results and receipts.</span>
-            </label>
-            <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !confirmRawDownloads || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
+            <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
               {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
             </button>
           </div>

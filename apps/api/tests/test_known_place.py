@@ -35,9 +35,9 @@ def test_known_place_request_canonicalizes_wkt_and_defaults_to_no_raw_downloads(
     assert request.confirm_raw_downloads is False
 
 
-def test_known_place_request_requires_explicit_consent_for_raw_downloads() -> None:
-    with pytest.raises(ValidationError, match="EXPLICIT_RAW_DOWNLOAD_CONSENT_REQUIRED"):
-        known_place.KnownPlaceAnalysisRequest(**(REQUEST | {"execute_downloads": True}))
+def test_known_place_request_owns_consent_for_raw_downloads() -> None:
+    request = known_place.KnownPlaceAnalysisRequest(**(REQUEST | {"execute_downloads": True}))
+    assert request.confirm_raw_downloads is True
 
 
 def test_known_place_request_rejects_bad_track_and_invalid_polygon() -> None:
