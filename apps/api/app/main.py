@@ -296,7 +296,11 @@ def cancel_known_place_analysis_route(
         code = 409 if any(term in message.lower() for term in ("not running", "not been allocated", "no longer", "did not accept")) else 503
         raise HTTPException(status_code=code, detail=message) from None
     except PersistenceError:
-        raise HTTPException(status_code=503, detail="GitHub cancellation was requested but the request state could not be saved.") from None
+        # GitHub accepted the cancellation. A transient local persistence failure
+        # must not make the user retry or surface a misleading cancellation error.
+        return submission.model_copy(update={
+            "notice": "Cancellation requested. Refresh shortly to confirm the run has stopped.",
+        })
 
 
 @app.get("/api/known-place-analysis/requests/{request_id}/results")

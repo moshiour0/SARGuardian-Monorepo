@@ -161,7 +161,7 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cance
     return { percent: 20, stage: 'Starting', detail: 'Finding available releases.', tone: 'running' };
   }
   if (run.status === 'queued') {
-    return { percent: 38, stage: 'Queued', detail: 'Waiting for an available workflow runner.', tone: 'running' };
+    return { percent: 38, stage: 'Queued', detail: '', tone: 'running' };
   }
   if (run.status === 'in_progress') {
     return run.execute_downloads
@@ -170,6 +170,9 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cance
   }
   if (run.conclusion === 'success') {
     return { percent: 100, stage: 'Complete', detail: run.execute_downloads ? 'Analysis complete.' : 'Choose an available release below.', tone: 'complete' };
+  }
+  if (run.conclusion === 'cancelled') {
+    return { percent: 100, stage: 'Cancelled', detail: 'Run cancelled.', tone: 'failed' };
   }
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
 }
@@ -473,7 +476,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
 
   const runTerminal = run?.status === 'completed';
   const runSucceeded = runTerminal && run?.conclusion === 'success';
-  const runFailed = runTerminal && !runSucceeded;
+  const runCancelled = runTerminal && run?.conclusion === 'cancelled';
   const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
   const lookupStarted = lookupStartedAt ?? (run?.created_at ? Date.parse(run.created_at) : null);
   const lookupFinished = runTerminal && run?.updated_at ? Date.parse(run.updated_at) : null;
@@ -542,10 +545,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
 
         <section className="known-place-run-options" aria-label="Known Place run options">
           <div className="known-place-release-finder">
+            <p className="known-place-choose-release" role="status">Choose a release ID before analysis.</p>
             <button type="button" className="demo-button known-place-find-release" disabled={!canSubmitGeometry || pendingAction !== null} onClick={() => void submit(false)}>
               {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
             </button>
-            <p className="known-place-choose-release" role="status">Choose a release ID before analysis.</p>
           </div>
           {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
@@ -567,10 +570,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 <i style={{ width: `${releaseLookupProgress.percent}%` }} />
               </div>
               <div className="known-place-progress-meta">
-                <span>{releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
+                <span>{runCancelled ? 'Cancelled' : releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
                 <b>{releaseLookupProgress.percent}% · {elapsed}</b>
               </div>
-              <p className="known-place-progress-message">{releaseLookupProgress.tone === 'complete' ? 'Select an available release below.' : releaseLookupProgress.tone === 'failed' ? 'Release lookup failed. Try again.' : releaseLookupProgress.detail}</p>
+              {runCancelled ? <p className="known-place-progress-message">Run cancelled.</p> : releaseLookupProgress.tone === 'complete' ? <p className="known-place-progress-message">Select an available release below.</p> : releaseLookupProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseLookupProgress.detail ? <p className="known-place-progress-message">{releaseLookupProgress.detail}</p> : null}
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
               {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
                 <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
@@ -590,7 +593,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                   </label>)}
                 </div> : <p className="known-place-release-loading">{catalogReleaseError || 'Loading release IDs from the verified dry-run result…'}</p>}
               </div>}
-              {runFailed && run?.execute_downloads === false && <p className="catalog-error">Catalog-only preflight failed; no raw download was requested. Open the run details above, then try again.</p>}
           </section>}
           <div className="known-place-consent">
             <label>
