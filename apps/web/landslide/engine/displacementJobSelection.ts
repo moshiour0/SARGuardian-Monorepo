@@ -23,7 +23,7 @@ export function chooseAccountJob(
   jobs: DisplacementJobSummary[],
   preparation: PreparedInvestigation,
   options: DisplacementProcessingOptions,
-): DisplacementJob | null {
+): DisplacementJobSummary | null {
   const matching = preparation.valid
     ? jobs.filter((candidate) => candidate.aoi_wkt === preparation.payload.aoi_wkt
       && candidate.start_date === preparation.payload.start_date
