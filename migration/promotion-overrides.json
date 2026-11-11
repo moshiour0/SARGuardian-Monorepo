@@ -256,15 +256,17 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/main.py",
       "destination_path": "apps/api/app/main.py",
       "source_blob_sha": "27316589dbfd4213f16c0de9ebd22beb8434ccae",
-      "destination_blob_sha": "7e3d2a392c9bb63184c58656d007ac2415ad7696",
+      "destination_blob_sha": "8697fe9e560ba3111ebefb1c526ff6a812019476",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Persist Firebase owner-to-request mappings before Known Place dispatch and require matching owner UID plus workflow kind on generic status, result, bundle and author-exact status reads.",
+      "reason": "Persist Firebase owner-to-request mappings and expose owner-authenticated compact displacement status and boolean active-job routes while preserving full result retrieval and GitHub workflow reconciliation.",
       "implementation_commits": [
-        "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720"
+        "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720",
+        "5c479f3741e2cf1eb9d12ef40498ce1ed959fce3"
       ],
       "verification_paths": [
-        "apps/api/tests/test_main.py"
+        "apps/api/tests/test_main.py",
+        "apps/api/tests/test_displacements.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -272,15 +274,17 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/persistence.py",
       "destination_path": "apps/api/app/persistence.py",
       "source_blob_sha": "a5828d031927e4ae7d7d998c3dddea1a99c87098",
-      "destination_blob_sha": "4012c6bcfb450e848bec2d3d046cce7a90d8a430",
+      "destination_blob_sha": "832c92437fb9ec156417db5628db20d289d42782",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add service-role-only Supabase methods for Known Place request ownership and fail API server-role preflight when the owner-mapping migration has not been applied.",
+      "reason": "Add Supabase owner-mapping methods and narrow displacement list/status projections to explicit metadata columns; active checks select only id or id/state and omit result_summary and artifact_url.",
       "implementation_commits": [
-        "7b6e6be2d5d00f88146f966610f0bf07b97b5eae"
+        "7b6e6be2d5d00f88146f966610f0bf07b97b5eae",
+        "16df626f939e123c4e4fa9fabee50731ebc179da"
       ],
       "verification_paths": [
-        "apps/api/tests/test_main.py"
+        "apps/api/tests/test_main.py",
+        "apps/api/tests/test_persistence_headers.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -304,12 +308,13 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_persistence_headers.py",
       "destination_path": "apps/api/tests/test_persistence_headers.py",
       "source_blob_sha": "410d64d9e71549cd859d58ddba0b5d3381d3833b",
-      "destination_blob_sha": "f90ef1d12cf6fc5a61b934def2f7e06cec7c30d8",
+      "destination_blob_sha": "b2f7147547f054b5d08f9a30f147543801c283c1",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Extend the Supabase secret-header regression test to assert the zero-row service-role access probe checks both displacement_jobs and known_place_requests.",
+      "reason": "Assert service-role access probes and the new narrow PostgREST projections do not retrieve displacement result payloads for list/status/active checks.",
       "implementation_commits": [
-        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5"
+        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5",
+        "ca898e2fe4ea95dad7c91c5eaf2fa17f386f3290"
       ],
       "verification_paths": [
         "apps/api/tests/test_persistence_headers.py"
@@ -416,6 +421,38 @@
       ],
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic active API promotion",
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/displacements.py",
+      "destination_path": "apps/api/app/displacements.py",
+      "source_blob_sha": "2b5005d86ef4b3586c0ae9d6bc1f6607d842c925",
+      "destination_blob_sha": "7dd71aa3888ef7e0d47fcd04606a08574b7ed208",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Define compact owner-scoped displacement status response contracts without scientific result JSON or artifact URLs.",
+      "implementation_commits": [
+        "af788548a1232cd922fc30f1308fe0cedb7e9b9f"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_displacements.py"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic active API promotion",
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_displacements.py",
+      "destination_path": "apps/api/tests/test_displacements.py",
+      "source_blob_sha": "036eeea88a2a1144d6922628e7d82947dd5264db",
+      "destination_blob_sha": "8d874310f9b973a64274fd3522348b75e4321cbb",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Test that displacement list and status APIs omit result summaries/artifact URLs, the active guard is boolean-only, and status reads remain owner-scoped.",
+      "implementation_commits": [
+        "63bbff960725276746843d7c023d3bd3db3c3cfd"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_displacements.py"
       ]
     }
   ]
