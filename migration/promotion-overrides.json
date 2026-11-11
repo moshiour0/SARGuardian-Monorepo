@@ -256,13 +256,14 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/main.py",
       "destination_path": "apps/api/app/main.py",
       "source_blob_sha": "27316589dbfd4213f16c0de9ebd22beb8434ccae",
-      "destination_blob_sha": "8697fe9e560ba3111ebefb1c526ff6a812019476",
+      "destination_blob_sha": "e1dc263cf0e9258f950572bb01b90800c263d92d",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Persist Firebase owner-to-request mappings and expose owner-authenticated compact displacement status and boolean active-job routes while preserving full result retrieval and GitHub workflow reconciliation.",
+      "reason": "Persist Firebase owner mappings and expose authenticated compact status/active routes; all status-state persistence updates now also filter by the verified owner UID.",
       "implementation_commits": [
         "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720",
-        "5c479f3741e2cf1eb9d12ef40498ce1ed959fce3"
+        "5c479f3741e2cf1eb9d12ef40498ce1ed959fce3",
+        "60c5b947f13fe87d57fc89b61cbb63da1cad5b95"
       ],
       "verification_paths": [
         "apps/api/tests/test_main.py",
@@ -274,13 +275,14 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/persistence.py",
       "destination_path": "apps/api/app/persistence.py",
       "source_blob_sha": "a5828d031927e4ae7d7d998c3dddea1a99c87098",
-      "destination_blob_sha": "832c92437fb9ec156417db5628db20d289d42782",
+      "destination_blob_sha": "36b38da054f0fb427c10844d47d89c796537f2b1",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add Supabase owner-mapping methods and narrow displacement list/status projections to explicit metadata columns; active checks select only id or id/state and omit result_summary and artifact_url.",
+      "reason": "Add Supabase owner mapping and narrow PostgREST displacement projections; status reads and status mutations are both owner-scoped, and active checks select only id or id/state.",
       "implementation_commits": [
         "7b6e6be2d5d00f88146f966610f0bf07b97b5eae",
-        "16df626f939e123c4e4fa9fabee50731ebc179da"
+        "16df626f939e123c4e4fa9fabee50731ebc179da",
+        "085f525761eec92c0a1e8c5f1554ef1da359ffc3"
       ],
       "verification_paths": [
         "apps/api/tests/test_main.py",
@@ -308,13 +310,14 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_persistence_headers.py",
       "destination_path": "apps/api/tests/test_persistence_headers.py",
       "source_blob_sha": "410d64d9e71549cd859d58ddba0b5d3381d3833b",
-      "destination_blob_sha": "b2f7147547f054b5d08f9a30f147543801c283c1",
+      "destination_blob_sha": "be167eb21be65b12fc2a3ec16cd7d2dc5736f8b4",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Assert service-role access probes and the new narrow PostgREST projections do not retrieve displacement result payloads for list/status/active checks.",
+      "reason": "Verify compact PostgREST projections omit result payload columns and status mutations filter by both the verified owner UID and job ID.",
       "implementation_commits": [
         "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5",
-        "ca898e2fe4ea95dad7c91c5eaf2fa17f386f3290"
+        "ca898e2fe4ea95dad7c91c5eaf2fa17f386f3290",
+        "1c5936ba46634eaf4308d18cb5fcaee9cd72880c"
       ],
       "verification_paths": [
         "apps/api/tests/test_persistence_headers.py"
@@ -378,13 +381,14 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/DisplacementPreparation.tsx",
       "destination_path": "apps/web/landslide/ui/DisplacementPreparation.tsx",
       "source_blob_sha": "d3689a8b5606591106fb9571fdc979649a3f4f5a",
-      "destination_blob_sha": "455b97cb4221d8ed7a00d33824fc783f550d0d54",
+      "destination_blob_sha": "a1c70d23d26cf0cc5572dc434042e947eb31cad7",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Replace two-second full-result polling with owner-scoped status-only polling and fetch the full scientific result only once when the workflow succeeds.",
+      "reason": "Poll only compact status with adaptive 10/30/60-second backoff; fetch complete details exactly once for any terminal state so successful artifacts and failed-job granule counts remain available.",
       "implementation_commits": [
         "cf358a72c923792ee2a8a18861b8bbe960b284ef",
-        "ea34fe300e7fd5979ab2b941d7a5e68062fe019e"
+        "ea34fe300e7fd5979ab2b941d7a5e68062fe019e",
+        "e9af246b1697c26a3987c8ef7771d44d3228dc3e"
       ],
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
@@ -444,12 +448,13 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_displacements.py",
       "destination_path": "apps/api/tests/test_displacements.py",
       "source_blob_sha": "036eeea88a2a1144d6922628e7d82947dd5264db",
-      "destination_blob_sha": "8d874310f9b973a64274fd3522348b75e4321cbb",
+      "destination_blob_sha": "07e4f30e411e0ea355fc5d252da4b3fe39dfd381",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Test that displacement list and status APIs omit result summaries/artifact URLs, the active guard is boolean-only, and status reads remain owner-scoped.",
+      "reason": "Verify compact response contracts, boolean active-job guard, owner-scoped reads and owner-scoped status updates.",
       "implementation_commits": [
-        "63bbff960725276746843d7c023d3bd3db3c3cfd"
+        "63bbff960725276746843d7c023d3bd3db3c3cfd",
+        "63fe7a5dc22622a3935d3124fbcdfa24fa52bda0"
       ],
       "verification_paths": [
         "apps/api/tests/test_displacements.py"
