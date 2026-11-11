@@ -468,7 +468,7 @@
         "b3042714bf45b8d65aa61f8492640c7c2a2b3266"
       ],
       "verification_paths": [
-        "apps/web/landslide/tests/displacementPreparation.test.tsx"
+        "apps/web/src/api/catalog.test.ts"
       ]
     }
   ]
