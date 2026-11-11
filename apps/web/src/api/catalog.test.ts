@@ -28,7 +28,6 @@ describe('Compact displacement status API contract', () => {
   const status = {
     id: jobId,
     state: 'running',
-    aoi_wkt: 'POLYGON((85 27,85.01 27,85 27.01,85 27))',
     start_date: '2026-10-01',
     end_date: '2026-10-22',
     stage: 'download',
@@ -49,6 +48,9 @@ describe('Compact displacement status API contract', () => {
 
     await expect(getDisplacementJobStatus(jobId, user)).resolves.toMatchObject(status);
 
+    expect(status).not.toHaveProperty('aoi_wkt');
+    expect(status).not.toHaveProperty('result_summary');
+    expect(status).not.toHaveProperty('artifact_url');
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe(
       `http://localhost:8000/api/displacement-jobs/${jobId}/status`,
