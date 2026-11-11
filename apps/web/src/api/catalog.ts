@@ -439,10 +439,10 @@ export function nextDisplacementStatusPollDelay(attempt: number): number {
 export async function getDisplacementJobStatus(
   jobId: string,
   user: Pick<User, 'getIdToken'> | null,
-): Promise<DisplacementJobSummary> {
+): Promise<DisplacementJobStatusSnapshot> {
   const safeId = jobId.trim();
   if (!safeId) throw new Error('A displacement job ID is required.');
-  return readAuthenticatedPayload<DisplacementJobSummary>(
+  return readAuthenticatedPayload<DisplacementJobStatusSnapshot>(
     `${API_BASE}/api/displacement-jobs/${encodeURIComponent(safeId)}/status`,
     user,
     'Could not refresh the displacement job status.',
