@@ -502,6 +502,33 @@ def get_known_place_analysis_status(
     )
 
 
+def cancel_known_place_analysis(
+    settings: RuntimeSettings,
+    request_id: str,
+) -> KnownPlaceAnalysisSubmission:
+    """Cancel the owner-authenticated generic Known Place Actions run."""
+    current = get_known_place_analysis_status(settings, request_id)
+    if not current.github_run_id:
+        raise KnownPlaceWorkflowError("The Known Place workflow has not been allocated by GitHub yet. Refresh status and try again.")
+    if current.status == "completed":
+        raise KnownPlaceWorkflowError("The Known Place workflow is no longer running. Refresh its status.")
+    repository, _workflow, _ref, workflow_page = _workflow_target(settings)
+    status, _ = _github_request(
+        settings,
+        "POST",
+        f"/repos/{repository}/actions/runs/{current.github_run_id}/cancel",
+    )
+    if status != 202:
+        raise KnownPlaceWorkflowError("GitHub Actions did not accept cancellation of the Known Place workflow.")
+    return current.model_copy(update={
+        "status": "completed",
+        "conclusion": "cancelled",
+        "updated_at": current.updated_at,
+        "github_run_url": current.github_run_url or workflow_page,
+        "notice": "Cancellation requested. Refresh shortly to confirm the GitHub Actions run has stopped.",
+    })
+
+
 # Result-bundle retrieval is deliberately scoped to the generic two-polygon workflow.
 # The author-exact paper workflow remains a separate dispatch and result path.
 MAX_KNOWN_PLACE_ARTIFACT_BYTES = 20 * 1024 * 1024

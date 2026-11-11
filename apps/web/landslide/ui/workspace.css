@@ -875,6 +875,19 @@
 .known-place-release-progress.is-complete { border-color: rgba(29, 158, 106, .58); }
 .known-place-release-progress.is-failed { border-color: rgba(194, 65, 45, .62); }
 .known-place-status-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.known-place-status-actions { display: inline-flex; align-items: center; gap: 10px; }
+.known-place-cancel {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(194, 65, 45, .42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .62);
+  color: #a12f25;
+  font-size: 12px;
+  font-weight: 750;
+}
+.known-place-cancel:hover:not(:disabled) { background: rgba(255, 235, 232, .9); }
+.known-place-cancel:disabled { cursor: wait; opacity: .65; }
 .known-place-status-heading h2 { margin: 0; color: var(--known-ink); font-size: 20px; }
 .known-place-status-chip {
   display: inline-flex;

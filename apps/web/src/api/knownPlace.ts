@@ -162,6 +162,24 @@ export async function getKnownPlaceAnalysisStatus(
   return readPayload<KnownPlaceAnalysisRun>(response, 'Could not refresh Known Place Analysis status');
 }
 
+export async function cancelKnownPlaceAnalysis(
+  requestId: string,
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<KnownPlaceAnalysisRun> {
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw new Error('Invalid Known Place Analysis request ID.');
+  const token = await firebaseToken(user);
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_BASE}/api/known-place-analysis/requests/${encodeURIComponent(requestId)}/cancel`,
+      { method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' },
+    );
+  } catch {
+    throw new Error('Could not reach the processing service to cancel this analysis.');
+  }
+  return readPayload<KnownPlaceAnalysisRun>(response, 'Could not cancel Known Place Analysis');
+}
+
 
 export type KnownPlaceMapPreview = {
   width: number;

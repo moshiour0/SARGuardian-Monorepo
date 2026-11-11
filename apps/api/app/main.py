@@ -34,6 +34,7 @@ from .known_place import (
     KnownPlaceWorkflowError,
     dispatch_known_place_analysis,
     dispatch_known_place_paper_reproduction,
+    cancel_known_place_analysis,
     get_known_place_analysis_status,
     get_known_place_analysis_results,
     download_known_place_analysis_bundle,
@@ -273,6 +274,29 @@ def read_known_place_analysis_status(
     except KnownPlaceWorkflowError as exc:
         code = 422 if "Invalid Known Place request ID" in str(exc) else 503
         raise HTTPException(status_code=code, detail=str(exc)) from None
+
+
+@app.post("/api/known-place-analysis/requests/{request_id}/cancel", response_model=KnownPlaceAnalysisSubmission)
+def cancel_known_place_analysis_route(
+    request_id: str,
+    user: dict = Depends(get_current_user),
+) -> KnownPlaceAnalysisSubmission:
+    """Cancel a generic Known Place Actions run for its authenticated owner."""
+    record = _owned_known_place_request(user, request_id, "generic")
+    if record.get("dispatch_state") == "cancelled":
+        raise HTTPException(status_code=409, detail="This Known Place workflow has already been cancelled.")
+    try:
+        submission = cancel_known_place_analysis(get_settings(), request_id)
+        _require_store().update_known_place_request(
+            _required_owner_uid(user), UUID(request_id), "generic", "cancelled",
+        )
+        return submission
+    except KnownPlaceWorkflowError as exc:
+        message = str(exc)
+        code = 409 if any(term in message.lower() for term in ("not running", "not been allocated", "no longer", "did not accept")) else 503
+        raise HTTPException(status_code=code, detail=message) from None
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="GitHub cancellation was requested but the request state could not be saved.") from None
 
 
 @app.get("/api/known-place-analysis/requests/{request_id}/results")

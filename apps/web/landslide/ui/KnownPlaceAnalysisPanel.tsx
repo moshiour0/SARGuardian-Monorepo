@@ -3,6 +3,7 @@ import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
 import {
+  cancelKnownPlaceAnalysis,
   getKnownPlaceAnalysisStatus,
   getKnownPlaceAnalysisResults,
   startKnownPlaceAnalysis,
@@ -151,11 +152,11 @@ type ReleaseLookupProgress = {
   tone: 'running' | 'complete' | 'failed';
 };
 
-function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | null, run: StoredRun | null): ReleaseLookupProgress | null {
+function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | null, run: StoredRun | null): ReleaseLookupProgress | null {
   if (pendingAction === 'dry-run') {
     return { percent: 8, stage: 'Starting', detail: 'Sending the catalog request…', tone: 'running' };
   }
-  if (!run || run.execute_downloads) return null;
+  if (!run) return null;
   if (run.status === 'dispatching') {
     return { percent: 20, stage: 'Starting', detail: 'Finding available releases.', tone: 'running' };
   }
@@ -163,10 +164,12 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | null, 
     return { percent: 38, stage: 'Queued', detail: 'Waiting for an available workflow runner.', tone: 'running' };
   }
   if (run.status === 'in_progress') {
-    return { percent: 72, stage: 'Searching catalog', detail: 'Finding releases and planning a consistent series.', tone: 'running' };
+    return run.execute_downloads
+      ? { percent: 72, stage: 'Processing', detail: 'Computing the Known Place measurement.', tone: 'running' }
+      : { percent: 72, stage: 'Searching catalog', detail: 'Finding releases and planning a consistent series.', tone: 'running' };
   }
   if (run.conclusion === 'success') {
-    return { percent: 100, stage: 'Release IDs ready', detail: 'Choose an available release below.', tone: 'complete' };
+    return { percent: 100, stage: 'Complete', detail: run.execute_downloads ? 'Analysis complete.' : 'Choose an available release below.', tone: 'complete' };
   }
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
 }
@@ -188,7 +191,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
   const [geometryHeight, setGeometryHeight] = useState('');
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | 'cancel' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(null);
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
   const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
@@ -463,6 +466,20 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
   };
 
+  const cancelRun = async () => {
+    if (!run || run.status === 'completed' || pendingAction !== null) return;
+    setPendingAction('cancel');
+    setError('');
+    try {
+      const cancelled = await cancelKnownPlaceAnalysis(run.request_id, user);
+      setRun((current) => current ? { ...current, ...cancelled, execute_downloads: current.execute_downloads } : current);
+    } catch (cancelError) {
+      setError(cancelError instanceof Error ? cancelError.message : 'Could not cancel this analysis.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
   const runTerminal = run?.status === 'completed';
   const runSucceeded = runTerminal && run?.conclusion === 'success';
   const runFailed = runTerminal && !runSucceeded;
@@ -542,7 +559,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
-                <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run?.execute_downloads === false ? resultLabel(run) : 'Processing'}</span>
+                <div className="known-place-status-actions">
+                  {run && run.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+                  <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run ? resultLabel(run) : 'Processing'}</span>
+                </div>
               </div>
               <div
                 className="known-place-progress-track"
