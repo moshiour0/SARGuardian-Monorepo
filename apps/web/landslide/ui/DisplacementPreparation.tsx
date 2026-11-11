@@ -255,7 +255,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
             setJobError('');
           } catch (error: unknown) {
             if (!stopped && requestSequence === statusRequestSequence.current) {
-              setJob(nextStatus);
+              setJob((current) => current?.id === jobId ? { ...current, ...nextStatus } : current);
               setJobError(error instanceof Error
                 ? error.message
                 : 'The job finished, but its complete result details could not be loaded.');
@@ -264,7 +264,9 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
           return;
         }
 
-        setJob(nextStatus);
+        // Keep the AOI WKT from the initial compact job list; the
+        // repeated status projection deliberately does not send geometry.
+        setJob((current) => current?.id === jobId ? { ...current, ...nextStatus } : current);
         setJobError('');
         attempt += 1;
         timer = window.setTimeout(refresh, nextDisplacementStatusPollDelay(attempt));
