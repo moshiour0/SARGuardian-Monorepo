@@ -157,7 +157,7 @@ function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | null, 
   }
   if (!run || run.execute_downloads) return null;
   if (run.status === 'dispatching') {
-    return { percent: 20, stage: 'Request accepted', detail: 'Allocating the workflow run.', tone: 'running' };
+    return { percent: 20, stage: 'Starting', detail: 'Finding available releases.', tone: 'running' };
   }
   if (run.status === 'queued') {
     return { percent: 38, stage: 'Queued', detail: 'Waiting for an available workflow runner.', tone: 'running' };
@@ -537,11 +537,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             <button type="button" className="demo-button known-place-find-release" disabled={!canSubmitGeometry || pendingAction !== null} onClick={() => void submit(false)}>
               {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
             </button>
-            <p className="catalog-notice" role="status">
-              {catalogPreflightReady
-                ? 'Catalog preflight passed for the exact current polygons, dates and processing settings. Raw download still requires the separate consent checkbox.'
-                : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current polygons, dates and processing settings, completed within the last 15 minutes.'}
-            </p>
+            <p className="known-place-choose-release" role="status">Choose a release ID before analysis.</p>
           </div>
           {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
@@ -561,7 +557,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               </div>
               <div className="known-place-progress-meta">
                 <span>{releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
-                <b>{elapsed}</b>
+                <b>{releaseLookupProgress.percent}% · {elapsed}</b>
               </div>
               <p className="known-place-progress-message">{releaseLookupProgress.tone === 'complete' ? 'Select an available release below.' : releaseLookupProgress.tone === 'failed' ? 'Release lookup failed. Try again.' : releaseLookupProgress.detail}</p>
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
