@@ -172,20 +172,21 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/App.tsx",
       "destination_path": "apps/web/src/App.tsx",
       "source_blob_sha": "f11f9197bd5abf4befe21203517338e6bc3a1ad3",
-      "destination_blob_sha": "825acfe098744d39675f193d8b7929de217f06ff",
+      "destination_blob_sha": "e87c3b2e0d33a180a1b053f2cd910969fee067ff",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Expose a user-visible authenticated API and Monorepo Supabase read-check state after Google sign-in without dispatching a processing workflow.",
+      "reason": "Expose authenticated API readiness after sign-in and use a boolean-only, thirty-second active-job guard rather than repeatedly downloading the full displacement job list.",
       "implementation_commits": [
         "0403c800e5d37642725880f8b37a6e6ef0c03ee2",
         "9214fc17b2625e6432c0c5cc58300557ab2c116a",
         "72eda2cc99446cf59ec086b4bc7356574b40716c",
         "2c0f775c525f4e072cac2c8b1a82873a14aa66f1",
         "ff4637abdf62afc9d559d822c7c8526fb441e028",
-        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652"
+        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652",
+        "b5ee6154dfa136c858204195ac549dd08f16f871"
       ],
       "verification_paths": [
-        "apps/web/src/authGating.test.ts"
+        "apps/web/src/api/catalog.test.ts"
       ]
     },
     {
@@ -348,6 +349,73 @@
       ],
       "verification_paths": [
         "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/engine/displacementJobSelection.ts",
+      "destination_path": "apps/web/landslide/engine/displacementJobSelection.ts",
+      "source_blob_sha": "7694ab207e72903515e27fb4a7b811e3a6366b89",
+      "destination_blob_sha": "0a296ab42b2bb8a83acb8d7e5968960557961a56",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Select account jobs from the compact metadata-only list contract; the chooser no longer needs result payload fields.",
+      "implementation_commits": [
+        "056d2285608f7cd139079b5da0b7f58f023d90f8",
+        "9a8e554d5c32fb27b4115905484cffefd18dcaf1"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/DisplacementPreparation.tsx",
+      "destination_path": "apps/web/landslide/ui/DisplacementPreparation.tsx",
+      "source_blob_sha": "d3689a8b5606591106fb9571fdc979649a3f4f5a",
+      "destination_blob_sha": "4389f14b8e188907185af65160e3d12f65d374da",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Replace two-second full-result polling with owner-scoped status-only polling and fetch the full scientific result only once when the workflow succeeds.",
+      "implementation_commits": [
+        "cf358a72c923792ee2a8a18861b8bbe960b284ef",
+        "ea34fe300e7fd5979ab2b941d7a5e68062fe019e"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.ts",
+      "destination_path": "apps/web/src/api/catalog.ts",
+      "source_blob_sha": "ff0652aa42e67a6d7b4ad2c4f74112d07d980df2",
+      "destination_blob_sha": "6f4b8a9b1ebaef9c3d7e990171fd485eed7649cd",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add Firebase-authenticated compact job status, boolean active-job and summary-list API clients plus adaptive polling intervals.",
+      "implementation_commits": [
+        "84d3b8fa21ee0128ddc3287dc51375332493f1ab",
+        "c41384f82d1a511156e5b08439ef7037ce276d97"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.test.ts",
+      "destination_path": "apps/web/src/api/catalog.test.ts",
+      "source_blob_sha": "c6290e0ebb585213ffab4b58f74a9f5d4850808c",
+      "destination_blob_sha": "9eb341eb6d427870eec56d647c6fa09018512064",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add contract tests for compact job lists, authenticated status reads, boolean active-job checks and ten/thirty/sixty-second poll backoff.",
+      "implementation_commits": [
+        "c8a22b4517103b49cb31ea13928cec0c3e573c76"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
       ]
     }
   ]
