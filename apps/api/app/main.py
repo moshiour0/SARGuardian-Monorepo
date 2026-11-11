@@ -612,8 +612,9 @@ def get_displacement_job_status(
 ) -> DisplacementJobStatusResponse:
     """Read compact owner-scoped job state without retrieving scientific result JSON."""
     store = _require_store()
+    owner_uid = _required_owner_uid(user)
     try:
-        record = store.get_displacement_job_status(_required_owner_uid(user), job_id)
+        record = store.get_displacement_job_status(owner_uid, job_id)
     except PersistenceError:
         raise HTTPException(status_code=503, detail="Could not read displacement job status.") from None
     if not record:
@@ -645,13 +646,13 @@ def get_displacement_job_status(
                 should_persist = True
             if should_persist:
                 try:
-                    record = store.update_displacement_job_status(job_id, updates)
+                    record = store.update_displacement_job_status(owner_uid, job_id, updates)
                 except PersistenceError:
                     raise HTTPException(status_code=503, detail="Could not persist the discovered workflow state.") from None
 
     if is_dispatch_timed_out(record, settings.displacement_dispatch_timeout_seconds):
         try:
-            record = store.update_displacement_job_status(job_id, {
+            record = store.update_displacement_job_status(owner_uid, job_id, {
                 "state": JobState.FAILED.value,
                 "stage": "start_timeout",
                 "error_code": "WORKFLOW_START_TIMEOUT",
@@ -669,7 +670,7 @@ def get_displacement_job_status(
                 else "GitHub Actions reported a terminal worker failure."
             )
             try:
-                record = store.update_displacement_job_status(job_id, {
+                record = store.update_displacement_job_status(owner_uid, job_id, {
                     "state": JobState.FAILED.value,
                     "stage": "terminal_validation_failed",
                     "error_code": code,
