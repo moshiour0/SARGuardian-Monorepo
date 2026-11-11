@@ -22,6 +22,13 @@ class PersistenceConfigurationError(RuntimeError):
     pass
 
 
+DISPLACEMENT_JOB_METADATA_COLUMNS = (
+    "id,state,aoi_wkt,start_date,end_date,product_type,acquisition_window,retention_mode,"
+    "processing_profile,place_name,place_latitude,place_longitude,target_latitude,target_longitude,"
+    "stage,github_run_id,github_run_url,error_code,error_message,created_at,updated_at"
+)
+
+
 class PersistenceError(RuntimeError):
     pass
 
@@ -265,7 +272,7 @@ class SupabaseJobStore:
         try:
             response = (
                 self.client.table("displacement_jobs")
-                .select("*")
+                .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
                 .eq("owner_uid", owner_uid)
                 .order("created_at", desc=True)
                 .limit(limit)
@@ -274,6 +281,51 @@ class SupabaseJobStore:
         except Exception:
             raise PersistenceError("Could not list displacement jobs.") from None
         return self._data(response)
+
+    def get_displacement_job_status(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None:
+        try:
+            response = (
+                self.client.table("displacement_jobs")
+                .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
+                .eq("owner_uid", owner_uid)
+                .eq("id", str(job_id))
+                .limit(1)
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not read displacement job status.") from None
+        rows = self._data(response)
+        return rows[0] if rows else None
+
+    def update_displacement_job_status(self, job_id: UUID, values: dict[str, Any]) -> dict[str, Any]:
+        try:
+            response = (
+                self.client.table("displacement_jobs")
+                .update(values)
+                .eq("id", str(job_id))
+                .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not update displacement job status.") from None
+        rows = self._data(response)
+        if not rows:
+            raise PersistenceError("Displacement job was not found for status update.")
+        return rows[0]
+
+    def has_active_displacement_job(self, owner_uid: str) -> bool:
+        try:
+            response = (
+                self.client.table("displacement_jobs")
+                .select("id")
+                .eq("owner_uid", owner_uid)
+                .in_("state", ["queued", "dispatching", "running"])
+                .limit(1)
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not check account processing status.") from None
+        return bool(self._data(response))
 
     def find_active_displacement_job(self, owner_uid: str, aoi_wkt: str, start_date: str, end_date: str) -> dict[str, Any] | None:
         try:
@@ -296,7 +348,7 @@ class SupabaseJobStore:
 
     def list_active_displacement_jobs(self, owner_uid: str) -> list[dict[str, Any]]:
         try:
-            response = (self.client.table("displacement_jobs").select("*").eq("owner_uid", owner_uid)
+            response = (self.client.table("displacement_jobs").select("id,state").eq("owner_uid", owner_uid)
                         .in_("state", ["queued", "dispatching", "running"]).limit(2).execute())
         except Exception:
             raise PersistenceError("Could not check account processing capacity.") from None
