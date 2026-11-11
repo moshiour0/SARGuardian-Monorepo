@@ -6,6 +6,7 @@ import {
   getDisplacementJob,
   getDisplacementJobStatus,
   listDisplacementJobs,
+  nextDisplacementStatusPollDelay,
   resubmitDisplacementJob,
   DEFAULT_DISPLACEMENT_OPTIONS,
   type DisplacementProcessingOptions,
@@ -17,16 +18,6 @@ import { ELAPSED_TICK_MS, formatElapsed, type GranuleCounts } from './processing
 
 const activeStates = new Set(['queued', 'dispatching', 'running']);
 const noopTaskActivityChange = () => {};
-export const JOB_STATUS_POLL_INITIAL_MS = 10_000;
-export const JOB_STATUS_POLL_MEDIUM_MS = 30_000;
-export const JOB_STATUS_POLL_MAX_MS = 60_000;
-
-function nextStatusPollDelay(attempt: number): number {
-  if (attempt < 3) return JOB_STATUS_POLL_INITIAL_MS;
-  if (attempt < 8) return JOB_STATUS_POLL_MEDIUM_MS;
-  return JOB_STATUS_POLL_MAX_MS;
-}
-
 function resultGranuleCounts(job: DisplacementJob): GranuleCounts | null {
   const products = job.result_summary?.products;
   if (Array.isArray(products)) return {
@@ -245,7 +236,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
     const refresh = async () => {
       if (stopped || requestInFlight || userActionActive.current) return;
       if (document.visibilityState === 'hidden') {
-        timer = window.setTimeout(refresh, JOB_STATUS_POLL_MAX_MS);
+        timer = window.setTimeout(refresh, 60_000);
         return;
       }
       requestInFlight = true;
@@ -275,7 +266,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
         setJobError('');
         if (activeStates.has(nextStatus.state)) {
           attempt += 1;
-          timer = window.setTimeout(refresh, nextStatusPollDelay(attempt));
+          timer = window.setTimeout(refresh, nextDisplacementStatusPollDelay(attempt));
         }
       } catch (error: unknown) {
         if (!stopped && requestSequence === statusRequestSequence.current) {
