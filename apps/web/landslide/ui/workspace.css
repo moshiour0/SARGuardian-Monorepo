@@ -982,7 +982,7 @@
 .known-place-analysis-progress.is-complete { border-color: rgba(29,158,106,.58); }
 .known-place-analysis-progress.is-failed { border-color: rgba(194,65,45,.62); }
 .known-place-analysis-progress-body { display: grid; justify-items: center; gap: 20px; }
-.known-place-analysis-timer {
+.known-place-analysis-timer { position: relative;
   display: grid;
   place-items: center;
   width: min(220px, 54vw);
