@@ -17,7 +17,7 @@ import {
 } from './knownPlacePreflight';
 
 type StoredRun = KnownPlaceAnalysisRun & { execute_downloads: boolean; request_fingerprint?: string };
-type VariantOption = { key: string; releaseId: string; processing: string; granules: string[] };
+type VariantOption = { key: string; releaseId: string; processing: string; granules: string[]; latest?: boolean };
 type CatalogSummary = { products: number; releases: number; series: number };
 
 type CandidateTransfer = {
@@ -129,10 +129,19 @@ export function loadKnownPlaceRunRequestId(uid: string): string | null {
 }
 
 function resultLabel(run: StoredRun): string {
-  if (run.status !== 'completed') return run.status === 'dispatching' ? 'Starting' : 'Running';
-  if (run.conclusion === 'success') return 'Workflow completed';
+  if (run.status !== 'completed') return run.status === 'dispatching' ? 'Processing' : 'Processing';
+  if (run.conclusion === 'success') return 'Complete';
   if (run.conclusion === 'cancelled') return 'Cancelled';
-  return 'Workflow failed';
+  return 'Failed';
+}
+
+function formatElapsed(startedAt: number | null, finishedAt: number | null, now: number): string {
+  if (!startedAt) return '00:00';
+  const end = finishedAt ?? now;
+  const totalSeconds = Math.max(0, Math.floor((end - startedAt) / 1000));
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
 }
 
 type ReleaseLookupProgress = {
@@ -187,6 +196,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
+  const [lookupStartedAt, setLookupStartedAt] = useState<number | null>(null);
+  const [clock, setClock] = useState(() => Date.now());
   const createAnalysisInput = (executeDownloads: boolean): KnownPlaceAnalysisInput => ({
     aoi_wkt: measurementWkt,
     scope_aoi_wkt: aoiWkt || '',
@@ -344,6 +355,16 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           variants.set(key, current);
         }
         const variantOptions = Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing));
+        const latestGranuleTimestamp = (granule: string): string => {
+          const timestamps = Array.from(granule.matchAll(/_(\d{8}T\d{6})/g)).map((match) => match[1]);
+          const sorted = timestamps.sort();
+          return sorted[sorted.length - 1] || '';
+        };
+        const allTimestamps = variantOptions.flatMap((option) => option.granules.map(latestGranuleTimestamp)).sort();
+        const latestTimestamp = allTimestamps[allTimestamps.length - 1] || '';
+        for (const option of variantOptions) {
+          option.latest = Boolean(latestTimestamp && option.granules.some((granule) => latestGranuleTimestamp(granule) === latestTimestamp));
+        }
         const plannedGranules = new Set([
           ...granules,
           ...(payload.result.pairwise_series_plan.chains || []).flatMap((chain) =>
@@ -402,6 +423,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       return;
     }
     setPendingAction(executeDownloads ? 'analysis' : 'dry-run');
+    setLookupStartedAt(Date.now());
     setError('');
     setPollError('');
     try {
@@ -445,6 +467,15 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const runSucceeded = runTerminal && run?.conclusion === 'success';
   const runFailed = runTerminal && !runSucceeded;
   const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
+  const lookupStarted = lookupStartedAt ?? (run?.created_at ? Date.parse(run.created_at) : null);
+  const lookupFinished = runTerminal && run?.updated_at ? Date.parse(run.updated_at) : null;
+  const elapsed = formatElapsed(lookupStarted, lookupFinished, clock);
+
+  useEffect(() => {
+    if (!releaseLookupProgress) return undefined;
+    const interval = window.setInterval(() => setClock(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [releaseLookupProgress]);
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
@@ -515,12 +546,8 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
-                <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run?.execute_downloads === false ? resultLabel(run) : releaseLookupProgress.stage}</span>
+                <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run?.execute_downloads === false ? resultLabel(run) : 'Processing'}</span>
               </div>
-              {run?.execute_downloads === false && <div className="known-place-status-details">
-                <p><b>Request ID:</b> <code>{run.request_id}</code></p>
-                <p><b>Mode:</b> Catalog-only dry run — no raw download</p>
-              </div>}
               <div
                 className="known-place-progress-track"
                 role="progressbar"
@@ -533,12 +560,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 <i style={{ width: `${releaseLookupProgress.percent}%` }} />
               </div>
               <div className="known-place-progress-meta">
-                <span>{releaseLookupProgress.stage}</span>
-                <b>{releaseLookupProgress.percent}%</b>
+                <span>{releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
+                <b>{elapsed}</b>
               </div>
-              <p className="known-place-progress-message">{run?.notice || releaseLookupProgress.detail}</p>
+              <p className="known-place-progress-message">{releaseLookupProgress.tone === 'complete' ? 'Select an available release below.' : releaseLookupProgress.tone === 'failed' ? 'Release lookup failed. Try again.' : releaseLookupProgress.detail}</p>
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
-              {run?.github_run_url && <a className="known-place-run-link" href={run.github_run_url} target="_blank" rel="noreferrer">Open GitHub run and view the result bundle</a>}
               {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
                 <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
                 <div><span>Releases</span><strong>{catalogSummary.releases}</strong></div>
@@ -549,7 +575,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
                   {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
                     <input type="radio" name="known-place-release" value={option.key} checked={selectedVariantKey === option.key} onChange={() => { setSelectedVariantKey(option.key); setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
-                    <span>{option.releaseId} — {option.processing}</span>
+                    <span>{option.releaseId} — {option.processing}{option.latest ? ' · Latest' : ''}</span>
                     <small>{option.granules.length} product{option.granules.length === 1 ? '' : 's'}</small>
                   </label>) : catalogReleaseIds.map((releaseId) => <label key={releaseId}>
                     <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />

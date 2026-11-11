@@ -857,6 +857,9 @@
   gap: 14px;
   padding: 24px 26px;
 }
+.known-place-release-progress.is-running { border-color: rgba(10, 132, 224, .55); }
+.known-place-release-progress.is-complete { border-color: rgba(29, 158, 106, .58); }
+.known-place-release-progress.is-failed { border-color: rgba(194, 65, 45, .62); }
 .known-place-status-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .known-place-status-heading h2 { margin: 0; color: var(--known-ink); font-size: 20px; }
 .known-place-status-chip {
@@ -872,6 +875,7 @@
 }
 .known-place-status-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--known-blue); }
 .known-place-status-chip.is-running i { animation: processing-pulse 1.6s ease-out infinite; }
+.known-place-status-chip.is-running i { background: #0870c4; }
 .known-place-status-chip.is-complete i { background: #1d9e6a; }
 .known-place-status-chip.is-failed i { background: #c2412d; }
 .known-place-status-details { display: grid; gap: 7px; }
