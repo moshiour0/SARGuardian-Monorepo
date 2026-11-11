@@ -454,6 +454,22 @@
       "verification_paths": [
         "apps/api/tests/test_displacements.py"
       ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/tests/displacementPreparation.test.tsx",
+      "destination_path": "apps/web/landslide/tests/displacementPreparation.test.tsx",
+      "source_blob_sha": "581a0190984f6972e758a681746daea1fb454062",
+      "destination_blob_sha": "7dbad6da6b322f5eb4f5d410d06ea6d286d34078",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Replace the obsolete two-second polling expectation with regression assertions for the status-only ten/thirty/sixty-second backoff cadence while preserving the elapsed-age tick behavior.",
+      "implementation_commits": [
+        "b3042714bf45b8d65aa61f8492640c7c2a2b3266"
+      ],
+      "verification_paths": [
+        "apps/web/landslide/tests/displacementPreparation.test.tsx"
+      ]
     }
   ]
 }
