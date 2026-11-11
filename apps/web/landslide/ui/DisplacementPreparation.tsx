@@ -4,6 +4,7 @@ import type { PreparedInvestigation } from '../engine/investigation';
 import {
   cancelDisplacementJob,
   getDisplacementJob,
+  getDisplacementJobStatus,
   listDisplacementJobs,
   resubmitDisplacementJob,
   DEFAULT_DISPLACEMENT_OPTIONS,
@@ -16,7 +17,15 @@ import { ELAPSED_TICK_MS, formatElapsed, type GranuleCounts } from './processing
 
 const activeStates = new Set(['queued', 'dispatching', 'running']);
 const noopTaskActivityChange = () => {};
-export const JOB_STATUS_POLL_MS = 2000;
+export const JOB_STATUS_POLL_INITIAL_MS = 10_000;
+export const JOB_STATUS_POLL_MEDIUM_MS = 30_000;
+export const JOB_STATUS_POLL_MAX_MS = 60_000;
+
+function nextStatusPollDelay(attempt: number): number {
+  if (attempt < 3) return JOB_STATUS_POLL_INITIAL_MS;
+  if (attempt < 8) return JOB_STATUS_POLL_MEDIUM_MS;
+  return JOB_STATUS_POLL_MAX_MS;
+}
 
 function resultGranuleCounts(job: DisplacementJob): GranuleCounts | null {
   const products = job.result_summary?.products;
@@ -183,6 +192,8 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
   const [clock, setClock] = useState(() => Date.now());
   const statusRequestSequence = useRef(0);
   const userActionActive = useRef(false);
+  const jobRef = useRef(job);
+  jobRef.current = job;
   const jobId = job?.id;
   const hasActiveJob = Boolean(job && activeStates.has(job.state));
 
@@ -201,9 +212,19 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
     const lookup = accountLookupContext.current;
     try {
       const jobs = await listDisplacementJobs(lookup.user);
-      setJob((current) => current && activeStates.has(current.state)
-        ? current
-        : chooseAccountJob(jobs, lookup.preparation, lookup.options));
+      const current = jobRef.current;
+      if (current && activeStates.has(current.state)) return;
+      const selected = chooseAccountJob(jobs, lookup.preparation, lookup.options);
+      if (selected?.state === 'succeeded') {
+        try {
+          setJob(await getDisplacementJob(selected.id, lookup.user));
+        } catch (error) {
+          setJob(selected);
+          setJobError(error instanceof Error ? error.message : 'Could not load the saved scientific result.');
+        }
+      } else {
+        setJob(selected);
+      }
     } catch (error) {
       setJobError(error instanceof Error ? error.message : 'Could not load your displacement jobs.');
     } finally {
@@ -219,31 +240,57 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
     if (!jobId || !hasActiveJob) return undefined;
     let stopped = false;
     let requestInFlight = false;
-    const refresh = () => {
+    let attempt = 0;
+    let timer: number | undefined;
+    const refresh = async () => {
       if (stopped || requestInFlight || userActionActive.current) return;
+      if (document.visibilityState === 'hidden') {
+        timer = window.setTimeout(refresh, JOB_STATUS_POLL_MAX_MS);
+        return;
+      }
       requestInFlight = true;
       const requestSequence = ++statusRequestSequence.current;
-      void getDisplacementJob(jobId, user)
-        .then((nextJob) => {
-          if (stopped || requestSequence !== statusRequestSequence.current) return;
-          setJob(nextJob);
-          setJobError('');
-        })
-        .catch((error: unknown) => {
-          if (!stopped && requestSequence === statusRequestSequence.current) {
-            setJobError(error instanceof Error ? error.message : 'Could not refresh the displacement job.');
+      try {
+        const nextStatus = await getDisplacementJobStatus(jobId, user);
+        if (stopped || requestSequence !== statusRequestSequence.current) return;
+
+        if (nextStatus.state === 'succeeded') {
+          try {
+            const completeResult = await getDisplacementJob(jobId, user);
+            if (stopped || requestSequence !== statusRequestSequence.current) return;
+            setJob(completeResult);
+            setJobError('');
+          } catch (error: unknown) {
+            if (!stopped && requestSequence === statusRequestSequence.current) {
+              setJob(nextStatus);
+              setJobError(error instanceof Error
+                ? error.message
+                : 'The job finished, but its complete scientific result could not be loaded.');
+            }
           }
-        })
-        .finally(() => { requestInFlight = false; });
+          return;
+        }
+
+        setJob(nextStatus);
+        setJobError('');
+        if (activeStates.has(nextStatus.state)) {
+          attempt += 1;
+          timer = window.setTimeout(refresh, nextStatusPollDelay(attempt));
+        }
+      } catch (error: unknown) {
+        if (!stopped && requestSequence === statusRequestSequence.current) {
+          setJobError(error instanceof Error ? error.message : 'Could not refresh the displacement job status.');
+          timer = window.setTimeout(refresh, JOB_STATUS_POLL_MAX_MS);
+        }
+      } finally {
+        requestInFlight = false;
+      }
     };
-    refresh();
-    const timer = window.setInterval(() => {
-      refresh();
-    }, JOB_STATUS_POLL_MS);
+    void refresh();
     return () => {
       stopped = true;
       statusRequestSequence.current += 1;
-      window.clearInterval(timer);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [hasActiveJob, jobId, user]);
 
