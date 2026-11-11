@@ -172,20 +172,21 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/App.tsx",
       "destination_path": "apps/web/src/App.tsx",
       "source_blob_sha": "f11f9197bd5abf4befe21203517338e6bc3a1ad3",
-      "destination_blob_sha": "825acfe098744d39675f193d8b7929de217f06ff",
+      "destination_blob_sha": "e87c3b2e0d33a180a1b053f2cd910969fee067ff",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Expose a user-visible authenticated API and Monorepo Supabase read-check state after Google sign-in without dispatching a processing workflow.",
+      "reason": "Expose authenticated API readiness after sign-in and use a boolean-only, thirty-second active-job guard rather than repeatedly downloading the full displacement job list.",
       "implementation_commits": [
         "0403c800e5d37642725880f8b37a6e6ef0c03ee2",
         "9214fc17b2625e6432c0c5cc58300557ab2c116a",
         "72eda2cc99446cf59ec086b4bc7356574b40716c",
         "2c0f775c525f4e072cac2c8b1a82873a14aa66f1",
         "ff4637abdf62afc9d559d822c7c8526fb441e028",
-        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652"
+        "da5934fe1f7ba3e3d5eea61067ac5a8a7a14c652",
+        "b5ee6154dfa136c858204195ac549dd08f16f871"
       ],
       "verification_paths": [
-        "apps/web/src/authGating.test.ts"
+        "apps/web/src/api/catalog.test.ts"
       ]
     },
     {
@@ -255,15 +256,18 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/main.py",
       "destination_path": "apps/api/app/main.py",
       "source_blob_sha": "27316589dbfd4213f16c0de9ebd22beb8434ccae",
-      "destination_blob_sha": "7e3d2a392c9bb63184c58656d007ac2415ad7696",
+      "destination_blob_sha": "e1dc263cf0e9258f950572bb01b90800c263d92d",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Persist Firebase owner-to-request mappings before Known Place dispatch and require matching owner UID plus workflow kind on generic status, result, bundle and author-exact status reads.",
+      "reason": "Persist Firebase owner mappings and expose authenticated compact status/active routes; all status-state persistence updates now also filter by the verified owner UID.",
       "implementation_commits": [
-        "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720"
+        "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720",
+        "5c479f3741e2cf1eb9d12ef40498ce1ed959fce3",
+        "60c5b947f13fe87d57fc89b61cbb63da1cad5b95"
       ],
       "verification_paths": [
-        "apps/api/tests/test_main.py"
+        "apps/api/tests/test_main.py",
+        "apps/api/tests/test_displacements.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -271,15 +275,19 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/persistence.py",
       "destination_path": "apps/api/app/persistence.py",
       "source_blob_sha": "a5828d031927e4ae7d7d998c3dddea1a99c87098",
-      "destination_blob_sha": "4012c6bcfb450e848bec2d3d046cce7a90d8a430",
+      "destination_blob_sha": "fc7615ba7e7d1896f21a74ce2a8647407c043206",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add service-role-only Supabase methods for Known Place request ownership and fail API server-role preflight when the owner-mapping migration has not been applied.",
+      "reason": "Add Supabase owner mapping, compact metadata projections, a smaller geometry-free status projection, and owner-scoped status updates; active checks select only id or id/state.",
       "implementation_commits": [
-        "7b6e6be2d5d00f88146f966610f0bf07b97b5eae"
+        "7b6e6be2d5d00f88146f966610f0bf07b97b5eae",
+        "16df626f939e123c4e4fa9fabee50731ebc179da",
+        "085f525761eec92c0a1e8c5f1554ef1da359ffc3",
+        "f3cfb75ae3a40589feb824b43233d4c7f2a02c36"
       ],
       "verification_paths": [
-        "apps/api/tests/test_main.py"
+        "apps/api/tests/test_main.py",
+        "apps/api/tests/test_persistence_headers.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -303,12 +311,15 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_persistence_headers.py",
       "destination_path": "apps/api/tests/test_persistence_headers.py",
       "source_blob_sha": "410d64d9e71549cd859d58ddba0b5d3381d3833b",
-      "destination_blob_sha": "f90ef1d12cf6fc5a61b934def2f7e06cec7c30d8",
+      "destination_blob_sha": "7f2ca2ed834f79fefcbd5a18aa8321ac23d9d287",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Extend the Supabase secret-header regression test to assert the zero-row service-role access probe checks both displacement_jobs and known_place_requests.",
+      "reason": "Verify list/status PostgREST projections omit large result/AOI columns and status updates filter by the verified owner UID plus job ID.",
       "implementation_commits": [
-        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5"
+        "f6d4089e2f1e8b1cc5c8c3476dba7838873e3dd5",
+        "ca898e2fe4ea95dad7c91c5eaf2fa17f386f3290",
+        "1c5936ba46634eaf4308d18cb5fcaee9cd72880c",
+        "795fda967ffc67221aebfcae7ffc1c1318f59386"
       ],
       "verification_paths": [
         "apps/api/tests/test_persistence_headers.py"
@@ -348,6 +359,129 @@
       ],
       "verification_paths": [
         "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/engine/displacementJobSelection.ts",
+      "destination_path": "apps/web/landslide/engine/displacementJobSelection.ts",
+      "source_blob_sha": "7694ab207e72903515e27fb4a7b811e3a6366b89",
+      "destination_blob_sha": "0a296ab42b2bb8a83acb8d7e5968960557961a56",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Select account jobs from the compact metadata-only list contract; the chooser no longer needs result payload fields.",
+      "implementation_commits": [
+        "056d2285608f7cd139079b5da0b7f58f023d90f8",
+        "9a8e554d5c32fb27b4115905484cffefd18dcaf1"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/DisplacementPreparation.tsx",
+      "destination_path": "apps/web/landslide/ui/DisplacementPreparation.tsx",
+      "source_blob_sha": "d3689a8b5606591106fb9571fdc979649a3f4f5a",
+      "destination_blob_sha": "68acc04a318629f6f20fd0d213b39c2aacd4b415",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Use adaptive status-only polling that excludes AOI geometry; preserve AOI state locally and fetch complete details once for any terminal state so final counts and artifacts remain available.",
+      "implementation_commits": [
+        "cf358a72c923792ee2a8a18861b8bbe960b284ef",
+        "ea34fe300e7fd5979ab2b941d7a5e68062fe019e",
+        "e9af246b1697c26a3987c8ef7771d44d3228dc3e",
+        "13ab6575e4fc3be4681514e07044ca60cf9c26d9"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.ts",
+      "destination_path": "apps/web/src/api/catalog.ts",
+      "source_blob_sha": "ff0652aa42e67a6d7b4ad2c4f74112d07d980df2",
+      "destination_blob_sha": "3d789ab01e23c5717b788d9fe723ff3828fb0b86",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add Firebase-authenticated compact job status/list and boolean active-job clients plus an adaptive poll cadence; status type excludes AOI geometry and result payloads.",
+      "implementation_commits": [
+        "84d3b8fa21ee0128ddc3287dc51375332493f1ab",
+        "c41384f82d1a511156e5b08439ef7037ce276d97",
+        "6dc310193278a0a7caf35c6a5c5df94687e7488e",
+        "fbaa3f054e06343477dc3be09797c869f3f3ea51"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.test.ts",
+      "destination_path": "apps/web/src/api/catalog.test.ts",
+      "source_blob_sha": "c6290e0ebb585213ffab4b58f74a9f5d4850808c",
+      "destination_blob_sha": "30bdf237d8e3e1403a7dc9f4b193c1c15404bd2c",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Test that the repeated status endpoint returns compact geometry-free metadata and that list/active clients and ten/thirty/sixty-second backoff use the correct authenticated routes.",
+      "implementation_commits": [
+        "c8a22b4517103b49cb31ea13928cec0c3e573c76",
+        "e2644dcbc233cbd6dde493157f5e4954e932c369"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic active API promotion",
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/displacements.py",
+      "destination_path": "apps/api/app/displacements.py",
+      "source_blob_sha": "2b5005d86ef4b3586c0ae9d6bc1f6607d842c925",
+      "destination_blob_sha": "cda86d45b892b561dc62f53f98b91eac5c51b660",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Define compact owner-scoped status response fields that exclude the full AOI WKT, scientific result JSON and artifact URL.",
+      "implementation_commits": [
+        "af788548a1232cd922fc30f1308fe0cedb7e9b9f",
+        "dbbdb6beaf68d22fc8272fc92361af332ecff033"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_displacements.py"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic active API promotion",
+      "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_displacements.py",
+      "destination_path": "apps/api/tests/test_displacements.py",
+      "source_blob_sha": "036eeea88a2a1144d6922628e7d82947dd5264db",
+      "destination_blob_sha": "1f24587e90bc6caaa5d021a200dd81d7f2e471dc",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Verify compact list/status response contracts omit AOI geometry and scientific results, boolean active checks, and owner-scoped status reads and writes.",
+      "implementation_commits": [
+        "63bbff960725276746843d7c023d3bd3db3c3cfd",
+        "63fe7a5dc22622a3935d3124fbcdfa24fa52bda0",
+        "97d25dc06432d3101584e0069701c3bce18d56bb"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_displacements.py"
+      ]
+    },
+    {
+      "promotion_scope": "Dynamic frontend promotion",
+      "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/tests/displacementPreparation.test.tsx",
+      "destination_path": "apps/web/landslide/tests/displacementPreparation.test.tsx",
+      "source_blob_sha": "581a0190984f6972e758a681746daea1fb454062",
+      "destination_blob_sha": "7dbad6da6b322f5eb4f5d410d06ea6d286d34078",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Replace the obsolete two-second polling expectation with regression assertions for the status-only ten/thirty/sixty-second backoff cadence while preserving the elapsed-age tick behavior.",
+      "implementation_commits": [
+        "b3042714bf45b8d65aa61f8492640c7c2a2b3266"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
       ]
     }
   ]

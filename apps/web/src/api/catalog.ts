@@ -109,6 +109,28 @@ export type DisplacementJob = Partial<DisplacementProcessingOptions> & {
   updated_at: string;
 };
 
+export type DisplacementJobSummary = Omit<DisplacementJob, 'result_summary' | 'artifact_url'>;
+
+export type DisplacementJobStatusSnapshot = Pick<
+  DisplacementJob,
+  | 'id'
+  | 'state'
+  | 'start_date'
+  | 'end_date'
+  | 'place_name'
+  | 'place_latitude'
+  | 'place_longitude'
+  | 'target_latitude'
+  | 'target_longitude'
+  | 'stage'
+  | 'github_run_id'
+  | 'github_run_url'
+  | 'error_code'
+  | 'error_message'
+  | 'created_at'
+  | 'updated_at'
+>;
+
 const API_BASE = resolveApiBaseUrl(
   import.meta.env.VITE_SARGUARDIAN_API_URL as string | undefined,
   import.meta.env.DEV,
@@ -402,18 +424,53 @@ export async function getDisplacementJob(jobId: string, user: Pick<User, 'getIdT
   return readAuthenticatedPayload<DisplacementJob>(
     `${API_BASE}/api/displacement-jobs/${encodeURIComponent(safeId)}`,
     user,
-    'Could not refresh the displacement job.',
+    'Could not load the complete displacement result.',
     { cache: 'no-store' },
   );
 }
 
-export async function listDisplacementJobs(user: Pick<User, 'getIdToken'> | null): Promise<DisplacementJob[]> {
-  return readAuthenticatedPayload<DisplacementJob[]>(
+export function nextDisplacementStatusPollDelay(attempt: number): number {
+  const safeAttempt = Number.isFinite(attempt) ? Math.max(0, Math.floor(attempt)) : 0;
+  if (safeAttempt < 3) return 10_000;
+  if (safeAttempt < 8) return 30_000;
+  return 60_000;
+}
+
+export async function getDisplacementJobStatus(
+  jobId: string,
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<DisplacementJobStatusSnapshot> {
+  const safeId = jobId.trim();
+  if (!safeId) throw new Error('A displacement job ID is required.');
+  return readAuthenticatedPayload<DisplacementJobStatusSnapshot>(
+    `${API_BASE}/api/displacement-jobs/${encodeURIComponent(safeId)}/status`,
+    user,
+    'Could not refresh the displacement job status.',
+    { cache: 'no-store' },
+  );
+}
+
+export async function listDisplacementJobs(
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<DisplacementJobSummary[]> {
+  return readAuthenticatedPayload<DisplacementJobSummary[]>(
     `${API_BASE}/api/displacement-jobs`,
     user,
     'Could not load your displacement jobs.',
     { cache: 'no-store' },
   );
+}
+
+export async function hasActiveDisplacementJob(
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<boolean> {
+  const response = await readAuthenticatedPayload<{ has_active_job: boolean }>(
+    `${API_BASE}/api/displacement-jobs/active`,
+    user,
+    'Could not check your active displacement job.',
+    { cache: 'no-store' },
+  );
+  return response.has_active_job === true;
 }
 
 export async function resubmitDisplacementJob(

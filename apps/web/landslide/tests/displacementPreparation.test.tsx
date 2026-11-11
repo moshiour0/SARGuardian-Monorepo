@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { DisplacementJobStatus, DisplacementPreparation, JOB_STATUS_POLL_MS } from '../ui/DisplacementPreparation';
+import { DisplacementJobStatus, DisplacementPreparation } from '../ui/DisplacementPreparation';
 import { chooseAccountJob } from '../engine/displacementJobSelection';
 import { ScientificResults } from '../ui/ScientificResults';
 import { ArchiveJobCard } from '../../src/components/ArchiveSection';
 import { countCatalogGranules, ELAPSED_TICK_MS, formatElapsed } from '../ui/processingStatus';
 import { prepareInvestigation } from '../engine/investigation';
 import { isDashboardRoute, isLandslideDisplacementRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_PATH, LANDSLIDE_RESULTS_PATH, navigatePath } from '../../src/routing';
-import { DEFAULT_DISPLACEMENT_OPTIONS } from '../../src/api/catalog';
+import { DEFAULT_DISPLACEMENT_OPTIONS, nextDisplacementStatusPollDelay } from '../../src/api/catalog';
 import { buildDashboardRouteUrl, withDashboardPreferredView } from '../../src/dashboardDocument';
 
 describe('dashboard opens in a new same-origin tab', () => {
@@ -178,7 +178,9 @@ describe('displacement preparation route', () => {
   });
   it('keeps a one-second age tick and renders failed recovery actions with granule counts', () => {
     expect(ELAPSED_TICK_MS).toBe(1000);
-    expect(JOB_STATUS_POLL_MS).toBe(2000);
+    expect(nextDisplacementStatusPollDelay(0)).toBe(10_000);
+    expect(nextDisplacementStatusPollDelay(3)).toBe(30_000);
+    expect(nextDisplacementStatusPollDelay(8)).toBe(60_000);
     expect(DEFAULT_DISPLACEMENT_OPTIONS).toEqual({
       product_type: 'BOTH', acquisition_window: 'secondary-acquisition-in-window',
       retention_mode: 'derived-only', processing_profile: 'full-aoi',

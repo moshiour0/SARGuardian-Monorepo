@@ -8,6 +8,9 @@ import {
   getInteractiveDashboardHtml,
   getProcessingJob,
   listDisplacementJobs,
+  getDisplacementJobStatus,
+  hasActiveDisplacementJob,
+  nextDisplacementStatusPollDelay,
   listProcessingJobs,
   listRiverShiftJobs,
   searchNisarCatalog,
@@ -17,6 +20,82 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+});
+
+describe('Compact displacement status API contract', () => {
+  const jobId = '736bd4e6-8963-43be-a916-bc62336c8557';
+  const user = { getIdToken: vi.fn().mockResolvedValue('firebase-id-token') };
+  const status = {
+    id: jobId,
+    state: 'running',
+    start_date: '2026-10-01',
+    end_date: '2026-10-22',
+    stage: 'download',
+    created_at: '2026-11-07T10:00:00Z',
+    updated_at: '2026-11-07T10:02:00Z',
+  };
+
+  const jsonResponse = (body: unknown) => ({
+    ok: true,
+    status: 200,
+    headers: { get: vi.fn().mockReturnValue('application/json; charset=utf-8') },
+    json: async () => body,
+  });
+
+  it('reads the owner-scoped status endpoint without requesting result payloads', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(status));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(getDisplacementJobStatus(jobId, user)).resolves.toMatchObject(status);
+
+    expect(status).not.toHaveProperty('aoi_wkt');
+    expect(status).not.toHaveProperty('result_summary');
+    expect(status).not.toHaveProperty('artifact_url');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `http://localhost:8000/api/displacement-jobs/${jobId}/status`,
+    );
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer firebase-id-token',
+      },
+    });
+  });
+
+  it('lists compact metadata and omits result summary and artifact URL', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([status]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const jobs = await listDisplacementJobs(user);
+
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]).toMatchObject(status);
+    expect(jobs[0]).not.toHaveProperty('result_summary');
+    expect(jobs[0]).not.toHaveProperty('artifact_url');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/displacement-jobs');
+  });
+
+  it('uses the boolean-only active-job guard endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ has_active_job: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(hasActiveDisplacementJob(user)).resolves.toBe(true);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/displacement-jobs/active');
+  });
+
+  it('backs off status polling from 10 seconds to 30 and 60 seconds', () => {
+    expect(nextDisplacementStatusPollDelay(0)).toBe(10_000);
+    expect(nextDisplacementStatusPollDelay(2)).toBe(10_000);
+    expect(nextDisplacementStatusPollDelay(3)).toBe(30_000);
+    expect(nextDisplacementStatusPollDelay(7)).toBe(30_000);
+    expect(nextDisplacementStatusPollDelay(8)).toBe(60_000);
+    expect(nextDisplacementStatusPollDelay(99)).toBe(60_000);
+    expect(nextDisplacementStatusPollDelay(Number.NaN)).toBe(10_000);
+  });
 });
 
 describe('Authenticated interactive dashboard API contract', () => {

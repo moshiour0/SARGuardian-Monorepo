@@ -44,6 +44,8 @@ from .displacements import (
     PROCESSING_OPTION_DEFAULTS,
     CreateDisplacementJobRequest,
     DisplacementJobResponse,
+    DisplacementJobSummaryResponse,
+    DisplacementJobStatusResponse,
     GitHubCancellationError,
     GitHubDispatchError,
     ResubmitDisplacementJobRequest,
@@ -584,13 +586,100 @@ def create_displacement_job(request: CreateDisplacementJobRequest, user: dict = 
     return _create_and_dispatch_displacement_job(_required_owner_uid(user), request, _require_store())
 
 
-@app.get("/api/displacement-jobs", response_model=list[DisplacementJobResponse])
-def list_displacement_jobs(user: dict = Depends(get_current_user)) -> list[DisplacementJobResponse]:
+@app.get("/api/displacement-jobs", response_model=list[DisplacementJobSummaryResponse])
+def list_displacement_jobs(user: dict = Depends(get_current_user)) -> list[DisplacementJobSummaryResponse]:
+    """List only request/status metadata; result_summary is fetched from the detail route."""
     try:
         records = _require_store().list_displacement_jobs(_required_owner_uid(user))
     except PersistenceError:
         raise HTTPException(status_code=503, detail="Could not list displacement jobs.") from None
-    return [_displacement_response(record) for record in records]
+    return [DisplacementJobSummaryResponse.model_validate(record) for record in records]
+
+
+@app.get("/api/displacement-jobs/active")
+def has_active_displacement_job(user: dict = Depends(get_current_user)) -> dict[str, bool]:
+    """Return one boolean for the global workspace navigation guard."""
+    try:
+        active = _require_store().has_active_displacement_job(_required_owner_uid(user))
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not check account processing status.") from None
+    return {"has_active_job": active}
+
+
+@app.get("/api/displacement-jobs/{job_id}/status", response_model=DisplacementJobStatusResponse)
+def get_displacement_job_status(
+    job_id: UUID, user: dict = Depends(get_current_user),
+) -> DisplacementJobStatusResponse:
+    """Read compact owner-scoped job state without retrieving scientific result JSON."""
+    store = _require_store()
+    owner_uid = _required_owner_uid(user)
+    try:
+        record = store.get_displacement_job_status(owner_uid, job_id)
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not read displacement job status.") from None
+    if not record:
+        raise HTTPException(status_code=404, detail="Displacement job was not found for this user.")
+
+    settings = get_settings()
+    if settings.displacement_actions_enabled and record.get("state") == JobState.DISPATCHING.value:
+        discovered_run = find_dispatched_workflow_run(settings, job_id)
+        if discovered_run:
+            run_id, run_url, status, conclusion = discovered_run
+            updates = {
+                "github_run_id": run_id,
+                "github_run_url": run_url,
+            }
+            should_persist = run_id != record.get("github_run_id") or run_url != record.get("github_run_url")
+            if status == "completed":
+                code = "WORKER_CALLBACK_MISSING" if conclusion == "success" else "GITHUB_ACTIONS_WORKER_FAILED"
+                message = (
+                    "GitHub Actions completed without a verified success callback."
+                    if conclusion == "success"
+                    else "GitHub Actions reported a terminal worker failure before its startup callback."
+                )
+                updates |= {
+                    "state": JobState.FAILED.value,
+                    "stage": "terminal_validation_failed",
+                    "error_code": code,
+                    "error_message": message,
+                }
+                should_persist = True
+            if should_persist:
+                try:
+                    record = store.update_displacement_job_status(owner_uid, job_id, updates)
+                except PersistenceError:
+                    raise HTTPException(status_code=503, detail="Could not persist the discovered workflow state.") from None
+
+    if is_dispatch_timed_out(record, settings.displacement_dispatch_timeout_seconds):
+        try:
+            record = store.update_displacement_job_status(owner_uid, job_id, {
+                "state": JobState.FAILED.value,
+                "stage": "start_timeout",
+                "error_code": "WORKFLOW_START_TIMEOUT",
+                "error_message": "The workflow did not report a start before the configured timeout.",
+            })
+        except PersistenceError:
+            raise HTTPException(status_code=503, detail="Could not persist the workflow timeout.") from None
+    elif settings.displacement_actions_enabled and record.get("github_run_id") and record.get("state") == JobState.RUNNING.value:
+        workflow_status = workflow_run_status(settings, str(record["github_run_id"]))
+        if workflow_status and workflow_status[0] == "completed":
+            code = "WORKER_CALLBACK_MISSING" if workflow_status[1] == "success" else "GITHUB_ACTIONS_WORKER_FAILED"
+            message = (
+                "GitHub Actions completed without a verified success callback."
+                if workflow_status[1] == "success"
+                else "GitHub Actions reported a terminal worker failure."
+            )
+            try:
+                record = store.update_displacement_job_status(owner_uid, job_id, {
+                    "state": JobState.FAILED.value,
+                    "stage": "terminal_validation_failed",
+                    "error_code": code,
+                    "error_message": message,
+                })
+            except PersistenceError:
+                raise HTTPException(status_code=503, detail="Could not persist the terminal worker state.") from None
+
+    return DisplacementJobStatusResponse.model_validate(record)
 
 
 def _cancel_active_displacement_job(owner_uid: str, job_id: UUID, store) -> dict:
