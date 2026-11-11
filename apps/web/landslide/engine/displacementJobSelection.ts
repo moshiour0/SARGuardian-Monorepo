@@ -1,4 +1,4 @@
-import type { DisplacementJob, DisplacementProcessingOptions } from '../../src/api/catalog';
+import type { DisplacementJobSummary, DisplacementProcessingOptions } from '../../src/api/catalog';
 import type { PreparedInvestigation } from './investigation';
 
 const activeStates = new Set(['queued', 'dispatching', 'running']);
@@ -20,7 +20,7 @@ function sameOptionalCoordinate(a: number | null | undefined, b: number | null |
  * is never returned as though it belonged to this selection.
  */
 export function chooseAccountJob(
-  jobs: DisplacementJob[],
+  jobs: DisplacementJobSummary[],
   preparation: PreparedInvestigation,
   options: DisplacementProcessingOptions,
 ): DisplacementJob | null {
