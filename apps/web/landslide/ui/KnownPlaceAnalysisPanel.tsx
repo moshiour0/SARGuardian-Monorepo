@@ -18,6 +18,7 @@ import {
 
 type StoredRun = KnownPlaceAnalysisRun & { execute_downloads: boolean; request_fingerprint?: string };
 type VariantOption = { key: string; releaseId: string; processing: string; granules: string[] };
+type CatalogSummary = { products: number; releases: number; series: number };
 
 type CandidateTransfer = {
   schemaVersion: 'sarguardian-known-place-candidate/1.0';
@@ -182,6 +183,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [run, setRun] = useState<StoredRun | null>(null);
   const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
   const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
+  const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(null);
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
@@ -289,12 +291,14 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     if (!run || run.status !== 'completed' || run.conclusion !== 'success' || run.execute_downloads !== false) {
       setCatalogReleaseIds([]);
       setCatalogVariantOptions([]);
+      setCatalogSummary(null);
       setCatalogReleaseError('');
       return undefined;
     }
     let active = true;
     setCatalogReleaseIds([]);
     setCatalogVariantOptions([]);
+    setCatalogSummary(null);
     setCatalogReleaseError('');
     void getKnownPlaceAnalysisResults(run.request_id, user)
       .then((payload) => {
@@ -339,7 +343,19 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           }
           variants.set(key, current);
         }
-        setCatalogVariantOptions(Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing)));
+        const variantOptions = Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing));
+        const plannedGranules = new Set([
+          ...granules,
+          ...(payload.result.pairwise_series_plan.chains || []).flatMap((chain) =>
+            (chain.pairs || []).map((pair) => pair.granule_name).filter((name): name is string => Boolean(name)),
+          ),
+        ]);
+        setCatalogVariantOptions(variantOptions);
+        setCatalogSummary({
+          products: plannedGranules.size,
+          releases: ids.length,
+          series: payload.result.pairwise_series_plan.chain_count || 0,
+        });
       })
       .catch((reason: unknown) => {
         if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
@@ -478,26 +494,12 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               {(['1', '5', '10', '15', '20', '25'] as const).map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
-          <label className="aoi-job-label">
+          <label className="aoi-job-label known-place-setting-wide">
             <span>Constant ellipsoidal height in metres (optional sensitivity only)</span>
             <input type="number" value={geometryHeight} onChange={(event) => setGeometryHeight(event.target.value)} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
           </label>
           </div>
         </details>
-
-        {catalogReleaseIds.length > 0 && <div className="known-place-form-grid known-place-release-selection">
-          <div className="aoi-job-label known-place-wide">
-            <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
-              {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
-                <input type="radio" name="known-place-release" value={option.key} checked={selectedVariantKey === option.key} onChange={() => { setSelectedVariantKey(option.key); setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
-                <span>{option.releaseId} — {option.processing}</span>
-              </label>) : catalogReleaseIds.map((releaseId) => <label key={releaseId}>
-                <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />
-                <span>{releaseId}</span>
-              </label>)}
-            </div>
-          </div>
-        </div>}
 
         <section className="known-place-run-options" aria-label="Known Place run options">
           <div className="known-place-release-finder">
@@ -509,14 +511,16 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 ? 'Catalog preflight passed for the exact current polygons, dates and processing settings. Raw download still requires the separate consent checkbox.'
                 : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current polygons, dates and processing settings, completed within the last 15 minutes.'}
             </p>
-            {releaseLookupProgress && <div className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
-              <div className="known-place-progress-heading">
-                <div>
-                  <strong>{releaseLookupProgress.stage}</strong>
-                  <span>{releaseLookupProgress.detail}</span>
-                </div>
-                <b>{releaseLookupProgress.percent}%</b>
+          </div>
+          {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
+              <div className="known-place-status-heading">
+                <h2>Run status</h2>
+                <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run?.execute_downloads === false ? resultLabel(run) : releaseLookupProgress.stage}</span>
               </div>
+              {run?.execute_downloads === false && <div className="known-place-status-details">
+                <p><b>Request ID:</b> <code>{run.request_id}</code></p>
+                <p><b>Mode:</b> Catalog-only dry run — no raw download</p>
+              </div>}
               <div
                 className="known-place-progress-track"
                 role="progressbar"
@@ -528,9 +532,33 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               >
                 <i style={{ width: `${releaseLookupProgress.percent}%` }} />
               </div>
-              {run?.execute_downloads === false && <small>Request ID <code>{run.request_id}</code></small>}
-            </div>}
-          </div>
+              <div className="known-place-progress-meta">
+                <span>{releaseLookupProgress.stage}</span>
+                <b>{releaseLookupProgress.percent}%</b>
+              </div>
+              <p className="known-place-progress-message">{run?.notice || releaseLookupProgress.detail}</p>
+              {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
+              {run?.github_run_url && <a className="known-place-run-link" href={run.github_run_url} target="_blank" rel="noreferrer">Open GitHub run and view the result bundle</a>}
+              {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
+                <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
+                <div><span>Releases</span><strong>{catalogSummary.releases}</strong></div>
+                <div><span>Series planned</span><strong>{catalogSummary.series}</strong></div>
+              </div>}
+              {runSucceeded && run?.execute_downloads === false && <div className="known-place-release-results">
+                <h3>Select a release</h3>
+                {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
+                  {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
+                    <input type="radio" name="known-place-release" value={option.key} checked={selectedVariantKey === option.key} onChange={() => { setSelectedVariantKey(option.key); setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
+                    <span>{option.releaseId} — {option.processing}</span>
+                    <small>{option.granules.length} product{option.granules.length === 1 ? '' : 's'}</small>
+                  </label>) : catalogReleaseIds.map((releaseId) => <label key={releaseId}>
+                    <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />
+                    <span>{releaseId}</span>
+                  </label>)}
+                </div> : <p className="known-place-release-loading">{catalogReleaseError || 'Loading release IDs from the verified dry-run result…'}</p>}
+              </div>}
+              {runFailed && run?.execute_downloads === false && <p className="catalog-error">Catalog-only preflight failed; no raw download was requested. Open the run details above, then try again.</p>}
+          </section>}
           <div className="known-place-consent">
             <label>
               <input type="checkbox" checked={confirmRawDownloads} onChange={(event) => setConfirmRawDownloads(event.target.checked)} />
@@ -543,7 +571,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           {error && <p className="catalog-error" role="alert">{error}</p>}
         </section>
 
-        {run && (
+        {run?.execute_downloads === true && (
           <section className="known-place-run-status" aria-live="polite">
             <div className="known-place-run-heading">
               <span className="result-kicker">RUN STATUS</span>
@@ -559,13 +587,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             {runSucceeded && (run.execute_downloads
               ? <p className="catalog-notice">Workflow succeeded. Inspect the measurement, uncertainty and reference-method reports in the run artifact; a completed run is not independent hazard-detection validation.</p>
               : <p className="catalog-notice">Catalog-only preflight passed. No raw NISAR products were downloaded. You may now separately authorize a raw GOFF run for these unchanged settings.</p>)}
-            {runSucceeded && !run.execute_downloads && (
-              <p className="catalog-notice" role="status">
-                <b>Release IDs found for this AOI:</b>{' '}
-                {catalogReleaseIds.length ? catalogReleaseIds.join(', ') : (catalogReleaseError || 'Loading from the verified dry-run result…')}
-                {' '}Choose one above before authorizing the raw measurement run.
-              </p>
-            )}
             {runFailed && (run.execute_downloads
               ? <p className="catalog-error">Raw GOFF workflow ended with {run.conclusion || 'an error'}. Open the run link above to inspect the failing stage.</p>
               : <p className="catalog-error">Catalog-only preflight failed; no raw download was requested. Open the run summary and artifact for the exact failing pair and candidate release IDs. Enter the intended release filter, then rerun the catalog-only preflight before authorizing downloads.</p>)}

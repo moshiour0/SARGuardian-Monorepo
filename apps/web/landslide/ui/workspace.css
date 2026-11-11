@@ -727,9 +727,11 @@
 }
 .landslide-route-shell .known-place-analysis .known-place-additional-settings,
 .landslide-route-shell .known-place-analysis .known-place-release-selection,
-.landslide-route-shell .known-place-analysis .known-place-run-options,
 .landslide-route-shell .known-place-analysis .known-place-run-status,
-.landslide-route-shell .known-place-analysis .known-place-candidate-handoff {
+.landslide-route-shell .known-place-analysis .known-place-candidate-handoff,
+.landslide-route-shell .known-place-analysis .known-place-release-finder,
+.landslide-route-shell .known-place-analysis .known-place-release-progress,
+.landslide-route-shell .known-place-analysis .known-place-consent {
   margin: 0;
   border: 1px solid rgba(255, 255, 255, .7);
   border-radius: 28px;
@@ -740,13 +742,19 @@
   -webkit-backdrop-filter: blur(28px) saturate(180%);
 }
 .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary {
-  padding: 20px 24px;
+  padding: 14px 18px;
   color: var(--known-ink);
   font-size: 16px;
   letter-spacing: 0;
 }
 .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before { color: var(--known-blue); }
-.landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid { padding: 0 24px 24px; }
+.landslide-route-shell .known-place-analysis .known-place-additional-settings[open] > summary { padding: 18px 22px 12px; }
+.landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 0 22px 22px;
+}
+.landslide-route-shell .known-place-analysis .known-place-setting-wide { grid-column: 1 / -1; }
 .landslide-route-shell .known-place-analysis .known-place-form-grid { margin-top: 0; }
 .landslide-route-shell .known-place-analysis .aoi-job-label { color: var(--known-muted); }
 .landslide-route-shell .known-place-analysis .aoi-job-label input,
@@ -790,8 +798,15 @@
   height: 18px;
   accent-color: var(--known-blue);
 }
-.landslide-route-shell .known-place-analysis .known-place-run-options { padding: 24px 26px; }
-.landslide-route-shell .known-place-release-finder { display: grid; gap: 14px; }
+.landslide-route-shell .known-place-analysis .known-place-run-options {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.landslide-route-shell .known-place-release-finder { display: grid; gap: 14px; padding: 22px 24px; }
 .landslide-route-shell .known-place-analysis .known-place-find-release,
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button,
 .landslide-route-shell .known-place-analysis .known-place-show-results {
@@ -819,20 +834,31 @@
 }
 .known-place-release-progress {
   display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, .72);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, .52);
+  gap: 14px;
+  padding: 24px 26px;
 }
-.known-place-progress-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.known-place-progress-heading > div { display: grid; gap: 3px; }
-.known-place-progress-heading strong { color: var(--known-ink); font-size: 14px; }
-.known-place-progress-heading span,
-.known-place-release-progress small { color: var(--known-muted); font-size: 12px; line-height: 1.45; }
-.known-place-progress-heading > b { color: var(--known-ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+.known-place-status-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.known-place-status-heading h2 { margin: 0; color: var(--known-ink); font-size: 20px; }
+.known-place-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.62);
+  color: var(--known-ink);
+  font-size: 13px;
+  font-weight: 750;
+}
+.known-place-status-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--known-blue); }
+.known-place-status-chip.is-running i { animation: processing-pulse 1.6s ease-out infinite; }
+.known-place-status-chip.is-complete i { background: #1d9e6a; }
+.known-place-status-chip.is-failed i { background: #c2412d; }
+.known-place-status-details { display: grid; gap: 7px; }
+.known-place-status-details p { margin: 0; color: var(--known-ink); font-size: 14px; }
+.known-place-status-details code { color: inherit; font-size: 12px; overflow-wrap: anywhere; }
 .known-place-progress-track {
-  height: 12px;
+  height: 16px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .84);
   border-radius: 999px;
@@ -857,10 +883,39 @@
 .known-place-release-progress.is-complete .known-place-progress-track i { background: linear-gradient(90deg, #168d5a, #42c48b); }
 .known-place-release-progress.is-failed .known-place-progress-track i { background: linear-gradient(90deg, #bb3c46, #ef6a6a); }
 .known-place-release-progress code { color: inherit; font-size: 11px; overflow-wrap: anywhere; }
+.known-place-progress-meta { display: flex; align-items: center; justify-content: space-between; color: var(--known-muted); font-size: 12px; }
+.known-place-progress-meta b { color: inherit; font-variant-numeric: tabular-nums; }
+.known-place-progress-message {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--known-cyan);
+  border-radius: 14px;
+  background: rgba(255,255,255,.58);
+  color: var(--known-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.known-place-catalog-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border-radius: 22px;
+  background: rgba(255,255,255,.62);
+}
+.known-place-catalog-summary > div { display: grid; justify-items: center; gap: 5px; padding: 16px 10px; text-align: center; }
+.known-place-catalog-summary > div + div { border-left: 1px solid rgba(15,34,54,.1); }
+.known-place-catalog-summary span { color: var(--known-muted); font-size: 11px; font-weight: 650; }
+.known-place-catalog-summary strong { color: var(--known-ink); font-size: 28px; line-height: 1; }
+.known-place-release-results { display: grid; gap: 10px; }
+.known-place-release-results h3 { margin: 4px 0 0; color: var(--known-ink); font-size: 14px; }
+.known-place-release-results .catalog-release-options label > span { flex: 1; }
+.known-place-release-results .catalog-release-options label > small { color: var(--known-muted); font-size: 12px; font-weight: 500; }
+.known-place-release-loading { margin: 0; color: var(--known-muted); font-size: 13px; }
 @keyframes known-place-progress-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .landslide-route-shell .known-place-analysis .known-place-consent {
-  margin-top: 4px;
-  border-top-color: rgba(15, 34, 54, .12);
+  margin: 0;
+  padding: 22px 24px;
+  border-top: 1px solid rgba(255, 255, 255, .7);
 }
 .landslide-route-shell .known-place-analysis .known-place-consent label { color: var(--known-muted); }
 .landslide-route-shell .known-place-analysis .known-place-consent b { color: var(--known-ink); }
@@ -885,16 +940,30 @@
 .landslide-route-shell .known-place-analysis .known-place-candidate-handoff { padding: 18px 20px; }
 .landslide-route-shell .known-place-analysis .known-place-candidate-handoff strong,
 .landslide-route-shell .known-place-analysis .known-place-candidate-handoff span { color: var(--known-ink); }
+@media (max-width: 820px) {
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 560px) {
   .landslide-route-shell .known-place-analysis { width: min(100% - 24px, 860px); padding: 18px 0 40px; }
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .landslide-route-shell .known-place-analysis .known-place-additional-settings,
   .landslide-route-shell .known-place-analysis .known-place-release-selection,
-  .landslide-route-shell .known-place-analysis .known-place-run-options,
+  .landslide-route-shell .known-place-analysis .known-place-release-finder,
+  .landslide-route-shell .known-place-analysis .known-place-release-progress,
+  .landslide-route-shell .known-place-analysis .known-place-consent,
   .landslide-route-shell .known-place-analysis .known-place-run-status { border-radius: 22px; }
-  .landslide-route-shell .known-place-analysis .known-place-run-options,
+  .landslide-route-shell .known-place-analysis .known-place-release-progress,
   .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 20px 18px; }
   .landslide-route-shell .known-place-analysis .known-place-find-release { width: 100%; }
-  .known-place-progress-heading { gap: 10px; }
+  .known-place-status-heading { align-items: flex-start; gap: 10px; }
+  .known-place-status-chip { padding: 8px 12px; }
+  .known-place-catalog-summary strong { font-size: 24px; }
+  .known-place-release-results .catalog-release-options label { flex-wrap: wrap; }
+  .known-place-release-results .catalog-release-options label > small { width: 100%; padding-left: 30px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .known-place-release-progress.is-running .known-place-progress-track i::after { animation: none; }
