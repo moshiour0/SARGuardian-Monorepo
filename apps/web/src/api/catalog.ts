@@ -409,6 +409,13 @@ export async function getDisplacementJob(jobId: string, user: Pick<User, 'getIdT
   );
 }
 
+export function nextDisplacementStatusPollDelay(attempt: number): number {
+  const safeAttempt = Number.isFinite(attempt) ? Math.max(0, Math.floor(attempt)) : 0;
+  if (safeAttempt < 3) return 10_000;
+  if (safeAttempt < 8) return 30_000;
+  return 60_000;
+}
+
 export async function getDisplacementJobStatus(
   jobId: string,
   user: Pick<User, 'getIdToken'> | null,
