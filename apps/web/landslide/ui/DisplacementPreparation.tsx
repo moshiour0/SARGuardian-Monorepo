@@ -206,12 +206,12 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
       const current = jobRef.current;
       if (current && activeStates.has(current.state)) return;
       const selected = chooseAccountJob(jobs, lookup.preparation, lookup.options);
-      if (selected?.state === 'succeeded') {
+      if (selected && !activeStates.has(selected.state)) {
         try {
           setJob(await getDisplacementJob(selected.id, lookup.user));
         } catch (error) {
           setJob(selected);
-          setJobError(error instanceof Error ? error.message : 'Could not load the saved scientific result.');
+          setJobError(error instanceof Error ? error.message : 'Could not load the saved displacement result details.');
         }
       } else {
         setJob(selected);
@@ -245,8 +245,10 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
         const nextStatus = await getDisplacementJobStatus(jobId, user);
         if (stopped || requestSequence !== statusRequestSequence.current) return;
 
-        if (nextStatus.state === 'succeeded') {
+        if (!activeStates.has(nextStatus.state)) {
           try {
+            // Terminal screens may need final granule counts or retained
+            // artifact metadata. Fetch the full row once, after polling ends.
             const completeResult = await getDisplacementJob(jobId, user);
             if (stopped || requestSequence !== statusRequestSequence.current) return;
             setJob(completeResult);
@@ -256,7 +258,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
               setJob(nextStatus);
               setJobError(error instanceof Error
                 ? error.message
-                : 'The job finished, but its complete scientific result could not be loaded.');
+                : 'The job finished, but its complete result details could not be loaded.');
             }
           }
           return;
@@ -264,10 +266,8 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
 
         setJob(nextStatus);
         setJobError('');
-        if (activeStates.has(nextStatus.state)) {
-          attempt += 1;
-          timer = window.setTimeout(refresh, nextDisplacementStatusPollDelay(attempt));
-        }
+        attempt += 1;
+        timer = window.setTimeout(refresh, nextDisplacementStatusPollDelay(attempt));
       } catch (error: unknown) {
         if (!stopped && requestSequence === statusRequestSequence.current) {
           setJobError(error instanceof Error ? error.message : 'Could not refresh the displacement job status.');
