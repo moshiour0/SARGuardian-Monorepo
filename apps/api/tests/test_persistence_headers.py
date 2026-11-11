@@ -64,7 +64,7 @@ def test_displacement_reads_select_only_compact_metadata_columns() -> None:
     selects = client.captured["selects"]
     assert isinstance(selects, list)
     assert selects[0] == persistence.DISPLACEMENT_JOB_METADATA_COLUMNS
-    assert selects[1] == persistence.DISPLACEMENT_JOB_METADATA_COLUMNS
+    assert selects[1] == persistence.DISPLACEMENT_JOB_STATUS_COLUMNS
     assert selects[2] == "id"
     assert selects[3] == "id,state"
     assert all("result_summary" not in columns and "artifact_url" not in columns for columns in selects)
@@ -111,7 +111,7 @@ def test_compact_status_update_is_filtered_by_verified_owner_and_job_id() -> Non
         ("owner_uid", "verified-firebase-owner"),
         ("id", str(job_id)),
     ]
-    assert client.captured["select"] == persistence.DISPLACEMENT_JOB_METADATA_COLUMNS
+    assert client.captured["select"] == persistence.DISPLACEMENT_JOB_STATUS_COLUMNS
 
 
 def test_legacy_service_role_jwt_is_accepted() -> None:
