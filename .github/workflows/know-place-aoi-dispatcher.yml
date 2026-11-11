@@ -120,7 +120,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: known-place-analysis-${{ inputs.request_id }}
+  # Keep Known Place dispatches on a single runner lane. A burst of requests
+  # is processed one at a time instead of consuming every hosted-runner slot.
+  group: known-place-analysis-serial
   cancel-in-progress: false
 
 jobs:
