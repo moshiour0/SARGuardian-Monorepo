@@ -137,8 +137,25 @@ class DisplacementJobSummaryResponse(BaseModel):
     updated_at: str
 
 
-class DisplacementJobStatusResponse(DisplacementJobSummaryResponse):
-    """Status polling response; must never include result_summary or artifacts."""
+class DisplacementJobStatusResponse(BaseModel):
+    """Minimal polling fields; omits AOI geometry and scientific result payloads."""
+
+    id: UUID
+    state: JobState
+    start_date: date
+    end_date: date
+    place_name: str | None = None
+    place_latitude: float | None = None
+    place_longitude: float | None = None
+    target_latitude: float | None = None
+    target_longitude: float | None = None
+    stage: str
+    github_run_id: str | None = None
+    github_run_url: str | None = None
+    error_code: str | None = None
+    error_message: str | None = None
+    created_at: str
+    updated_at: str
 
 
 class WorkerCallback(BaseModel):
