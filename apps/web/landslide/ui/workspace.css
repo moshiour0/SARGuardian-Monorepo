@@ -708,6 +708,199 @@
   .landslide-route-shell .known-place-run-status { padding: 14px; }
 }
 
+/* Known Place run page: share the light, floating processing language used by Find Displacements. */
+.landslide-route-shell .known-place-analysis {
+  --known-ink: #0f2236;
+  --known-muted: #3d5368;
+  --known-blue: #0a84e0;
+  --known-cyan: #45c8e8;
+  width: min(860px, calc(100% - 32px));
+  padding-top: 30px;
+}
+.landslide-route-shell .known-place-analysis .known-place-custom-measurement {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.landslide-route-shell .known-place-analysis .known-place-additional-settings,
+.landslide-route-shell .known-place-analysis .known-place-release-selection,
+.landslide-route-shell .known-place-analysis .known-place-run-options,
+.landslide-route-shell .known-place-analysis .known-place-run-status,
+.landslide-route-shell .known-place-analysis .known-place-candidate-handoff {
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, .42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .92), 0 14px 40px -16px rgba(30, 65, 95, .32);
+  color: var(--known-ink);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+.landslide-route-shell .known-place-analysis .known-place-additional-settings > summary {
+  padding: 20px 24px;
+  color: var(--known-ink);
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before { color: var(--known-blue); }
+.landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid { padding: 0 24px 24px; }
+.landslide-route-shell .known-place-analysis .known-place-form-grid { margin-top: 0; }
+.landslide-route-shell .known-place-analysis .aoi-job-label { color: var(--known-muted); }
+.landslide-route-shell .known-place-analysis .aoi-job-label input,
+.landslide-route-shell .known-place-analysis .aoi-job-label select,
+.landslide-route-shell .known-place-analysis .aoi-job-label textarea {
+  border-color: rgba(255, 255, 255, .76);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .62);
+  color: var(--known-ink);
+}
+.landslide-route-shell .known-place-analysis .aoi-job-label input:focus,
+.landslide-route-shell .known-place-analysis .aoi-job-label select:focus,
+.landslide-route-shell .known-place-analysis .aoi-job-label textarea:focus {
+  border-color: rgba(10, 132, 224, .48);
+  box-shadow: 0 0 0 3px rgba(10, 132, 224, .16);
+  outline: 0;
+}
+.landslide-route-shell .known-place-analysis .known-place-release-selection { padding: 20px 22px; }
+.landslide-route-shell .known-place-analysis .catalog-release-options { display: grid; gap: 10px; }
+.landslide-route-shell .known-place-analysis .catalog-release-options label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .62);
+  color: var(--known-ink);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+.landslide-route-shell .known-place-analysis .catalog-release-options label:has(input:checked) {
+  border-color: var(--known-blue);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 8px 24px -16px rgba(10, 132, 224, .7);
+}
+.landslide-route-shell .known-place-analysis .catalog-release-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--known-blue);
+}
+.landslide-route-shell .known-place-analysis .known-place-run-options { padding: 24px 26px; }
+.landslide-route-shell .known-place-release-finder { display: grid; gap: 14px; }
+.landslide-route-shell .known-place-analysis .known-place-find-release,
+.landslide-route-shell .known-place-analysis .known-place-consent .investigate-button,
+.landslide-route-shell .known-place-analysis .known-place-show-results {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1a95ef, #0870c4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42), 0 8px 20px -10px rgba(10, 132, 224, .75);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+}
+.landslide-route-shell .known-place-analysis .known-place-find-release { width: fit-content; min-width: 170px; margin: 0; padding: 0 24px; }
+.landslide-route-shell .known-place-analysis .known-place-find-release:hover:not(:disabled),
+.landslide-route-shell .known-place-analysis .known-place-consent .investigate-button:hover:not(:disabled),
+.landslide-route-shell .known-place-analysis .known-place-show-results:hover:not(:disabled) {
+  background: linear-gradient(180deg, #38a8f6, #0878d1);
+}
+.landslide-route-shell .known-place-analysis .catalog-notice {
+  margin: 0;
+  border-left: 4px solid var(--known-cyan);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .44);
+  color: var(--known-muted);
+}
+.known-place-release-progress {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .52);
+}
+.known-place-progress-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.known-place-progress-heading > div { display: grid; gap: 3px; }
+.known-place-progress-heading strong { color: var(--known-ink); font-size: 14px; }
+.known-place-progress-heading span,
+.known-place-release-progress small { color: var(--known-muted); font-size: 12px; line-height: 1.45; }
+.known-place-progress-heading > b { color: var(--known-ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+.known-place-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .84);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .72);
+}
+.known-place-progress-track i {
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--known-blue), var(--known-cyan));
+  transition: width .45s ease;
+}
+.known-place-release-progress.is-running .known-place-progress-track i::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.62), transparent);
+  animation: known-place-progress-shine 1.4s linear infinite;
+  content: '';
+}
+.known-place-release-progress.is-complete .known-place-progress-track i { background: linear-gradient(90deg, #168d5a, #42c48b); }
+.known-place-release-progress.is-failed .known-place-progress-track i { background: linear-gradient(90deg, #bb3c46, #ef6a6a); }
+.known-place-release-progress code { color: inherit; font-size: 11px; overflow-wrap: anywhere; }
+@keyframes known-place-progress-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.landslide-route-shell .known-place-analysis .known-place-consent {
+  margin-top: 4px;
+  border-top-color: rgba(15, 34, 54, .12);
+}
+.landslide-route-shell .known-place-analysis .known-place-consent label { color: var(--known-muted); }
+.landslide-route-shell .known-place-analysis .known-place-consent b { color: var(--known-ink); }
+.landslide-route-shell .known-place-analysis .known-place-consent input { accent-color: var(--known-blue); }
+.landslide-route-shell .known-place-analysis .known-place-consent .investigate-button { width: 100%; }
+.landslide-route-shell .known-place-analysis .known-place-run-status { padding: 24px 26px; }
+.landslide-route-shell .known-place-analysis .known-place-run-status p,
+.landslide-route-shell .known-place-analysis .known-place-run-status code { color: var(--known-ink); }
+.landslide-route-shell .known-place-analysis .known-place-run-heading strong { color: #0870c4; }
+.landslide-route-shell .known-place-analysis .known-place-run-link { color: #075ea8; }
+.landslide-route-shell .known-place-analysis .known-place-back {
+  justify-self: center;
+  width: fit-content;
+  margin-top: 0;
+  padding: 10px 20px;
+  border: 1px solid rgba(255,255,255,.58);
+  border-radius: 999px;
+  background: rgba(15,34,54,.35);
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+.landslide-route-shell .known-place-analysis .known-place-candidate-handoff { padding: 18px 20px; }
+.landslide-route-shell .known-place-analysis .known-place-candidate-handoff strong,
+.landslide-route-shell .known-place-analysis .known-place-candidate-handoff span { color: var(--known-ink); }
+@media (max-width: 560px) {
+  .landslide-route-shell .known-place-analysis { width: min(100% - 24px, 860px); padding: 18px 0 40px; }
+  .landslide-route-shell .known-place-analysis .known-place-additional-settings,
+  .landslide-route-shell .known-place-analysis .known-place-release-selection,
+  .landslide-route-shell .known-place-analysis .known-place-run-options,
+  .landslide-route-shell .known-place-analysis .known-place-run-status { border-radius: 22px; }
+  .landslide-route-shell .known-place-analysis .known-place-run-options,
+  .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 20px 18px; }
+  .landslide-route-shell .known-place-analysis .known-place-find-release { width: 100%; }
+  .known-place-progress-heading { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .known-place-release-progress.is-running .known-place-progress-track i::after { animation: none; }
+  .known-place-progress-track i { transition: none; }
+}
+
 /* Frontend V2 processing workspace: real job state, no simulated progress. */
 .landslide-route-shell .processing-v2 {
   display: grid; gap: 19px; margin-top: 22px; padding-top: 0;

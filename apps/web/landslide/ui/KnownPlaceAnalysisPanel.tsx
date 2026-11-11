@@ -134,6 +134,33 @@ function resultLabel(run: StoredRun): string {
   return 'Workflow failed';
 }
 
+type ReleaseLookupProgress = {
+  percent: number;
+  stage: string;
+  detail: string;
+  tone: 'running' | 'complete' | 'failed';
+};
+
+function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | null, run: StoredRun | null): ReleaseLookupProgress | null {
+  if (pendingAction === 'dry-run') {
+    return { percent: 8, stage: 'Starting', detail: 'Sending the catalog request…', tone: 'running' };
+  }
+  if (!run || run.execute_downloads) return null;
+  if (run.status === 'dispatching') {
+    return { percent: 20, stage: 'Request accepted', detail: 'Allocating the workflow run.', tone: 'running' };
+  }
+  if (run.status === 'queued') {
+    return { percent: 38, stage: 'Queued', detail: 'Waiting for an available workflow runner.', tone: 'running' };
+  }
+  if (run.status === 'in_progress') {
+    return { percent: 72, stage: 'Searching catalog', detail: 'Finding releases and planning a consistent series.', tone: 'running' };
+  }
+  if (run.conclusion === 'success') {
+    return { percent: 100, stage: 'Release IDs ready', detail: 'Choose an available release below.', tone: 'complete' };
+  }
+  return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
+}
+
 export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack, onShowResults }: Props) {
   const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
   const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
@@ -401,6 +428,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const runTerminal = run?.status === 'completed';
   const runSucceeded = runTerminal && run?.conclusion === 'success';
   const runFailed = runTerminal && !runSucceeded;
+  const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
@@ -457,7 +485,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           </div>
         </details>
 
-        {catalogReleaseIds.length > 0 && <div className="known-place-form-grid">
+        {catalogReleaseIds.length > 0 && <div className="known-place-form-grid known-place-release-selection">
           <div className="aoi-job-label known-place-wide">
             <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
               {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
@@ -472,14 +500,37 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         </div>}
 
         <section className="known-place-run-options" aria-label="Known Place run options">
-          <button type="button" className="demo-button" disabled={!canSubmitGeometry || pendingAction !== null} onClick={() => void submit(false)}>
-            {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
-          </button>
-          <p className="catalog-notice" role="status">
-            {catalogPreflightReady
-              ? 'Catalog preflight passed for the exact current polygons, dates and processing settings. Raw download still requires the separate consent checkbox.'
-              : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current polygons, dates and processing settings, completed within the last 15 minutes.'}
-          </p>
+          <div className="known-place-release-finder">
+            <button type="button" className="demo-button known-place-find-release" disabled={!canSubmitGeometry || pendingAction !== null} onClick={() => void submit(false)}>
+              {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
+            </button>
+            <p className="catalog-notice" role="status">
+              {catalogPreflightReady
+                ? 'Catalog preflight passed for the exact current polygons, dates and processing settings. Raw download still requires the separate consent checkbox.'
+                : 'Raw GOFF downloads remain locked until a successful catalog-only dry run for the exact current polygons, dates and processing settings, completed within the last 15 minutes.'}
+            </p>
+            {releaseLookupProgress && <div className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
+              <div className="known-place-progress-heading">
+                <div>
+                  <strong>{releaseLookupProgress.stage}</strong>
+                  <span>{releaseLookupProgress.detail}</span>
+                </div>
+                <b>{releaseLookupProgress.percent}%</b>
+              </div>
+              <div
+                className="known-place-progress-track"
+                role="progressbar"
+                aria-label="Release ID lookup progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={releaseLookupProgress.percent}
+                aria-valuetext={releaseLookupProgress.stage}
+              >
+                <i style={{ width: `${releaseLookupProgress.percent}%` }} />
+              </div>
+              {run?.execute_downloads === false && <small>Request ID <code>{run.request_id}</code></small>}
+            </div>}
+          </div>
           <div className="known-place-consent">
             <label>
               <input type="checkbox" checked={confirmRawDownloads} onChange={(event) => setConfirmRawDownloads(event.target.checked)} />
