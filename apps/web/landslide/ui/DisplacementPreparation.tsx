@@ -271,7 +271,7 @@ export function DisplacementPreparation({ preparation, options = DEFAULT_DISPLAC
       } catch (error: unknown) {
         if (!stopped && requestSequence === statusRequestSequence.current) {
           setJobError(error instanceof Error ? error.message : 'Could not refresh the displacement job status.');
-          timer = window.setTimeout(refresh, JOB_STATUS_POLL_MAX_MS);
+          timer = window.setTimeout(refresh, 60_000);
         }
       } finally {
         requestInFlight = false;
