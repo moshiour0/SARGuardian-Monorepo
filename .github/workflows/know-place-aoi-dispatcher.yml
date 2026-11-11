@@ -120,7 +120,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: known-place-analysis-${{ inputs.request_id }}
+  # Serialize raw/catalog runs so a burst of requests cannot exhaust the
+  # hosted-runner pool. Cancellation remains explicit; queued runs are not
+  # cancelled automatically.
+  group: known-place-analysis-serial
   cancel-in-progress: false
 
 jobs:
