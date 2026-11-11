@@ -56,8 +56,13 @@ class DisplacementStore:
     def get_displacement_job_status(self, owner, job_id):
         return self.get_displacement_job(owner, job_id)
 
-    def update_displacement_job_status(self, job_id, values):
-        return self.update_displacement_job(job_id, values)
+    def update_displacement_job_status(self, owner, job_id, values):
+        row = self.get_displacement_job(owner, job_id)
+        if row is None:
+            raise RuntimeError("owner-scoped status row not found")
+        row |= values
+        self.row = row
+        return row
 
     def has_active_displacement_job(self, owner):
         return any(
