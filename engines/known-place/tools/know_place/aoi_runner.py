@@ -951,6 +951,153 @@ def _reference_noise_floor(
     }
 
 
+# Default maximum horizontal magnitude gate in meters; cells exceeding this
+# threshold are rejected as physical outliers (same threshold convention as
+# paper_method.apply_paper_quality_gates).
+DEFAULT_MAX_HORIZONTAL_MAGNITUDE_M: float = 10.0
+
+
+def apply_generic_magnitude_rejection(
+    east_m: Any,
+    north_m: Any,
+    valid: Any,
+    target_mask: Any,
+    *,
+    max_horizontal_magnitude_m: float = DEFAULT_MAX_HORIZONTAL_MAGNITUDE_M,
+) -> tuple[np.ndarray, int, float]:
+    """Reject (exclude from valid mask) cells with horizontal magnitude > max_horizontal_magnitude_m.
+
+    Follows the same threshold convention as paper_method.apply_paper_quality_gates
+    (default 10.0 m, configurable). Cells exceeding this threshold are excluded from
+    the valid mask before any median, bootstrap, or noise-floor computation.
+
+    Parameters
+    ----------
+    east_m, north_m : array-like
+        Horizontal displacement components in meters.
+    valid : array-like (bool)
+        Per-pixel validity mask prior to magnitude gate.
+    target_mask : array-like (bool)
+        Measurement / AOI field mask.
+    max_horizontal_magnitude_m : float
+        Upper gate limit in meters; default 10.0.
+
+    Returns
+    -------
+    tuple of (updated_valid_mask, rejected_magnitude_count, valid_fraction)
+    """
+    east = np.asarray(east_m, dtype=float)
+    north = np.asarray(north_m, dtype=float)
+    v = np.asarray(valid, dtype=bool).copy()
+    target = np.asarray(target_mask, dtype=bool)
+
+    if not math.isfinite(max_horizontal_magnitude_m) or max_horizontal_magnitude_m <= 0:
+        raise ValueError("MAX_HORIZONTAL_MAGNITUDE_MUST_BE_FINITE_AND_POSITIVE")
+
+    mag = np.hypot(east, north)
+    rejected = v & np.isfinite(mag) & (mag > max_horizontal_magnitude_m)
+    v[rejected] = False
+
+    target_total = int(target.sum())
+    rejected_count = int((rejected & target).sum())
+    target_valid = int((v & target & np.isfinite(east) & np.isfinite(north)).sum())
+    valid_fraction = float(target_valid) / target_total if target_total > 0 else 0.0
+
+    return v, rejected_count, valid_fraction
+
+
+def summarize_generic_pair(
+    east_m: Any,
+    north_m: Any,
+    valid: Any,
+    target_mask: Any,
+    *,
+    reference_mask: Any | None = None,
+    coherence: Any | None = None,
+    interval_days: int = 12,
+    max_horizontal_magnitude_m: float = DEFAULT_MAX_HORIZONTAL_MAGNITUDE_M,
+    high_magnitude_flag: Any | None = None,
+    magnitude_policy: str = "flag_above_threshold_keep",
+) -> dict[str, Any]:
+    """Build generic pair summary dict with magnitude rejection applied before statistics."""
+    updated_valid, rejected_count, valid_frac = apply_generic_magnitude_rejection(
+        east_m, north_m, valid, target_mask,
+        max_horizontal_magnitude_m=max_horizontal_magnitude_m,
+    )
+    east = np.asarray(east_m, dtype=float).copy()
+    north = np.asarray(north_m, dtype=float).copy()
+    east[~updated_valid] = np.nan
+    north[~updated_valid] = np.nan
+    target = np.asarray(target_mask, dtype=bool)
+
+    aoi_valid = updated_valid & target & np.isfinite(east) & np.isfinite(north)
+    aoi_total = int(target.sum())
+
+    flagged_pixels = (
+        int((np.asarray(high_magnitude_flag, bool) & target).sum())
+        if high_magnitude_flag is not None
+        else rejected_count
+    )
+
+    if not aoi_valid.any():
+        return {
+            "status": "INSUFFICIENT_AOI_VALID_PIXELS",
+            "reason": "No AOI cells pass finite-data, SNR and projected-magnitude gates",
+            "rejected_magnitude": rejected_count,
+            "valid_fraction": 0.0,
+            "valid_aoi_pixels": 0,
+            "aoi_total_grid_cells": aoi_total,
+            "valid_aoi_fraction": 0.0,
+            "high_magnitude_threshold": max_horizontal_magnitude_m,
+            "high_magnitude_flagged_pixels": flagged_pixels,
+            "magnitude_policy": magnitude_policy,
+        }
+
+    coh = np.ones_like(east) if coherence is None else coherence
+    stats = summarize_crown(
+        east, north, updated_valid, target, coh, interval_days=interval_days,
+    )
+    stats.update({
+        "aoi_valid_pixels": stats["valid_crown_pixels"],
+        "aoi_median_horizontal_magnitude_m": stats["crown_median_horizontal_magnitude_m"],
+        "aoi_mean_vector_east_m": stats["crown_mean_vector_east_m"],
+        "aoi_mean_vector_north_m": stats["crown_mean_vector_north_m"],
+        "aoi_mean_vector_magnitude_m": stats["crown_mean_vector_magnitude_m"],
+        "aoi_mean_vector_azimuth_deg_clockwise_from_north": stats["crown_mean_vector_azimuth_deg_clockwise_from_north"],
+        "aoi_median_magnitude_rate_m_per_day": stats["crown_median_magnitude_rate_m_per_day"],
+        "aoi_median_directional_coherence_R": stats["crown_median_directional_coherence_R"],
+        "aoi_coherence_valid_pixels": stats["coherence_valid_crown_pixels"],
+    })
+
+    flagged_pixels = (
+        int((np.asarray(high_magnitude_flag, bool) & target).sum())
+        if high_magnitude_flag is not None
+        else rejected_count
+    )
+
+    pair_dict = {
+        "status": "METRICS_COMPUTED",
+        "rejected_magnitude": rejected_count,
+        "valid_fraction": valid_frac,
+        "valid_aoi_pixels": int(aoi_valid.sum()),
+        "aoi_total_grid_cells": aoi_total,
+        "valid_aoi_fraction": valid_frac,
+        "high_magnitude_threshold": max_horizontal_magnitude_m,
+        "high_magnitude_flagged_pixels": flagged_pixels,
+        "magnitude_policy": magnitude_policy,
+        "statistics": stats,
+    }
+    if reference_mask is not None:
+        noise = _reference_noise_floor(
+            east, north, updated_valid,
+            target_mask=target,
+            reference_mask=reference_mask,
+            interval_days=interval_days,
+        )
+        pair_dict["noise_floor"] = noise
+    return pair_dict
+
+
 def run_aoi_analysis(
     request_payload: dict[str, Any],
     output_root: str | Path,
@@ -1245,6 +1392,8 @@ def run_aoi_analysis(
                     "grid_identity_sha256": grid_identity,
                     "grid_lattice_compatible_with_previous": grid_aligned,
                     "status": "INSUFFICIENT_AOI_VALID_PIXELS",
+                    "rejected_magnitude": 0,
+                    "valid_fraction": 0.0,
                     "valid_aoi_pixels": 0,
                     "aoi_total_grid_cells": int(roi.crown_mask.sum()),
                     "valid_aoi_fraction": 0.0,
@@ -1285,6 +1434,8 @@ def run_aoi_analysis(
                         "grid_identity_sha256": grid_identity,
                         "grid_lattice_compatible_with_previous": grid_aligned,
                         "status": "INSUFFICIENT_REFERENCE_SUPPORT",
+                        "rejected_magnitude": 0,
+                        "valid_fraction": float(aoi_valid_before_reference.sum()) / int(roi.crown_mask.sum()),
                         "valid_aoi_pixels": int(aoi_valid_before_reference.sum()),
                         "aoi_total_grid_cells": int(roi.crown_mask.sum()),
                         "valid_aoi_fraction": float(aoi_valid_before_reference.sum()) / int(roi.crown_mask.sum()),
@@ -1318,6 +1469,19 @@ def run_aoi_analysis(
                     "valid_buffer_cells": int((valid & roi.box_mask & ~roi.crown_mask).sum()),
                 }
                 reference_status = "NONE_EXPLICITLY_REQUESTED"
+
+            # Quality gate: REJECT cells with horizontal magnitude > max_horizontal_magnitude_m
+            # (default 10.0, named constant), same as paper_method.apply_paper_quality_gates,
+            # excluding them from valid mask before any median/bootstrap/noise_floor.
+            max_mag_threshold = (
+                request.max_horizontal_magnitude_m
+                if getattr(request, "max_horizontal_magnitude_m", None) is not None
+                else DEFAULT_MAX_HORIZONTAL_MAGNITUDE_M
+            )
+            valid, rejected_magnitude_count, valid_fraction = apply_generic_magnitude_rejection(
+                corrected_east, corrected_north, valid, roi.crown_mask,
+                max_horizontal_magnitude_m=max_mag_threshold,
+            )
 
             # Invalid raw offsets must not be mistaken for usable displacement in
             # the raster outputs when no external reference correction is applied.
@@ -1360,6 +1524,8 @@ def run_aoi_analysis(
                 "high_magnitude_threshold": request.max_horizontal_magnitude_m,
                 "high_magnitude_flagged_pixels": int((high_magnitude_flag & roi.crown_mask).sum()),
                 "magnitude_policy": request.magnitude_policy,
+                "rejected_magnitude": rejected_magnitude_count,
+                "valid_fraction": valid_fraction,
                 "valid_aoi_pixels": int(aoi_valid.sum()),
                 "aoi_total_grid_cells": int(roi.crown_mask.sum()),
                 "valid_aoi_fraction": float(aoi_valid.sum()) / int(roi.crown_mask.sum()),
