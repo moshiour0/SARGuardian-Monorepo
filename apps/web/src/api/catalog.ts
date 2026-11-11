@@ -111,6 +111,26 @@ export type DisplacementJob = Partial<DisplacementProcessingOptions> & {
 
 export type DisplacementJobSummary = Omit<DisplacementJob, 'result_summary' | 'artifact_url'>;
 
+export type DisplacementJobStatusSnapshot = Pick<
+  DisplacementJob,
+  | 'id'
+  | 'state'
+  | 'start_date'
+  | 'end_date'
+  | 'place_name'
+  | 'place_latitude'
+  | 'place_longitude'
+  | 'target_latitude'
+  | 'target_longitude'
+  | 'stage'
+  | 'github_run_id'
+  | 'github_run_url'
+  | 'error_code'
+  | 'error_message'
+  | 'created_at'
+  | 'updated_at'
+>;
+
 const API_BASE = resolveApiBaseUrl(
   import.meta.env.VITE_SARGUARDIAN_API_URL as string | undefined,
   import.meta.env.DEV,
