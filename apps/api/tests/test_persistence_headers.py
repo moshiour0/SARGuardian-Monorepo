@@ -16,6 +16,55 @@ def _fake_legacy_key(role: str) -> str:
     return f"{header}.{payload}.test-signature"
 
 
+def test_displacement_reads_select_only_compact_metadata_columns() -> None:
+    class FakeQuery:
+        def __init__(self, captured: dict[str, object]) -> None:
+            self.captured = captured
+
+        def select(self, columns: str) -> "FakeQuery":
+            self.captured.setdefault("selects", []).append(columns)
+            return self
+
+        def eq(self, _column: str, _value: object) -> "FakeQuery":
+            return self
+
+        def order(self, _column: str, desc: bool = False) -> "FakeQuery":
+            return self
+
+        def limit(self, _count: int) -> "FakeQuery":
+            return self
+
+        def in_(self, _column: str, _values: list[str]) -> "FakeQuery":
+            return self
+
+        def execute(self) -> SimpleNamespace:
+            return SimpleNamespace(data=[{"id": "00000000-0000-4000-8000-000000000001", "state": "running"}])
+
+    class FakeClient:
+        def __init__(self) -> None:
+            self.captured: dict[str, object] = {}
+
+        def table(self, table_name: str) -> FakeQuery:
+            self.captured.setdefault("tables", []).append(table_name)
+            return FakeQuery(self.captured)
+
+    client = FakeClient()
+    store = persistence.SupabaseJobStore(client, preflight_ttl_seconds=60)
+
+    store.list_displacement_jobs("firebase-owner")
+    store.get_displacement_job_status("firebase-owner", __import__("uuid").UUID("00000000-0000-4000-8000-000000000001"))
+    store.has_active_displacement_job("firebase-owner")
+    store.list_active_displacement_jobs("firebase-owner")
+
+    selects = client.captured["selects"]
+    assert isinstance(selects, list)
+    assert selects[0] == persistence.DISPLACEMENT_JOB_METADATA_COLUMNS
+    assert selects[1] == persistence.DISPLACEMENT_JOB_METADATA_COLUMNS
+    assert selects[2] == "id"
+    assert selects[3] == "id,state"
+    assert all("result_summary" not in columns and "artifact_url" not in columns for columns in selects)
+
+
 def test_legacy_service_role_jwt_is_accepted() -> None:
     assert persistence._validate_service_role_key(_fake_legacy_key("service_role")) is False
 
