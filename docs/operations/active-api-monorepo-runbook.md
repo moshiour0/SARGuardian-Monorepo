@@ -191,3 +191,43 @@ remains metadata-only.
 ```powershell
 python -m pytest
 ```
+
+
+## Supabase PostgREST egress reduction — 2026-11-11
+
+### Production attribution and evidence
+
+The live Monorepo API is hosted by the separate Vercel project `sar-guardian-monorepo-api` (`prj_1XQrqFFo4dFhWzBA15zGQQWNIo2p`). Its Production alias is `sar-guardian-monorepo-api.vercel.app`, mapped to READY deployment `dpl_EPuGsG5fVfXiD5tjSCKiWtzZvNQ4`, source commit `3ccb4634d312af8458bf461ef26ddd27da33c9f4`. The Production environment inventory contains `SUPABASE_URL` and server-only `SUPABASE_SERVICE_ROLE_KEY`; their values were not decrypted or copied. The live Supabase target is the active project `SARGuardian-Monorepo` (`qbmhpdprvxssqinnommz`), not the older inactive `SARGuardian_Dynamic` project.
+
+The user's Supabase organization Usage screenshot was on **All projects**. The Free organization contains five projects; `FieldShift0` was created 9 November 2026 and `SARGuardian-Monorepo` on 5 November 2026, while the usage graph starts 26 October. Therefore the organization's displayed 7.21 GB uncached egress cannot be attributed wholly to either new project. The hovered service was PostgREST/Database Egress, not Auth Egress. Supabase's egress documentation distinguishes PostgREST Database Egress from Auth traffic and recommends reducing selected columns/rows and repeated requests:
+https://supabase.com/docs/guides/platform/manage-your-usage/egress
+
+For the Monorepo Supabase project, read-only Edge Log aggregation for 7 November 2026 showed:
+- 3,243 GET requests to `/rest/v1/displacement_jobs` in 24 hours.
+- 3,204 were single-job detail reads filtered by `id=eq...`; only 39 were other reads. This corrects an earlier provisional classification that had incorrectly counted most of them as list reads.
+- All 3,243 requests used `python-httpx/0.28.1` and originated from Amazon Data Services / Amazon Technologies / Amazon.com ASNs in the United States, consistent with the hosted Python API rather than direct browser-to-Supabase access.
+- The table had 61 rows and 5 distinct owners at audit time. Mean full-row size was approximately 31.3 KB (maximum 95.0 KB); mean `result_summary` size was approximately 43.7 KB (maximum 94.5 KB).
+- The browser previously polled the full `GET /api/displacement-jobs/{job_id}` detail route every 2 seconds while a task was active. The global App guard also fetched the full 20-job list every 5 seconds.
+
+These are project-specific logs and current row-size measurements, not response-byte billing records. Supabase Edge Logs do not include response-byte counts. They establish a repeated, high-payload API pattern, but they do not attribute the whole organization-wide 7.21 GB to this one project.
+
+### Changes in branch `fix/supabase-postgrest-egress-status-only-polling`
+
+- Added an owner-scoped `GET /api/displacement-jobs/{job_id}/status` response containing only request metadata, workflow status, timestamps and safe errors. It excludes `result_summary` and `artifact_url`.
+- Added `GET /api/displacement-jobs/active`, which returns only `{has_active_job: boolean}` for the global navigation guard.
+- Changed the PostgREST list/status projections to explicit columns. `list_displacement_jobs` no longer selects `result_summary` or `artifact_url`; active capacity checks select only `id,state`; the global active check selects only `id`.
+- Changed active browser polling from a fixed 2-second full-detail read to status-only polling with 10/30/60-second backoff. When the job reaches `succeeded`, the browser loads the full detail exactly once to render the scientific result/dashboard.
+- Changed the global active-job guard from a 5-second full 20-row list read to a 30-second boolean-only check.
+- The full detail route remains available for explicit result opening/retrieval; Firebase identity verification, owner UID filtering, callback validation, cancel/retry, GitHub workflow reconciliation and scientific result semantics remain unchanged.
+
+No Supabase Auth identity/session tracking has been disabled. No table/schema migration, secret change, project pause/delete, billing-plan change, or Production alias change is part of this branch. The Postgres queue and Firebase UID ownership remain in place; this is a response-size and polling-frequency fix, not a database replacement.
+
+### Release and verification gate
+
+The branch must pass the existing Monorepo snapshot-regression workflow, including the full `apps/api` pytest suite and `apps/web` TypeScript build, ESLint and Vitest. Both Vercel Preview projects must build from the same branch head. Only then review the PR diff and deploy the API and Web projects together. Do not promote one half without the other. After deployment, re-query the same Supabase Edge Log paths over a comparable 24-hour window and compare:
+- detail reads (should be limited to explicit result opens and one final result retrieval),
+- status-route reads and response field selection,
+- active boolean guard reads,
+- current row/result size.
+
+A real result open must still restore the full scientific dashboard and artifact download before this change can be accepted. The usage dashboard must be inspected per project; do not pause projects or upgrade the Free organization to remove the quota warning. Supabase's Free-plan over-quota handling includes a grace period/restriction warning; respect the dashboard's 9 December 2026 restriction date if the organization remains over quota.
