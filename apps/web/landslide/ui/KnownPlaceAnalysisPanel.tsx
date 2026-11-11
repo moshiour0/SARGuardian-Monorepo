@@ -457,10 +457,9 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           </div>
         </details>
 
-        <div className="known-place-form-grid">
-          <label className="aoi-job-label known-place-wide">
-            <span>Release selection</span>
-            {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
+        {catalogReleaseIds.length > 0 && <div className="known-place-form-grid">
+          <div className="aoi-job-label known-place-wide">
+            <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
               {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
                 <input type="radio" name="known-place-release" value={option.key} checked={selectedVariantKey === option.key} onChange={() => { setSelectedVariantKey(option.key); setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
                 <span>{option.releaseId} — {option.processing}</span>
@@ -468,15 +467,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />
                 <span>{releaseId}</span>
               </label>)}
-            </div> : <span className="catalog-field-hint">Run the catalog-only dry run to discover the release IDs available for this AOI and date window.</span>}
-          </label>
-        </div>
+            </div>
+          </div>
+        </div>}
 
         <section className="known-place-run-options" aria-label="Known Place run options">
-          <h2>Choose how to run</h2>
-          <p className="catalog-notice"><b>Required preflight:</b> run the catalog-only dry run first. It verifies product availability and release-consistent series planning without downloading raw NISAR products.</p>
           <button type="button" className="demo-button" disabled={!canSubmitGeometry || pendingAction !== null} onClick={() => void submit(false)}>
-            {pendingAction === 'dry-run' ? 'Submitting dry run…' : 'Run catalog-only dry run'}
+            {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
           </button>
           <p className="catalog-notice" role="status">
             {catalogPreflightReady
