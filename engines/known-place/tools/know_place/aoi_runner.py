@@ -841,6 +841,116 @@ def _write_pair_csv(path: Path, pairs: list[dict[str, Any]]) -> None:
             })
 
 
+# -- Noise-floor detection ---------------------------------------------------
+# MAD -> Gaussian sigma scale factor; follows the robust_sigma convention
+# established in science/nisar-core/src/goff_reader.py.
+_MAD_SIGMA: float = 1.4826
+
+# Default thresholds – surfaced as config parameters so callers can override.
+_DEFAULT_SNR_DETECT: float = 3.0
+_DEFAULT_MIN_REFERENCE_PIXELS: int = 30
+
+
+def _reference_noise_floor(
+    east_m: Any,
+    north_m: Any,
+    valid: Any,
+    target_mask: Any,
+    reference_mask: Any,
+    *,
+    interval_days: int,
+    snr_detect: float = _DEFAULT_SNR_DETECT,
+    min_reference_pixels: int = _DEFAULT_MIN_REFERENCE_PIXELS,
+) -> dict[str, Any]:
+    """Per-pair noise floor, SNR, and detection status.
+
+    Noise floor is the robust sigma (1.4826 * MAD) of horizontal displacement
+    magnitude over valid reference-polygon pixels.  SNR compares the target
+    (measurement) polygon median magnitude to that noise floor.
+
+    Parameters
+    ----------
+    east_m, north_m : array-like
+        Corrected displacement components (full raster extent).
+    valid : array-like  (bool)
+        Per-pixel validity mask after quality gates.
+    target_mask : array-like  (bool)
+        Measurement (target / crown) polygon mask.
+    reference_mask : array-like  (bool)
+        Reference polygon mask.
+    interval_days : int
+        Pair temporal baseline in days (must be > 0).
+    snr_detect : float
+        Minimum SNR to classify as DETECTED.  Default {default_snr}.
+    min_reference_pixels : int
+        Minimum valid reference pixels; below this -> INCONCLUSIVE.
+        Default {default_pix}.
+
+    Returns
+    -------
+    dict  with keys ``noise_floor_m``, ``noise_floor_rate_m_per_day``,
+    ``snr``, ``status``, ``valid_reference_pixels``.
+    """.format(default_snr=_DEFAULT_SNR_DETECT, default_pix=_DEFAULT_MIN_REFERENCE_PIXELS)
+
+    east = np.asarray(east_m, dtype=float)
+    north = np.asarray(north_m, dtype=float)
+    v = np.asarray(valid, dtype=bool)
+    tgt = np.asarray(target_mask, dtype=bool)
+    ref = np.asarray(reference_mask, dtype=bool)
+
+    if interval_days <= 0:
+        raise ValueError("NOISE_FLOOR_INTERVAL_DAYS_MUST_BE_POSITIVE")
+
+    # Reference-polygon valid pixels
+    ref_valid = v & ref & np.isfinite(east) & np.isfinite(north)
+    n_ref = int(ref_valid.sum())
+
+    if n_ref < min_reference_pixels:
+        return {
+            "noise_floor_m": float("nan"),
+            "noise_floor_rate_m_per_day": float("nan"),
+            "snr": float("nan"),
+            "status": "INCONCLUSIVE",
+            "valid_reference_pixels": n_ref,
+            "min_reference_pixels_threshold": min_reference_pixels,
+            "snr_detect_threshold": snr_detect,
+        }
+
+    ref_mag = np.hypot(east[ref_valid], north[ref_valid])
+    median_ref = float(np.median(ref_mag))
+    mad = float(np.median(np.abs(ref_mag - median_ref)))
+    noise_floor = _MAD_SIGMA * mad
+
+    # Target median magnitude
+    tgt_valid = v & tgt & np.isfinite(east) & np.isfinite(north)
+    if not tgt_valid.any():
+        target_median = float("nan")
+    else:
+        target_median = float(np.median(np.hypot(east[tgt_valid], north[tgt_valid])))
+
+    if noise_floor > 0.0:
+        snr_value = target_median / noise_floor
+    else:
+        # Zero noise floor (constant reference): signal is infinitely clear
+        # if any target displacement exists, otherwise undefined.
+        snr_value = float("inf") if target_median > 0.0 else float("nan")
+
+    if not math.isnan(snr_value) and snr_value >= snr_detect:
+        status = "DETECTED"
+    else:
+        status = "BELOW_NOISE_FLOOR"
+
+    return {
+        "noise_floor_m": float(noise_floor),
+        "noise_floor_rate_m_per_day": float(noise_floor / interval_days),
+        "snr": float(snr_value) if math.isfinite(snr_value) else snr_value,
+        "status": status,
+        "valid_reference_pixels": n_ref,
+        "min_reference_pixels_threshold": min_reference_pixels,
+        "snr_detect_threshold": snr_detect,
+    }
+
+
 def run_aoi_analysis(
     request_payload: dict[str, Any],
     output_root: str | Path,
@@ -1379,9 +1489,21 @@ def run_aoi_analysis(
                 x_coordinates_m=roi.x_coordinates_m.astype(np.float64),
                 y_coordinates_m=roi.y_coordinates_m.astype(np.float64),
             )
+            effective_reference_mask = (
+                roi.reference_mask
+                if roi.reference_mask is not None
+                else (roi.box_mask & ~roi.crown_mask)
+            )
+            noise = _reference_noise_floor(
+                corrected_east, corrected_north, valid,
+                target_mask=roi.crown_mask,
+                reference_mask=effective_reference_mask,
+                interval_days=interval_days,
+            )
             base.update({
                 "status": "METRICS_COMPUTED",
                 "statistics": summary,
+                "noise_floor": noise,
                 "spatial_block_bootstrap_uncertainty": uncertainty,
                 "spatial_block_bootstrap_sensitivity": uncertainty_sensitivity,
                 "exploratory_control_comparison": controls,
