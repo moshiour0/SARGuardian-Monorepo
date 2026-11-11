@@ -29,6 +29,13 @@ DISPLACEMENT_JOB_METADATA_COLUMNS = (
 )
 
 
+DISPLACEMENT_JOB_STATUS_COLUMNS = (
+    "id,state,start_date,end_date,place_name,place_latitude,place_longitude,"
+    "target_latitude,target_longitude,stage,github_run_id,github_run_url,"
+    "error_code,error_message,created_at,updated_at"
+)
+
+
 class PersistenceError(RuntimeError):
     pass
 
@@ -286,7 +293,7 @@ class SupabaseJobStore:
         try:
             response = (
                 self.client.table("displacement_jobs")
-                .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
+                .select(DISPLACEMENT_JOB_STATUS_COLUMNS)
                 .eq("owner_uid", owner_uid)
                 .eq("id", str(job_id))
                 .limit(1)
@@ -306,7 +313,7 @@ class SupabaseJobStore:
                 .update(values)
                 .eq("owner_uid", owner_uid)
                 .eq("id", str(job_id))
-                .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
+                .select(DISPLACEMENT_JOB_STATUS_COLUMNS)
                 .execute()
             )
         except Exception:
