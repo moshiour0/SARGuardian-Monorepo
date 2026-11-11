@@ -373,7 +373,7 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/landslide/ui/DisplacementPreparation.tsx",
       "destination_path": "apps/web/landslide/ui/DisplacementPreparation.tsx",
       "source_blob_sha": "d3689a8b5606591106fb9571fdc979649a3f4f5a",
-      "destination_blob_sha": "4389f14b8e188907185af65160e3d12f65d374da",
+      "destination_blob_sha": "455b97cb4221d8ed7a00d33824fc783f550d0d54",
       "mode": "100644",
       "object_type": "blob",
       "reason": "Replace two-second full-result polling with owner-scoped status-only polling and fetch the full scientific result only once when the workflow succeeds.",
