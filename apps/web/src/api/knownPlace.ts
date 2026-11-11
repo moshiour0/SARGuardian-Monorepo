@@ -230,6 +230,7 @@ export type KnownPlaceChain = {
   cumulative_displacement_status: string | null;
   grid_lattice_compatible: boolean | null;
   pairs: Array<{
+    granule_name: string | null;
     reference_date: string;
     secondary_date: string;
     interval_days: number | null;

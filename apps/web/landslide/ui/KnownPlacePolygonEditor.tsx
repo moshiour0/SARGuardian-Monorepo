@@ -115,6 +115,7 @@ function polygonsOverlapOrTouch(first: Coordinate[], second: Coordinate[]): bool
   return false;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function validatePolygonPair(
   outer: Coordinate[] | null,
   measurement: Coordinate[],

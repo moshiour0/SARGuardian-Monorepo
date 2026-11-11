@@ -1290,7 +1290,6 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [isSourceMaskVerifying, setIsSourceMaskVerifying] = useState(false);
   const [sourceMaskVerificationError, setSourceMaskVerificationError] = useState('');
   const [sourceMaskVerification, setSourceMaskVerification] = useState<NativeSourceMaskVerificationResponse | null>(null);
-  const [knownPlaceSetupReady, setKnownPlaceSetupReady] = useState(false);
 
   const handleKnownPlacePolygonCoordinates = useCallback((role: 'measurement' | 'reference', next: Coordinate[], closed: boolean) => {
     if (role === 'measurement') setMeasurementCoordinates(next);

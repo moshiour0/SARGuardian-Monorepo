@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { KnownPlacePolygonEditor, validatePolygonPair } from './KnownPlacePolygonEditor';
+import { useEffect, useState } from 'react';
+import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
 import {
@@ -105,6 +105,7 @@ function samePolygonGeometry(firstWkt: string, secondWkt: string): boolean {
 }
 
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function loadStoredRun(uid: string): StoredRun | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -120,6 +121,7 @@ export function loadStoredRun(uid: string): StoredRun | null {
   }
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function loadKnownPlaceRunRequestId(uid: string): string | null {
   const run = loadStoredRun(uid);
   return run?.execute_downloads === true && run.conclusion === 'success' ? run.request_id : null;
@@ -141,10 +143,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>('1');
   const [allowedReleaseIds, setAllowedReleaseIds] = useState('');
   const [preferredGranules, setPreferredGranules] = useState('');
+  const [selectedVariantKey, setSelectedVariantKey] = useState('');
   const [candidateTransfer] = useState<CandidateTransfer | null>(() => consumeCandidateTransfer());
   const [geometryDraft] = useState<GeometryDraft>(() => loadGeometryDraft(user.uid));
-  const [measurementWkt, setMeasurementWkt] = useState(() => candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '');
-  const [referenceWkt, setReferenceWkt] = useState(() => geometryDraft.referenceWkt);
+  const measurementWkt = candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '';
+  const referenceWkt = geometryDraft.referenceWkt;
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
   const [geometryHeight, setGeometryHeight] = useState('');
   const [confirmRawDownloads, setConfirmRawDownloads] = useState(false);
@@ -193,9 +196,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   });
   const currentRequestFingerprint = knownPlaceRequestFingerprint(createAnalysisInput(false));
   const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(run, currentRequestFingerprint);
-  const handleMeasurementChange = useCallback((wkt: string) => setMeasurementWkt(wkt), []);
-  const handleReferenceChange = useCallback((wkt: string) => setReferenceWkt(wkt), []);
-  const handlePolygonValidation = useCallback((result: { valid: boolean; message: string }) => setPolygonValidation(result), []);
   const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
@@ -267,6 +267,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
     let active = true;
     setCatalogReleaseIds([]);
+    setCatalogVariantOptions([]);
     setCatalogReleaseError('');
     void getKnownPlaceAnalysisResults(run.request_id, user)
       .then((payload) => {
@@ -305,7 +306,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           const releaseId = chain.release_id || '';
           if (!processing || !releaseId) continue;
           const key = `${releaseId}::${processing}`;
-          if (!variants.has(key)) variants.set(key, { key, releaseId, processing, granules: [] });
+          const current: VariantOption = variants.get(key) || { key, releaseId, processing, granules: [] };
+          for (const pair of chain.pairs || []) {
+            if (pair.granule_name && !current.granules.includes(pair.granule_name)) current.granules.push(pair.granule_name);
+          }
+          variants.set(key, current);
         }
         setCatalogVariantOptions(Array.from(variants.values()).sort((a, b) => a.processing.localeCompare(b.processing)));
       })
@@ -330,6 +335,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
     if (executeDownloads && catalogReleaseIds.length > 0 && !allowedReleaseIds.trim()) {
       setError('Select one release ID from the successful dry-run result before starting the raw GOFF measurement.');
+      return;
+    }
+    if (executeDownloads && catalogVariantOptions.length > 0 && !catalogVariantOptions.some((option) => option.key === selectedVariantKey && option.releaseId === allowedReleaseIds.trim())) {
+      setError('Select one release and processing variant from the successful dry-run result before starting the raw GOFF measurement.');
       return;
     }
     if (executeDownloads && catalogVariantOptions.some((option) => option.granules.length > 0) && !preferredGranules.trim()) {
@@ -374,6 +383,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
       if (!executeDownloads) {
         setAllowedReleaseIds('');
         setPreferredGranules('');
+        setSelectedVariantKey('');
       }
       if (executeDownloads) {
         try {
@@ -401,14 +411,6 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <span>{candidateTransfer.candidate.geometrySimplified ? `Boundary simplified from ${candidateTransfer.candidate.geometryOriginalVertices} to ${candidateTransfer.candidate.geometrySuggestedVertices} vertices; inspect and edit it before measurement.` : `${candidateTransfer.candidate.geometrySuggestedVertices} boundary vertices transferred; inspect and edit before measurement.`}</span>
           <span>Candidate evidence is not measured ground motion or a confirmed landslide. Draw a background polygon that is either disjoint from or fully encloses the proposed measurement area; partial overlap and boundary-touch are rejected.</span>
         </div>}
-        {false && <KnownPlacePolygonEditor
-          outerAoiWkt={aoiWkt}
-          initialMeasurementWkt={measurementWkt || null}
-          initialReferenceWkt={referenceWkt || null}
-          onMeasurementChange={handleMeasurementChange}
-          onReferenceChange={handleReferenceChange}
-          onValidationChange={handlePolygonValidation}
-        />}
         <details className="known-place-additional-settings">
           <summary>Additional settings</summary>
           <div className="known-place-form-grid">
@@ -460,7 +462,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
             <span>Release selection</span>
             {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
               {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
-                <input type="radio" name="known-place-release" value={option.key} checked={preferredGranules === option.granules.join(',')} onChange={() => { setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
+                <input type="radio" name="known-place-release" value={option.key} checked={selectedVariantKey === option.key} onChange={() => { setSelectedVariantKey(option.key); setAllowedReleaseIds(option.releaseId); setPreferredGranules(option.granules.join(',')); }} />
                 <span>{option.releaseId} — {option.processing}</span>
               </label>) : catalogReleaseIds.map((releaseId) => <label key={releaseId}>
                 <input type="radio" name="known-place-release" value={releaseId} checked={allowedReleaseIds === releaseId} onChange={() => setAllowedReleaseIds(releaseId)} />

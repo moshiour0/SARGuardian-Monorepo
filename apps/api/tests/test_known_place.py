@@ -65,12 +65,13 @@ def test_known_place_dry_run_summary_preserves_release_ids_without_motion_dynami
                 "geometry_key": {"track": "098", "direction": "A", "polarization": "HH"},
                 "processing_identity": {"release_id": "P05023", "maturity": "PROVISIONAL"},
                 "pair_count": 1,
-                "pairs": [],
+                "pairs": [{"granule_name": "NISAR_L2_PR_GOFF_TEST_P05023.h5", "reference_date": "2026-07-01", "secondary_date": "2026-07-13"}],
             }],
         },
     })
 
     assert summary["pairwise_series_plan"]["chains"][0]["release_id"] == "P05023"
+    assert summary["pairwise_series_plan"]["chains"][0]["pairs"][0]["granule_name"] == "NISAR_L2_PR_GOFF_TEST_P05023.h5"
     assert summary["motion_dynamics"]["status"] is None
 
 

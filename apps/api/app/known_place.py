@@ -883,6 +883,7 @@ def _known_place_result_summary(result: dict[str, Any]) -> dict[str, Any]:
                     continue
                 gaps = pair.get("known_instrument_data_gaps")
                 chain_pairs.append({
+                    "granule_name": pair.get("granule_name"),
                     "reference_date": pair.get("reference_date"),
                     "secondary_date": pair.get("secondary_date"),
                     "interval_days": pair.get("interval_days"),

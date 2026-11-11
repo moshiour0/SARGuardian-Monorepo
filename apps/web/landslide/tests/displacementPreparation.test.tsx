@@ -6,7 +6,7 @@ import { ScientificResults } from '../ui/ScientificResults';
 import { ArchiveJobCard } from '../../src/components/ArchiveSection';
 import { countCatalogGranules, ELAPSED_TICK_MS, formatElapsed } from '../ui/processingStatus';
 import { prepareInvestigation } from '../engine/investigation';
-import { isDashboardRoute, isLandslideDisplacementRoute, LANDSLIDE_DISPLACEMENT_PATH, LANDSLIDE_PATH, LANDSLIDE_RESULTS_PATH, navigatePath } from '../../src/routing';
+import { isDashboardRoute, isLandslideDisplacementRoute, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, navigatePath } from '../../src/routing';
 import { DEFAULT_DISPLACEMENT_OPTIONS } from '../../src/api/catalog';
 import { buildDashboardRouteUrl, withDashboardPreferredView } from '../../src/dashboardDocument';
 
@@ -161,14 +161,14 @@ describe('displacement preparation route', () => {
 
   it('uses existing navigation for both workflows and back, suppressing duplicate pushes', () => {
     const push = vi.fn();
-    let path = navigatePath(LANDSLIDE_RESULTS_PATH, LANDSLIDE_PATH, push);
-    expect(path).toBe('/landslide/results');
-    path = navigatePath(LANDSLIDE_PATH, path, push);
-    path = navigatePath(LANDSLIDE_DISPLACEMENT_PATH, path, push);
+    let path = navigatePath(FIND_DISPLACEMENT_RESULTS_PATH, FIND_DISPLACEMENT_PATH, push);
+    expect(path).toBe(FIND_DISPLACEMENT_RESULTS_PATH);
+    path = navigatePath(FIND_DISPLACEMENT_PATH, path, push);
+    path = navigatePath(FIND_DISPLACEMENT_DISPLACEMENT_PATH, path, push);
     expect(isLandslideDisplacementRoute(path)).toBe(true);
     navigatePath(path, path, push);
     expect(push).toHaveBeenCalledTimes(3);
-    expect(navigatePath(LANDSLIDE_PATH, path, push)).toBe('/landslide');
+    expect(navigatePath(FIND_DISPLACEMENT_PATH, path, push)).toBe(FIND_DISPLACEMENT_PATH);
   });
   it('does not expose a second submission control on the task status route', () => {
     const preparation = prepareInvestigation({ coordinates: [[85, 27], [85.001, 27], [85, 27.001]], areaClosed: true, startDate: '2026-10-01', endDate: '2026-10-22', today: '2026-10-23' });
