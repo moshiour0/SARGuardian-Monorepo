@@ -297,11 +297,14 @@ class SupabaseJobStore:
         rows = self._data(response)
         return rows[0] if rows else None
 
-    def update_displacement_job_status(self, job_id: UUID, values: dict[str, Any]) -> dict[str, Any]:
+    def update_displacement_job_status(
+        self, owner_uid: str, job_id: UUID, values: dict[str, Any],
+    ) -> dict[str, Any]:
         try:
             response = (
                 self.client.table("displacement_jobs")
                 .update(values)
+                .eq("owner_uid", owner_uid)
                 .eq("id", str(job_id))
                 .select(DISPLACEMENT_JOB_METADATA_COLUMNS)
                 .execute()
