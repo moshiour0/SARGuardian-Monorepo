@@ -849,6 +849,113 @@ _MAD_SIGMA: float = 1.4826
 # Default thresholds – surfaced as config parameters so callers can override.
 _DEFAULT_SNR_DETECT: float = 3.0
 _DEFAULT_MIN_REFERENCE_PIXELS: int = 30
+DEFAULT_MAX_REFERENCE_GRADIENT_M_PER_KM: float = 0.5
+DEFAULT_REFERENCE_PIXEL_SPACING_M: float = 80.0
+
+
+def audit_reference_stationarity(
+    east_m: Any,
+    north_m: Any,
+    valid: Any,
+    reference_mask: Any,
+    *,
+    x_coords_m: Any | None = None,
+    y_coords_m: Any | None = None,
+    pixel_spacing_m: float = DEFAULT_REFERENCE_PIXEL_SPACING_M,
+    max_gradient_m_per_km: float = DEFAULT_MAX_REFERENCE_GRADIENT_M_PER_KM,
+    min_reference_pixels: int = _DEFAULT_MIN_REFERENCE_PIXELS,
+) -> dict[str, Any]:
+    """Audit whether a reference polygon is spatially stationary or exhibits an unmodeled spatial gradient.
+
+    Fits a first-order planar surface m(x, y) = a*(x - x_bar) + b*(y - y_bar) + c
+    to the reference polygon horizontal displacement magnitude. If the spatial
+    gradient magnitude sqrt(a^2 + b^2) exceeds max_gradient_m_per_km, a warning
+    is flagged to alert against creeping slopes or uncompensated ionospheric ramps.
+
+    Parameters
+    ----------
+    east_m, north_m : array-like
+        Horizontal displacement components in meters.
+    valid : array-like (bool)
+        Per-pixel validity mask.
+    reference_mask : array-like (bool)
+        Reference polygon mask.
+    x_coords_m, y_coords_m : array-like, optional
+        Grid coordinates in meters. If None, derived from cell indices with pixel_spacing_m.
+    pixel_spacing_m : float
+        Nominal pixel grid spacing in meters; default 80.0 m.
+    max_gradient_m_per_km : float
+        Maximum allowable spatial gradient in meters per kilometer; default 0.5 m/km.
+    min_reference_pixels : int
+        Minimum number of valid reference cells required; default 30.
+
+    Returns
+    -------
+    dict with keys:
+        - stationarity_status: 'VERIFIED_SPATIALLY_UNIFORM' | 'WARNING_SPATIAL_GRADIENT_DETECTED' | 'INSUFFICIENT_REFERENCE_PIXELS'
+        - reference_spatial_gradient_m_per_km: float
+        - reference_gradient_threshold_m_per_km: float
+        - valid_reference_pixels: int
+    """
+    east = np.asarray(east_m, dtype=float)
+    north = np.asarray(north_m, dtype=float)
+    v = np.asarray(valid, dtype=bool)
+    ref = np.asarray(reference_mask, dtype=bool)
+
+    if not math.isfinite(max_gradient_m_per_km) or max_gradient_m_per_km <= 0:
+        raise ValueError("MAX_GRADIENT_MUST_BE_FINITE_AND_POSITIVE")
+
+    ref_valid = v & ref & np.isfinite(east) & np.isfinite(north)
+    n_ref = int(ref_valid.sum())
+
+    if n_ref < min_reference_pixels:
+        return {
+            "stationarity_status": "INSUFFICIENT_REFERENCE_PIXELS",
+            "reference_spatial_gradient_m_per_km": float("nan"),
+            "reference_gradient_threshold_m_per_km": float(max_gradient_m_per_km),
+            "valid_reference_pixels": n_ref,
+        }
+
+    rows, cols = np.where(ref_valid)
+    if x_coords_m is not None and y_coords_m is not None:
+        x_raw = np.asarray(x_coords_m, dtype=float)
+        y_raw = np.asarray(y_coords_m, dtype=float)
+        x_pts = x_raw[cols] if x_raw.ndim == 1 else x_raw[ref_valid]
+        y_pts = y_raw[rows] if y_raw.ndim == 1 else y_raw[ref_valid]
+    else:
+        x_pts = cols.astype(float) * pixel_spacing_m
+        y_pts = rows.astype(float) * pixel_spacing_m
+
+    m_pts = np.hypot(east[ref_valid], north[ref_valid])
+
+    x_mean = float(np.mean(x_pts))
+    y_mean = float(np.mean(y_pts))
+    dx = x_pts - x_mean
+    dy = y_pts - y_mean
+
+    if np.ptp(dx) == 0.0 and np.ptp(dy) == 0.0:
+        grad_m_per_km = 0.0
+    else:
+        A = np.column_stack([dx, dy, np.ones(n_ref, dtype=float)])
+        try:
+            coeffs, _, _, _ = np.linalg.lstsq(A, m_pts, rcond=None)
+            a, b = float(coeffs[0]), float(coeffs[1])
+            grad_m_per_m = math.hypot(a, b)
+            grad_m_per_km = grad_m_per_m * 1000.0
+        except np.linalg.LinAlgError:
+            grad_m_per_km = 0.0
+
+    if math.isfinite(grad_m_per_km) and grad_m_per_km <= max_gradient_m_per_km:
+        stationarity_status = "VERIFIED_SPATIALLY_UNIFORM"
+    else:
+        stationarity_status = "WARNING_SPATIAL_GRADIENT_DETECTED"
+
+    return {
+        "stationarity_status": stationarity_status,
+        "reference_spatial_gradient_m_per_km": float(grad_m_per_km),
+        "reference_gradient_threshold_m_per_km": float(max_gradient_m_per_km),
+        "valid_reference_pixels": n_ref,
+    }
 
 
 def _reference_noise_floor(
@@ -861,6 +968,9 @@ def _reference_noise_floor(
     interval_days: int,
     snr_detect: float = _DEFAULT_SNR_DETECT,
     min_reference_pixels: int = _DEFAULT_MIN_REFERENCE_PIXELS,
+    x_coords_m: Any | None = None,
+    y_coords_m: Any | None = None,
+    max_gradient_m_per_km: float = DEFAULT_MAX_REFERENCE_GRADIENT_M_PER_KM,
 ) -> dict[str, Any]:
     """Per-pair noise floor, SNR, and detection status.
 
@@ -885,11 +995,16 @@ def _reference_noise_floor(
     min_reference_pixels : int
         Minimum valid reference pixels; below this -> INCONCLUSIVE.
         Default {default_pix}.
+    x_coords_m, y_coords_m : array-like, optional
+        Grid coordinates in meters for stationarity audit.
+    max_gradient_m_per_km : float
+        Maximum allowable spatial gradient across reference block; default 0.5 m/km.
 
     Returns
     -------
     dict  with keys ``noise_floor_m``, ``noise_floor_rate_m_per_day``,
-    ``snr``, ``status``, ``valid_reference_pixels``.
+    ``snr``, ``status``, ``valid_reference_pixels``, ``stationarity_status``,
+    ``reference_spatial_gradient_m_per_km``.
     """.format(default_snr=_DEFAULT_SNR_DETECT, default_pix=_DEFAULT_MIN_REFERENCE_PIXELS)
 
     east = np.asarray(east_m, dtype=float)
@@ -905,6 +1020,13 @@ def _reference_noise_floor(
     ref_valid = v & ref & np.isfinite(east) & np.isfinite(north)
     n_ref = int(ref_valid.sum())
 
+    audit = audit_reference_stationarity(
+        east, north, v, ref,
+        x_coords_m=x_coords_m, y_coords_m=y_coords_m,
+        max_gradient_m_per_km=max_gradient_m_per_km,
+        min_reference_pixels=min_reference_pixels,
+    )
+
     if n_ref < min_reference_pixels:
         return {
             "noise_floor_m": float("nan"),
@@ -914,6 +1036,9 @@ def _reference_noise_floor(
             "valid_reference_pixels": n_ref,
             "min_reference_pixels_threshold": min_reference_pixels,
             "snr_detect_threshold": snr_detect,
+            "stationarity_status": audit["stationarity_status"],
+            "reference_spatial_gradient_m_per_km": audit["reference_spatial_gradient_m_per_km"],
+            "reference_gradient_threshold_m_per_km": audit["reference_gradient_threshold_m_per_km"],
         }
 
     ref_mag = np.hypot(east[ref_valid], north[ref_valid])
@@ -948,6 +1073,9 @@ def _reference_noise_floor(
         "valid_reference_pixels": n_ref,
         "min_reference_pixels_threshold": min_reference_pixels,
         "snr_detect_threshold": snr_detect,
+        "stationarity_status": audit["stationarity_status"],
+        "reference_spatial_gradient_m_per_km": audit["reference_spatial_gradient_m_per_km"],
+        "reference_gradient_threshold_m_per_km": audit["reference_gradient_threshold_m_per_km"],
     }
 
 
@@ -1018,6 +1146,9 @@ def summarize_generic_pair(
     max_horizontal_magnitude_m: float = DEFAULT_MAX_HORIZONTAL_MAGNITUDE_M,
     high_magnitude_flag: Any | None = None,
     magnitude_policy: str = "flag_above_threshold_keep",
+    x_coords_m: Any | None = None,
+    y_coords_m: Any | None = None,
+    max_gradient_m_per_km: float = DEFAULT_MAX_REFERENCE_GRADIENT_M_PER_KM,
 ) -> dict[str, Any]:
     """Build generic pair summary dict with magnitude rejection applied before statistics."""
     updated_valid, rejected_count, valid_frac = apply_generic_magnitude_rejection(
@@ -1093,6 +1224,9 @@ def summarize_generic_pair(
             target_mask=target,
             reference_mask=reference_mask,
             interval_days=interval_days,
+            x_coords_m=x_coords_m,
+            y_coords_m=y_coords_m,
+            max_gradient_m_per_km=max_gradient_m_per_km,
         )
         pair_dict["noise_floor"] = noise
     return pair_dict
@@ -1665,7 +1799,12 @@ def run_aoi_analysis(
                 target_mask=roi.crown_mask,
                 reference_mask=effective_reference_mask,
                 interval_days=interval_days,
+                x_coords_m=roi.x_coordinates_m,
+                y_coords_m=roi.y_coordinates_m,
             )
+            if "reference_geometry" in base:
+                base["reference_geometry"]["stationarity_status"] = noise.get("stationarity_status")
+                base["reference_geometry"]["spatial_gradient_m_per_km"] = noise.get("reference_spatial_gradient_m_per_km")
             base.update({
                 "status": "METRICS_COMPUTED",
                 "statistics": summary,

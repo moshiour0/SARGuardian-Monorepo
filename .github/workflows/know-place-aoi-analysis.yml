@@ -150,7 +150,7 @@ jobs:
           fi
           runner_blob="$(git rev-parse HEAD:engines/known-place/tools/know_place/aoi_runner.py)"
           # Historical Known Place promotion contract marker retained for the active-runtime audit: 9364b94d6629c67e44f007a0e2634824aa7e1f9f
-          if [[ "$runner_blob" != "2d6a7285df45acf5e2606ca6fc60e7470ccc7140" ]]; then
+          if [[ "$runner_blob" != "a95e41a18cb37e3357188f597d88e005b2ae23a2" ]]; then
             echo "ERROR=KNOWN_PLACE_RUNNER_SOURCE_BLOB_MISMATCH actual=$runner_blob"
             exit 1
           fi
