@@ -200,7 +200,7 @@ def test_status_endpoint_is_owner_scoped_and_excludes_result_json(monkeypatch) -
     body = status.json()
     assert body["id"] == created.json()["id"]
     assert body["state"] == "dispatching"
-    assert body["aoi_wkt"] == payload()["aoi_wkt"]
+    assert "aoi_wkt" not in body
     assert "result_summary" not in body
     assert "artifact_url" not in body
 
