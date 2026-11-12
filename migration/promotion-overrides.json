@@ -517,14 +517,15 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/pages/RiverShiftPage.tsx",
       "destination_path": "apps/web/src/pages/RiverShiftPage.tsx",
       "source_blob_sha": "7ea0a96a6798ada7d348c227bece1b6557f13303",
-      "destination_blob_sha": "b5ba57ad5acb3ca87a25218f6fadcac7f09a9eeb",
+      "destination_blob_sha": "c75ad239c556cb098572a3aae229db7beb47cd72",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Restore one recent job only and poll compact status at an adaptive 15/30/60-second cadence; retrieve the full result and private artifact manifest once, only after a terminal state.",
+      "reason": "Restore one recent job only and poll compact status at an adaptive 15/30/60-second cadence; retrieve the full result and private artifact manifest once after a terminal state. Clearly explain retained .geojson.gz compression and desktop GIS decompression to users.",
       "implementation_commits": [
         "b1c7d99375a169983e7386222e080fcc0f73b070",
         "ca0a10e70d7c9cdd18aa97e0148b6d48963c8e6b",
-        "1a35d27a1d5af20560161cd48d36336be2798f12"
+        "1a35d27a1d5af20560161cd48d36336be2798f12",
+        "8285d1f6f939f3c526b8e9ffef278e01fd69a15c"
       ],
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
