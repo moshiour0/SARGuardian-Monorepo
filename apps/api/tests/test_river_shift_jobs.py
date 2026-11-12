@@ -189,11 +189,12 @@ def test_refresh_workflow_state_does_not_patch_identical_run_metadata(monkeypatc
         "conclusion": None,
     }
     monkeypatch.setattr(river_module, "_github_get_json", lambda *_args: run)
+    updates_before_refresh = store.update_calls
 
     refreshed = river_module._refresh_workflow_state(store, row)
 
     assert refreshed is row
-    assert store.update_calls == 0
+    assert store.update_calls == updates_before_refresh
 
 
 def test_compact_iso_and_filename_acquisition_times_normalize_to_utc_dates() -> None:
