@@ -19,38 +19,6 @@ type Props = {
   onSignOut: () => Promise<void>;
 };
 
-type CatalogueProduct = {
-  granule_name: string;
-  product_type: 'GCOV';
-  processing_type?: string | null;
-  crid?: string | null;
-  maturity: 'BETA' | 'PROVISIONAL' | 'UNKNOWN';
-  download_url?: string | null;
-  start_time_utc?: string | null;
-  stop_time_utc?: string | null;
-  flight_direction?: string | null;
-  relative_orbit?: string | null;
-  cycle?: string | null;
-  frame?: string | null;
-  bandwidth_mode?: string | null;
-  polarization_code?: string | null;
-  main_band_polarization?: string | null;
-  frame_coverage?: string | null;
-  size_mb?: number | null;
-};
-
-type CatalogueResponse = {
-  mode: 'catalogue_only';
-  status: 'ready' | 'no_data' | 'upstream_error';
-  message: string;
-  data_downloaded: false;
-  scientific_analysis_performed: false;
-  product_count: number;
-  products: CatalogueProduct[];
-  warnings: string[];
-  query: Record<string, unknown>;
-};
-
 type LoadedGeoJSON = { fileName: string; sha256: string; data: RiverShiftGeoJSON };
 type LoadedJobPreview = { jobId: string; changeLayer: LoadedGeoJSON | null; report: RiverShiftReport | null; error: string };
 type LoadedJobFrame = { jobId: string; date: string; data: RiverShiftGeoJSON };
@@ -71,14 +39,6 @@ function loadRiverShiftSetup(): RiverShiftSetup | null {
   } catch {
     return null;
   }
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return 'Not supplied';
-  const compact = /^(\d{4})(\d{2})(\d{2})T\d{6}(?:\.\d+)?Z?$/.exec(value);
-  if (compact) return `${compact[1]}-${compact[2]}-${compact[3]}`;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString().slice(0, 10);
 }
 
 function metricLabel(key: string): string {
@@ -381,9 +341,6 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
   const [polarization, setPolarization] = useState<'' | 'HH' | 'HH+HV' | 'HH+HV+VH+VV' | 'VV' | 'VV+VH' | 'LH+LV' | 'RH+RV'>('');
   const [direction, setDirection] = useState<'' | 'ASCENDING' | 'DESCENDING'>('');
   const [frameCoverage, setFrameCoverage] = useState<'ALL' | 'FULL' | 'PARTIAL'>('ALL');
-  const [catalogue, setCatalogue] = useState<CatalogueResponse | null>(null);
-  const [catalogueBusy, setCatalogueBusy] = useState(false);
-  const [catalogueError, setCatalogueError] = useState('');
   const [report, setReport] = useState<RiverShiftReport | null>(null);
   const [reportError, setReportError] = useState('');
   const [geoJSONFiles, setGeoJSONFiles] = useState<LoadedGeoJSON[]>([]);
@@ -494,10 +451,6 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
     currentTimeSeriesFrame || jobTimeSeriesFrames.length || candidateOverlayCounts.observedWater > 0,
   );
   const hasVerifiedOverlay = Boolean(!hasJobPreviewOverlay && ((currentTimeSeriesFrame && showObservedWaterExtent) || verifiedGeoJSONFiles.length));
-  const catalogueObservationDates = useMemo(() => {
-    const values = (catalogue?.products || []).map((product) => formatDate(product.start_time_utc));
-    return [...new Set(values.filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value)))].sort();
-  }, [catalogue]);
   const safeImpactSourceUrl = useMemo(() => {
     try {
       const parsed = new URL(impactSourceUrl.trim());
@@ -725,39 +678,6 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
       URL.revokeObjectURL(objectUrl);
     } catch (error) {
       setRiverJobError(error instanceof Error ? error.message : 'Could not download this private result.');
-    }
-  };
-
-  const searchCatalogue = async () => {
-    setCatalogueError('');
-    setCatalogue(null);
-    setCatalogueBusy(true);
-    try {
-      const coordinates = parseWktPolygon(aoiWkt);
-      const response = await fetch(API_BASE + '/api/river-shift/catalog/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          coordinates,
-          start_date: startDate,
-          end_date: endDate,
-          maturity,
-          main_band_polarization: polarization || null,
-          flight_direction: direction || null,
-          frame_coverage: frameCoverage,
-          max_results: 100,
-        }),
-      });
-      const payload = await response.json() as CatalogueResponse | { detail?: string };
-      if (!response.ok) {
-        const detail = 'detail' in payload && payload.detail ? payload.detail : 'Catalogue request failed (' + response.status + ').';
-        throw new Error(detail);
-      }
-      setCatalogue(payload as CatalogueResponse);
-    } catch (error) {
-      setCatalogueError(error instanceof Error ? error.message : 'Could not search the ASF catalogue.');
-    } finally {
-      setCatalogueBusy(false);
     }
   };
 
@@ -1173,51 +1093,9 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
             <button className="rs-primary-button" type="submit" disabled={riverJobBusy || !user || !aoiWkt.trim() || !startDate || !endDate || maturity === 'ALL' || (analysisMode === 'event_based' && !eventDate)}>
               {riverJobBusy ? 'Discovering, selecting and processing…' : 'Run RiverShift'}
             </button>
-            <button className="rs-secondary-button" type="button" disabled={catalogueBusy || !aoiWkt.trim() || !startDate || !endDate || maturity === 'ALL'} onClick={() => void searchCatalogue()}>
-              {catalogueBusy ? 'Searching ASF…' : 'Preview ASF catalogue (optional)'}
-            </button>
             {!user && <p className="rs-muted">Sign in before running. Job status and private results remain owner-protected.</p>}
             {analysisMode === 'event_based' && eventDate && <p className="rs-warning-inline">Event date supplied by the user; it is not independently confirmed. Results remain provisional.</p>}
-            {catalogueError && <p className="rs-error" role="alert">{catalogueError}</p>}
           </form>
-          {catalogue && (
-            <div className="rs-catalogue-result">
-              <div className="rs-result-summary"><strong>{catalogue.product_count} product(s)</strong><span>{catalogue.message}</span></div>
-              <div className={catalogueObservationDates.length >= 4 ? 'rs-date-readiness rs-date-ready' : 'rs-date-readiness rs-date-warning'} role="status">
-                <strong>{catalogueObservationDates.length}/4 distinct acquisition dates found</strong>
-                <span>{catalogueObservationDates.length >= 4
-                  ? 'The catalogue-level minimum is met. The worker must still confirm a single compatible orbit/frame group, HDF5 layer and valid AOI raster support.'
-                  : 'This selection is not ready for processing. Widen the date window or adjust the AOI/filter choices until at least four distinct acquisition dates are returned.'}</span>
-                {catalogueObservationDates.length > 0 && <small>Dates: {catalogueObservationDates.join(', ')}</small>}
-              </div>
-              <p className="rs-muted">These are catalogue candidates, not individually selected processing inputs. RiverShift rechecks the same filters and then selects only dates/scenes that pass orbit, mode, HDF5-layer and AOI-footprint compatibility checks.</p>
-              <div className="rs-info-banner">Catalogue discovery only · Data downloaded: No · Scientific analysis: Not performed</div>
-              {catalogue.warnings.map((warning, index) => <p className="rs-warning-inline" key={index}>{warning}</p>)}
-              {catalogue.products.length > 0 && (
-                <div className="rs-table-wrap">
-                  <table className="rs-table">
-                    <thead><tr><th>Acquisition</th><th>Track / frame</th><th>Mode / pol.</th><th>Coverage</th><th>Maturity</th><th>Product</th></tr></thead>
-                    <tbody>
-                      {catalogue.products.map((product) => (
-                        <tr key={product.granule_name}>
-                          <td>{formatDate(product.start_time_utc)}</td>
-                          <td>{product.flight_direction || '—'}<small>R{product.relative_orbit || '—'} · F{product.frame || '—'}</small></td>
-                          <td>{product.bandwidth_mode || '—'}<small>{product.main_band_polarization || product.polarization_code || '—'}</small></td>
-                          <td>{product.frame_coverage || 'Unknown'}</td>
-                          <td><span className={'rs-maturity rs-' + product.maturity.toLowerCase()}>{product.maturity}</span></td>
-                          <td>{product.download_url
-                            ? <a href={product.download_url} target="_blank" rel="noreferrer">Open ASF product ↗</a>
-                            : <span>URL unavailable</span>}
-                            <small>{product.processing_type || 'Processing type unknown'} · {product.crid || 'CRID unknown'}</small><small>{product.granule_name}</small>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
 
