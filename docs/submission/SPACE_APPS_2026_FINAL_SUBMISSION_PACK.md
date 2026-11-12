@@ -236,7 +236,7 @@ The local score sheet supplied for this project totals **118 points before its c
 | Creativity | 20 | **18** | User-defined AOIs, target-free displacement discovery, a distinct two-polygon workflow and GCOV time-series screening are a strong combination. |
 | Validity | 20 | **16** | Exact granule provenance, HDF5/layer gates, shared-grid alignment and live end-to-end success are demonstrated; independent physical validation remains incomplete for the retained Jamuna reference window. |
 | Relevance | 20 | **19** | NISAR is the primary measurement source across the product's central workflows; the application is directly aligned to Dancing with the SARs. |
-| Presentation | 20 | **15** | A coherent narrative and evidence pack are prepared, but a finished demo video and recorded first-time-user tests are not verified in this pack. |
+| Presentation | 20 | **15** | The narrative and evidence pack are prepared, and the team has supplied a demo-video file; its playback, audio, scientific claims and final public link have not been independently reviewed. Recorded first-time-user tests are also not included. |
 | Teamwork | 5 | **4** | Named roles and responsibilities are documented; the official project page and collaboration evidence still need final confirmation. |
 | User experience | 5 | **3** | The user journey and map-first workflow are defined; independent first-use and mobile/keyboard test records are not included here. |
 | NASA data usage | 5 | **5** | NISAR products drive the analysis and provenance; the data role is explicit and separated from basemaps/context. |
@@ -247,7 +247,7 @@ The local score sheet supplied for this project totals **118 points before its c
 
 **Conditional bonus:** the supplied local rubric describes a +5% women-participation bonus. It is excluded from the 99-point estimate because eligibility and roster confirmation have not been independently established in this repository evidence. If the local organiser confirms eligibility, +5% of 99 is 4.95 points, giving an indicative **103.95 / 118**. This is local-rubric arithmetic, not a claim that NASA Global Judging awards this bonus.
 
-The most score-efficient remaining work is: (1) finish and upload the real demo video, (2) record first-time-user tests on mobile and desktop, (3) verify the official NASA project page is complete/submitted, and (4) obtain a temporally matched independent river reference before claiming geophysical accuracy.
+The most score-efficient remaining work is: (1) review the supplied demo video for playback, audio, scientific wording and pacing, then place a stable link on the official project page, (2) record first-time-user tests on mobile and desktop, (3) verify the official NASA project page is complete/submitted, and (4) obtain a temporally matched independent river reference before claiming geophysical accuracy.
 
 ## 13. Current submission checklist
 
@@ -260,7 +260,7 @@ The most score-efficient remaining work is: (1) finish and upload the real demo 
 | Public repository link | **Accessible** | Keep public access deliberate; complete the licensing and secret/data-release review. |
 | Human first-time-user / mobile UX evidence | **Not recorded in this evidence pack** | Record short, consented first-use tests on mobile and desktop; fix blockers. |
 | Official NASA project page | **Not independently verified here** | Confirm that it is complete and successfully submitted. |
-| Final demo video | **Not independently verified here** | Record the real application and evidence flow; do not replace actual product results with fabricated scenes. |
+| Final demo video | **File supplied by the team; content and public link not verified here** | Review the complete video for playback, audio, timing and scientific claims; publish a stable link on the official project page. Do not replace actual product results with fabricated scenes. |
 | Team roles | **Reported role map included** | Confirm spelling, affiliation and final approved contribution statements with all members. |
 
 ## 14. Primary references
