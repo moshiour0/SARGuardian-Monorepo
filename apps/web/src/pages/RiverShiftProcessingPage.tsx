@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { createRiverShiftJob, getRiverShiftJob, listRiverShiftJobs, retryRiverShiftJob, type RiverShiftJob } from '../api/catalog';
+import { cancelRiverShiftJob, createRiverShiftJob, getRiverShiftJob, listRiverShiftJobs, retryRiverShiftJob, type RiverShiftJob } from '../api/catalog';
 import { Header } from '../components/Header';
 import { RIVER_SHIFT_SETUP_STORAGE_KEY, type RiverShiftSetup } from './RiverShiftPage';
 import './river-shift.css';
@@ -30,9 +30,35 @@ function loadRiverShiftSetup(): RiverShiftSetup | null {
 
 const activeRiverShiftStates = new Set(['queued', 'dispatching', 'running']);
 
+type RiverShiftSettings = {
+  analysisMode: 'general_scan' | 'event_based';
+  eventDate: string;
+  maturity: 'BETA' | 'PROVISIONAL';
+  polarization: '' | 'HH' | 'HH+HV' | 'HH+HV+VH+VV' | 'VV' | 'VV+VH' | 'LH+LV' | 'RH+RV';
+  direction: '' | 'ASCENDING' | 'DESCENDING';
+  frameCoverage: 'ALL' | 'FULL' | 'PARTIAL';
+  scienceFrequency: 'frequencyA' | 'frequencyB';
+  covarianceTerm: string;
+  thresholdMethod: 'otsu' | 'manual';
+  thresholdDb: string;
+};
+
+const defaultRiverShiftSettings: RiverShiftSettings = {
+  analysisMode: 'general_scan',
+  eventDate: '',
+  maturity: 'PROVISIONAL',
+  polarization: '',
+  direction: '',
+  frameCoverage: 'ALL',
+  scienceFrequency: 'frequencyA',
+  covarianceTerm: 'HHHH',
+  thresholdMethod: 'otsu',
+  thresholdDb: '',
+};
+
 function riverShiftStageName(stage: string, state: RiverShiftJob['state']): string {
   const normalized = stage.trim().toLowerCase();
-  if (state === 'succeeded' || normalized.includes('complete')) return 'Complete';
+  if (state === 'succeeded') return 'Complete';
   if (state === 'failed' || state === 'cancelled') return 'Needs attention';
   if (normalized.includes('screen') || normalized.includes('result') || normalized.includes('assemble')) return 'Screening';
   if (normalized.includes('product') || normalized.includes('process') || normalized.includes('download')) return 'Processing';
@@ -41,21 +67,33 @@ function riverShiftStageName(stage: string, state: RiverShiftJob['state']): stri
 
 function riverShiftStageIndex(job: RiverShiftJob): number {
   const stage = job.stage.trim().toLowerCase();
-  if (job.state === 'succeeded' || stage.includes('complete')) return 3;
+  if (job.state === 'succeeded') return 3;
   if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble')) return 2;
   if (stage.includes('product') || stage.includes('process') || stage.includes('download')) return 1;
   return 0;
 }
 
-export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retrying }: {
+function riverShiftFailedStageIndex(job: RiverShiftJob): number {
+  if (job.state !== 'failed') return -1;
+  const stage = job.stage.trim().toLowerCase();
+  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble')) return 2;
+  if (stage.includes('product') || stage.includes('process') || stage.includes('download') || stage.includes('granule')) return 1;
+  return 0;
+}
+
+export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retrying, onCancel, cancelling, onBack }: {
   job: RiverShiftJob;
   clock: number;
   onViewResults: () => void;
   onRetry: () => void;
   retrying: boolean;
+  onCancel?: () => void;
+  cancelling?: boolean;
+  onBack?: () => void;
 }) {
   const active = activeRiverShiftStates.has(job.state);
   const stageIndex = riverShiftStageIndex(job);
+  const failedStageIndex = riverShiftFailedStageIndex(job);
   const stageName = riverShiftStageName(job.stage, job.state);
   const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
   const summary = job.result_summary && typeof job.result_summary === 'object' ? job.result_summary : {};
@@ -78,7 +116,7 @@ export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retryi
           </div>
         </div>
         <ol className="processing-stepper" aria-label="Processing stages">
-          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
+          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index === failedStageIndex ? 'is-failed' : index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
         </ol>
         <p className="processing-safe-note">{active ? 'Safe to close this page. Your task keeps running.' : job.state === 'succeeded' ? 'The processing job has ended. Review the River Shift outputs.' : 'The processing workflow stopped before successful completion.'}</p>
         <p className="processing-duration-note">It may take up to 5 to 20 minutes depending on AOI and time window.</p>
@@ -99,7 +137,11 @@ export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retryi
         </dl>
       </section>
 
-      {job.state === 'succeeded' && <div className="processing-page-actions"><button type="button" className="processing-primary-button" onClick={onViewResults}>Show result</button></div>}
+      <div className="processing-page-actions">
+        {job.state === 'succeeded' && <button type="button" className="processing-primary-button" onClick={onViewResults}>Show result</button>}
+        {active && onCancel && <button type="button" className="processing-cancel-button" disabled={cancelling} onClick={onCancel}>{cancelling ? 'Cancelling...' : 'Cancel processing'}</button>}
+        {onBack && <button type="button" className="processing-ghost-button" onClick={onBack}>Back to AOI</button>}
+      </div>
       {job.state === 'failed' && <div className="processing-page-actions">
         <button type="button" className="processing-primary-button" disabled={retrying} onClick={onRetry}>{retrying ? 'Retrying…' : 'Retry'}</button>
       </div>}
@@ -109,10 +151,61 @@ export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retryi
   );
 }
 
+function RiverShiftSettingsPanel({
+  settings,
+  onChange,
+  onRun,
+  busy,
+  onBack,
+  error,
+  startDate,
+  endDate,
+}: {
+  settings: RiverShiftSettings;
+  onChange: (next: Partial<RiverShiftSettings>) => void;
+  onRun: () => void;
+  busy: boolean;
+  onBack: () => void;
+  error: string;
+  startDate: string;
+  endDate: string;
+}) {
+  return (
+    <main className="displacement-preparation processing-page processing-config-page">
+      <section className="processing-card processing-config-card" aria-label="River Shift processing settings">
+        <details className="processing-additional-settings">
+          <summary><span aria-hidden="true">›</span> Additional settings</summary>
+          <div className="processing-settings-grid">
+            <label><span>Analysis mode</span><select value={settings.analysisMode} onChange={(event) => onChange({ analysisMode: event.target.value as RiverShiftSettings['analysisMode'], eventDate: event.target.value === 'general_scan' ? '' : settings.eventDate })}><option value="general_scan">General River Change Scan</option><option value="event_based">Event-Based Analysis</option></select></label>
+            {settings.analysisMode === 'event_based' && <label><span>Event date</span><input type="date" value={settings.eventDate} min={startDate} max={endDate} onChange={(event) => onChange({ eventDate: event.target.value })} /></label>}
+            <label><span>Processing maturity</span><select value={settings.maturity} onChange={(event) => onChange({ maturity: event.target.value as RiverShiftSettings['maturity'] })}><option value="PROVISIONAL">PROVISIONAL</option><option value="BETA">BETA</option></select></label>
+            <label><span>Main-band polarization</span><select value={settings.polarization} onChange={(event) => onChange({ polarization: event.target.value as RiverShiftSettings['polarization'] })}><option value="">Any</option><option value="VV">VV</option><option value="VV+VH">VV + VH</option><option value="HH">HH</option><option value="HH+HV">HH + HV</option><option value="HH+HV+VH+VV">Full quad-pol</option><option value="LH+LV">LH + LV</option><option value="RH+RV">RH + RV</option></select></label>
+            <label><span>Orbit direction</span><select value={settings.direction} onChange={(event) => onChange({ direction: event.target.value as RiverShiftSettings['direction'] })}><option value="">Any direction</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option></select></label>
+            <label><span>NISAR frame coverage</span><select value={settings.frameCoverage} onChange={(event) => onChange({ frameCoverage: event.target.value as RiverShiftSettings['frameCoverage'] })}><option value="ALL">All footprints</option><option value="FULL">Full frames only</option><option value="PARTIAL">Partial frames only</option></select></label>
+            <label><span>Science frequency</span><select value={settings.scienceFrequency} onChange={(event) => onChange({ scienceFrequency: event.target.value as RiverShiftSettings['scienceFrequency'] })}><option value="frequencyA">Frequency A</option><option value="frequencyB">Frequency B</option></select></label>
+            <label><span>Diagonal covariance term</span><select value={settings.covarianceTerm} onChange={(event) => onChange({ covarianceTerm: event.target.value })}><option>HHHH</option><option>HVHV</option><option>VVVV</option><option>VHVH</option><option>RHRH</option><option>RVRV</option></select></label>
+            <label><span>Water threshold method</span><select value={settings.thresholdMethod} onChange={(event) => onChange({ thresholdMethod: event.target.value as RiverShiftSettings['thresholdMethod'], thresholdDb: event.target.value === 'otsu' ? '' : settings.thresholdDb })}><option value="otsu">Common Otsu</option><option value="manual">Manual dB threshold</option></select></label>
+            {settings.thresholdMethod === 'manual' && <label><span>Common threshold (dB)</span><input type="number" min="-60" max="0" step="0.1" value={settings.thresholdDb} onChange={(event) => onChange({ thresholdDb: event.target.value })} /></label>}
+          </div>
+        </details>
+        <div className="processing-config-summary"><span>Dates</span><strong>{startDate} – {endDate}</strong><small>River-wide GCOV screening</small></div>
+        {error && <p className="processing-error" role="alert">{error}</p>}
+        <div className="processing-page-actions processing-config-actions">
+          <button type="button" className="processing-ghost-button" onClick={onBack}>Back to AOI</button>
+          <button type="button" className="processing-primary-button" disabled={busy} onClick={onRun}>{busy ? 'Starting River Shift...' : 'Run River Shift'}</button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut, onBack, onViewResults }: Props) {
+  const [setup] = useState(() => loadRiverShiftSetup());
+  const [settings, setSettings] = useState<RiverShiftSettings>(defaultRiverShiftSettings);
   const [riverJob, setRiverJob] = useState<RiverShiftJob | null>(null);
   const [riverJobLoading, setRiverJobLoading] = useState(true);
   const [riverJobBusy, setRiverJobBusy] = useState(false);
+  const [riverJobCancelling, setRiverJobCancelling] = useState(false);
   const [riverJobError, setRiverJobError] = useState('');
   const retryPending = useRef(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -128,43 +221,12 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     setRiverJobError('');
 
     async function initialize() {
-      const pendingDispatch = window.sessionStorage.getItem('sarguardian.riverShiftPendingDispatch') === 'true';
-      const setup = loadRiverShiftSetup();
-
-      if (pendingDispatch && setup?.aoiWkt && setup?.startDate && setup?.endDate) {
-        window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
-        try {
-          const job = await createRiverShiftJob({
-            aoiWkt: setup.aoiWkt,
-            startDate: setup.startDate,
-            endDate: setup.endDate,
-            analysisMode: 'general_scan',
-            eventDate: null,
-            maturity: 'PROVISIONAL',
-            mainBandPolarization: null,
-            flightDirection: null,
-            frameCoverage: 'ALL',
-            frequency: 'frequencyA',
-            covarianceTerm: 'HHHH',
-            thresholdMethod: 'otsu',
-            idempotencyKey: crypto.randomUUID().replace(/-/g, ''),
-          }, user);
-          if (!cancelled) {
-            setRiverJob(job);
-            window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', job.id);
-            setRiverJobLoading(false);
-          }
-          return;
-        } catch (error) {
-          if (!cancelled) {
-            const message = error instanceof Error ? error.message : 'Could not start live RiverShift processing.';
-            setRiverJobError(/fewer than four acquisition dates|at least four comparable.*acquisition dates|needs at least four observations/i.test(message)
-              ? 'The catalogue did not provide four distinct, comparable NISAR acquisition dates for this AOI and window. Widen the date range or adjust the study area, then retry. Four catalogue dates are only the first gate; the worker also checks one compatible orbit/frame group and valid raster coverage.'
-              : message);
-            setRiverJobLoading(false);
-          }
-          return;
-        }
+      const pendingRun = window.sessionStorage.getItem('sarguardian.riverShiftPendingRun') === 'true'
+        || window.sessionStorage.getItem('sarguardian.riverShiftPendingDispatch') === 'true';
+      if (pendingRun && setup?.aoiWkt && setup.startDate && setup.endDate) {
+        setRiverJob(null);
+        setRiverJobLoading(false);
+        return;
       }
 
       try {
@@ -207,7 +269,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
       void getRiverShiftJob(riverJob.id, user).then(setRiverJob).catch((error: unknown) => {
         setRiverJobError(error instanceof Error ? error.message : 'Could not refresh processing status.');
       });
-    }, 5000);
+    }, 2000);
     return () => window.clearInterval(timer);
   }, [riverJob, user]);
 
@@ -217,6 +279,55 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     const timer = window.setInterval(() => setClock(Date.now()), ELAPSED_TICK_MS);
     return () => window.clearInterval(timer);
   }, [riverJob]);
+
+  const startLiveProcessing = async () => {
+    if (!user || !setup) {
+      setRiverJobError('Return to the AOI page and choose a valid study area first.');
+      return;
+    }
+    if (settings.analysisMode === 'event_based' && (!settings.eventDate || settings.eventDate < setup.startDate || settings.eventDate > setup.endDate)) {
+      setRiverJobError('Event-Based Analysis needs an event date inside the selected observation window.');
+      return;
+    }
+    if (settings.thresholdMethod === 'manual') {
+      const manualThreshold = Number(settings.thresholdDb);
+      if (!settings.thresholdDb.trim() || !Number.isFinite(manualThreshold) || manualThreshold < -60 || manualThreshold > 0) {
+        setRiverJobError('Enter a manual threshold between -60 and 0 dB, or choose Common Otsu.');
+        return;
+      }
+    }
+    setRiverJobBusy(true);
+    setRiverJobError('');
+    try {
+      const job = await createRiverShiftJob({
+        aoiWkt: setup.aoiWkt,
+        startDate: setup.startDate,
+        endDate: setup.endDate,
+        analysisMode: settings.analysisMode,
+        eventDate: settings.analysisMode === 'event_based' ? settings.eventDate : null,
+        maturity: settings.maturity,
+        mainBandPolarization: settings.polarization || null,
+        flightDirection: settings.direction || null,
+        frameCoverage: settings.frameCoverage,
+        frequency: settings.scienceFrequency,
+        covarianceTerm: settings.covarianceTerm,
+        thresholdMethod: settings.thresholdMethod,
+        ...(settings.thresholdMethod === 'manual' ? { thresholdDb: Number(settings.thresholdDb) } : {}),
+        idempotencyKey: crypto.randomUUID().replace(/-/g, ''),
+      }, user);
+      window.sessionStorage.removeItem('sarguardian.riverShiftPendingRun');
+      window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
+      window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', job.id);
+      setRiverJob(job);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not start live River Shift processing.';
+      setRiverJobError(/fewer than four acquisition dates|at least four comparable.*acquisition dates|needs at least four observations/i.test(message)
+        ? 'The catalogue did not provide four distinct, comparable NISAR acquisition dates for this AOI and window. Widen the date range or adjust the study area, then retry.'
+        : message);
+    } finally {
+      setRiverJobBusy(false);
+    }
+  };
 
   const retryRiverShift = async () => {
     if (!user || !riverJob || riverJob.state !== 'failed' || retryPending.current) return;
@@ -235,7 +346,24 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     }
   };
 
+  const cancelRiverShift = async () => {
+    if (!user || !riverJob || !activeRiverShiftStates.has(riverJob.state) || riverJobCancelling) return;
+    setRiverJobCancelling(true);
+    setRiverJobError('');
+    try {
+      const job = await cancelRiverShiftJob(riverJob.id, user);
+      setRiverJob(job);
+      window.sessionStorage.removeItem('sarguardian.riverShiftActiveJobId');
+    } catch (error) {
+      setRiverJobError(error instanceof Error ? error.message : 'Could not cancel River Shift processing.');
+    } finally {
+      setRiverJobCancelling(false);
+    }
+  };
+
   const handleBackToMap = () => {
+    window.sessionStorage.removeItem('sarguardian.riverShiftPendingRun');
+    window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
     if (onBack) {
       onBack();
     } else {
@@ -264,19 +392,31 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
           job={riverJob}
           clock={clock}
           retrying={riverJobBusy}
+          cancelling={riverJobCancelling}
+          onCancel={() => void cancelRiverShift()}
+          onBack={handleBackToMap}
           onRetry={() => void retryRiverShift()}
           onViewResults={() => {
             window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id);
             onViewResults?.();
           }}
         />
+      ) : setup ? (
+        <RiverShiftSettingsPanel
+          settings={settings}
+          onChange={(next) => setSettings((current) => ({ ...current, ...next }))}
+          onRun={() => void startLiveProcessing()}
+          busy={riverJobBusy}
+          onBack={handleBackToMap}
+          error={riverJobError}
+          startDate={setup.startDate}
+          endDate={setup.endDate}
+        />
       ) : (
         <main className="displacement-preparation" style={{ width: 'min(720px, calc(100% - 32px))', margin: '40px auto' }}>
           <section className="processing-card processing-load-error" role="alert">
-            <p>{riverJobError || 'No active River Shift job found. Draw a study area on the map to start processing.'}</p>
-            <button type="button" className="processing-ghost-button" onClick={handleBackToMap}>
-              Back to map
-            </button>
+            <p>{riverJobError || 'No River Shift AOI is ready. Return to the map to choose a study area.'}</p>
+            <button type="button" className="processing-ghost-button" onClick={handleBackToMap}>Back to AOI</button>
           </section>
         </main>
       )}
@@ -288,7 +428,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
       )}
 
       <footer className="rs-footer">
-        <span>SARGuardian · RiverShift</span><span>Open science · Reproducible processing · Evidence before claims</span>
+        <span>SARGuardian · RiverShift</span>
       </footer>
     </div>
   );

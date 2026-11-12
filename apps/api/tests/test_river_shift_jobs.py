@@ -144,6 +144,32 @@ def test_create_river_shift_job_is_owner_scoped_and_idempotent(monkeypatch) -> N
     assert hidden.status_code == 404
 
 
+def test_account_owner_can_cancel_active_river_shift_job(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    job = api.post("/api/river-shift/jobs", json=payload()).json()
+    row = store.rows[job["id"]]
+    row.update({
+        "state": "running",
+        "stage": "processing",
+        "github_run_id": "123456789",
+        "callback_sequence": 2,
+    })
+    cancelled: list[str] = []
+    monkeypatch.setattr(river_module, "_cancel_github_run", lambda _settings, run_id: cancelled.append(run_id))
+
+    response = api.post(f"/api/river-shift/jobs/{job['id']}/cancel")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["state"] == "cancelled"
+    assert response.json()["stage"] == "cancelled_by_user"
+    assert cancelled == ["123456789"]
+
+    app.dependency_overrides[get_current_user] = lambda: {"uid": "another-user"}
+    hidden = api.post(f"/api/river-shift/jobs/{job['id']}/cancel")
+    assert hidden.status_code == 404
+
+
 
 
 def test_compact_status_endpoint_is_owner_scoped_and_omits_result_payloads(monkeypatch) -> None:

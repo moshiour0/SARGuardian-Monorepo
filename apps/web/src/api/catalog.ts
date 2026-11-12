@@ -976,6 +976,20 @@ export async function retryRiverShiftJob(
   );
 }
 
+export async function cancelRiverShiftJob(
+  jobId: string,
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<RiverShiftJob> {
+  const safeId = jobId.trim();
+  if (!/^[0-9a-f-]{36}$/i.test(safeId)) throw new Error('A valid RiverShift job ID is required.');
+  return readAuthenticatedPayload<RiverShiftJob>(
+    `${API_BASE}/api/river-shift/jobs/${encodeURIComponent(safeId)}/cancel`,
+    user,
+    'Could not cancel River Shift processing.',
+    { method: 'POST' },
+  );
+}
+
 export async function getRiverShiftJob(
   jobId: string,
   user: Pick<User, 'getIdToken'> | null,

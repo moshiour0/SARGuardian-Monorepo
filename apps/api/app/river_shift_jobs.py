@@ -520,6 +520,30 @@ def _github_get_json(settings: Any, url: str) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _cancel_github_run(settings: Any, run_id: str) -> None:
+    if not settings.river_shift_actions_enabled:
+        raise RuntimeError("RiverShift processing is not configured on this server.")
+    endpoint = (
+        f"{settings.github_api_url}/repos/{settings.river_shift_github_actions_repository}"
+        f"/actions/runs/{quote(run_id, safe='')}/cancel"
+    )
+    request = UrlRequest(endpoint, data=b"", method="POST", headers={
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {settings.river_shift_github_actions_token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    })
+    try:
+        with urlopen(request, timeout=15) as response:
+            if response.status != 202:
+                raise RuntimeError("GitHub Actions did not accept RiverShift cancellation.")
+    except HTTPError as exc:
+        if exc.code in {409, 422}:
+            raise RuntimeError("The current RiverShift workflow is no longer cancellable. Refresh its status before trying again.") from None
+        raise RuntimeError(f"GitHub Actions rejected RiverShift cancellation ({exc.code}).") from None
+    except (URLError, TimeoutError):
+        raise RuntimeError("Could not reach GitHub Actions to cancel RiverShift processing.") from None
+
+
 def _find_workflow_run(settings: Any, job_id: UUID) -> dict[str, Any] | None:
     workflow = quote(settings.river_shift_github_actions_workflow, safe="")
     url = (
@@ -668,6 +692,57 @@ def get_river_shift_job(job_id: UUID, user: dict = Depends(get_current_user)) ->
         raise HTTPException(status_code=404, detail="RiverShift job was not found for this account.")
     record = _refresh_workflow_state(_store(), record)
     return _response(record)
+
+
+@router.post("/jobs/{job_id}/cancel", response_model=RiverShiftJobResponse)
+def cancel_river_shift_job(job_id: UUID, user: dict = Depends(get_current_user)) -> RiverShiftJobResponse:
+    """Cancel the owner's active RiverShift workflow and persist the terminal state."""
+    store = _store()
+    owner_uid = _owner_uid(user)
+    try:
+        current = store.get_river_shift_job(owner_uid, job_id)
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not read the current RiverShift job.") from None
+    if not current:
+        raise HTTPException(status_code=404, detail="RiverShift job was not found for this account.")
+    if current.get("state") not in {JobState.DISPATCHING.value, JobState.RUNNING.value}:
+        raise HTTPException(status_code=409, detail="Only a currently dispatched or running RiverShift job can be cancelled.")
+
+    settings = get_settings()
+    run_id = current.get("github_run_id")
+    if not isinstance(run_id, str) or not run_id.isdigit():
+        discovered = _find_workflow_run(settings, job_id)
+        if not discovered or discovered.get("status") == "completed":
+            raise HTTPException(status_code=409, detail="The current RiverShift workflow has not been allocated by GitHub yet. Refresh its status and try again.")
+        run_id = str(discovered.get("id", ""))
+        if not run_id.isdigit():
+            raise HTTPException(status_code=409, detail="The current RiverShift workflow run could not be identified. Refresh its status and try again.")
+        try:
+            current = store.update_river_shift_job(job_id, {
+                "github_run_id": run_id,
+                "github_run_url": discovered.get("html_url"),
+            }, expected_state=current["state"], expected_sequence=int(current.get("callback_sequence") or 0))
+        except PersistenceConflictError:
+            raise HTTPException(status_code=409, detail="RiverShift status changed while preparing cancellation. Refresh and try again.") from None
+        except PersistenceError:
+            raise HTTPException(status_code=503, detail="Could not record the current GitHub Actions run.") from None
+
+    try:
+        _cancel_github_run(settings, run_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None
+    try:
+        updated = store.update_river_shift_job(job_id, {
+            "state": JobState.CANCELLED.value,
+            "stage": "cancelled_by_user",
+            "error_code": "CANCELLED_BY_USER",
+            "error_message": "Cancelled by the account owner.",
+        }, expected_state=current["state"], expected_sequence=int(current.get("callback_sequence") or 0))
+    except PersistenceConflictError:
+        raise HTTPException(status_code=409, detail="RiverShift status changed while cancelling. Refresh its status before continuing.") from None
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="GitHub Actions was cancelled but the RiverShift state could not be updated.") from None
+    return _response(updated)
 
 
 @router.post("/jobs/{job_id}/validation-inputs")

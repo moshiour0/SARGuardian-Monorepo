@@ -14,6 +14,25 @@
 .river-shift-page .processing-products-card strong.processing-count-pending { color: #000; }
 .river-shift-page .processing-products-card .processing-searching-word { color: #6b7280; }
 .river-shift-page .processing-copy-button { color: #000; }
+.processing-config-page { width: min(864px, calc(100% - 48px)); }
+.processing-config-card { padding: 0; overflow: hidden; color: #000; }
+.processing-additional-settings { margin: 0; }
+.processing-additional-settings summary { display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 0 28px; color: #152c43; font-size: 22px; font-weight: 800; cursor: pointer; list-style: none; }
+.processing-additional-settings summary::-webkit-details-marker { display: none; }
+.processing-additional-settings summary span { color: #1689df; font-size: 34px; font-weight: 500; line-height: 1; transform: translateY(-2px); }
+.processing-additional-settings[open] summary span { transform: rotate(90deg) translateX(-2px); }
+.processing-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 22px 28px 28px; border-top: 1px solid rgba(59, 111, 138, .13); }
+.processing-settings-grid label { display: grid; gap: 6px; min-width: 0; }
+.processing-settings-grid label span { color: #152c43; font-size: 12px; font-weight: 750; }
+.processing-settings-grid select, .processing-settings-grid input { width: 100%; min-height: 40px; padding: 0 11px; border: 1px solid rgba(37, 93, 121, .22); border-radius: 9px; background: rgba(255, 255, 255, .62); color: #152c43; font: 600 12px/1 inherit; }
+.processing-config-summary { display: grid; gap: 5px; margin: 0 28px; padding: 18px 0; border-top: 1px solid rgba(59, 111, 138, .13); }
+.processing-config-summary span { color: #152c43; font-size: 12px; font-weight: 750; }
+.processing-config-summary strong { color: #000; font-size: 16px; }
+.processing-config-summary small { color: #516477; font-size: 12px; }
+.processing-config-actions { justify-content: space-between; margin: 0; padding: 18px 28px 24px; }
+.processing-config-actions .processing-ghost-button { color: #152c43; }
+.river-shift-page .processing-cancel-button { min-height: 48px; padding: 0 20px; border: 1px solid rgba(190, 48, 48, .25); border-radius: 999px; background: rgba(255, 235, 235, .58); color: #a82828; font: 750 14px/1 inherit; cursor: pointer; }
+.river-shift-page .processing-cancel-button:disabled { cursor: wait; opacity: .55; }
 .river-shift-page .claude-nav-title { display: block; }
 .river-shift-setup { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 48px 20px 70px; }
 .river-shift-setup-card { padding: 26px; border: 1px solid rgba(155, 204, 220, .18); border-radius: 17px; background: linear-gradient(145deg, rgba(13, 43, 59, .94), rgba(8, 30, 46, .94)); box-shadow: 0 18px 42px rgba(0, 0, 0, .12); }
@@ -26,6 +45,11 @@
 @media (max-width: 560px) {
   .river-shift-page .displacement-preparation.processing-page { width: min(100% - 24px, 864px); }
   .river-shift-page .processing-orbit { width: 210px; height: 210px; }
+  .processing-config-page { width: min(100% - 24px, 864px); }
+  .processing-settings-grid { grid-template-columns: 1fr; padding: 18px 18px 22px; }
+  .processing-additional-settings summary { padding: 0 18px; font-size: 19px; }
+  .processing-config-summary { margin: 0 18px; }
+  .processing-config-actions { grid-template-columns: 1fr; padding: 16px 18px 20px; }
 }
 .rs-chip { padding: 7px 10px; border: 1px solid rgba(106, 203, 202, .28); border-radius: 999px; color: #92d9d5; background: rgba(20, 91, 101, .18); font-size: 9px; letter-spacing: .1em; white-space: nowrap; }
 .rs-hero { max-width: 1440px; margin: 40px auto 28px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; align-items: center; }

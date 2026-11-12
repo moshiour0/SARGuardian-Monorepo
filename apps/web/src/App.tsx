@@ -35,7 +35,7 @@ function App() {
 
   const handleStartRiverShift = useCallback((setup: RiverShiftSetup) => {
     window.sessionStorage.setItem(RIVER_SHIFT_SETUP_STORAGE_KEY, JSON.stringify(setup));
-    window.sessionStorage.setItem('sarguardian.riverShiftPendingDispatch', 'true');
+    window.sessionStorage.setItem('sarguardian.riverShiftPendingRun', 'true');
     navigateTo(RIVER_SHIFT_PROCESSING_PATH);
   }, [navigateTo]);
 
