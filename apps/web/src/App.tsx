@@ -35,6 +35,7 @@ function App() {
 
   const handleStartRiverShift = useCallback((setup: RiverShiftSetup) => {
     window.sessionStorage.setItem(RIVER_SHIFT_SETUP_STORAGE_KEY, JSON.stringify(setup));
+    window.sessionStorage.setItem('sarguardian.riverShiftPendingDispatch', 'true');
     navigateTo(RIVER_SHIFT_PROCESSING_PATH);
   }, [navigateTo]);
 
@@ -304,6 +305,7 @@ function App() {
           authState={authState}
           onSignIn={handleSignIn}
           onSignOut={handleSignOut}
+          onBack={() => navigateTo('/river-shift')}
           onViewResults={() => navigateTo(RIVER_SHIFT_RESULTS_PATH)}
         />
       );

@@ -1,0 +1,24 @@
+{
+  "schema_version": "source-import-provenance/1.0",
+  "engine": "known-place",
+  "source_repository": "https://github.com/moshiour0/SARGuardian-Monorepo",
+  "source_ref": "refs/heads/main",
+  "source_commit_sha": "2cb521ea11376b2f48e903fb00b0c480796d6578",
+  "source_tree": "engines/known-place",
+  "source_tree_sha": "85e1c9c431f30236d82e331a0e649bcb6d8ee70e",
+  "destination_tree": "engines/known-place",
+  "import_date": "2026-11-11",
+  "transformation": "Exact tracked-tree synchronization; no source transformation",
+  "changed_paths": [
+    "engines/known-place/tools/know_place/aoi_runner.py",
+    "engines/known-place/tools/know_place/series.py",
+    "engines/known-place/tools/tests/test_know_place_aoi_runner.py",
+    "engines/known-place/tools/tests/test_know_place_series.py"
+  ],
+  "excluded_scopes": [
+    "apps/web",
+    "UI and design assets",
+    "deployment configuration"
+  ],
+  "notes": "The other 273 tracked files in engines/known-place already matched this source tree byte-for-byte before synchronization."
+}

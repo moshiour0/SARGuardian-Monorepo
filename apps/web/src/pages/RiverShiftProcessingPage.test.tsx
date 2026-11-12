@@ -36,7 +36,7 @@ describe('RiverShiftProcessingPage initial load and configuration options', () =
     getIdToken: vi.fn().mockResolvedValue('test-token'),
   } as unknown as User;
 
-  it('renders skeleton during initial job loading', () => {
+  it('renders skeleton during initial job loading and omits the advanced settings block', () => {
     const html = renderToStaticMarkup(
       <RiverShiftProcessingPage
         user={mockUser}
@@ -47,5 +47,7 @@ describe('RiverShiftProcessingPage initial load and configuration options', () =
     );
     expect(html).toContain('processing-page-skeleton');
     expect(html).toContain('processing-skeleton-orbit');
+    expect(html).not.toContain('rs-advanced-settings');
+    expect(html).not.toContain('Run RiverShift');
   });
 });
