@@ -192,6 +192,33 @@ def test_download_resolves_and_downloads_only_the_exact_maturity_granule(monkeyp
     assert not list(tmp_path.glob(".*.earthaccess-download"))
 
 
+def test_direct_cmr_fallback_uses_current_exact_product_field(monkeypatch):
+    response = type("Response", (), {
+        "status_code": 200,
+        "headers": {},
+        "json": lambda self: {"feed": {"entry": [_cmr_result()]}},
+        "raise_for_status": lambda self: None,
+        "close": lambda self: None,
+    })()
+    calls = []
+    def fake_get(url, **kwargs):
+        calls.append((url, kwargs))
+        return response
+
+    monkeypatch.setattr(download_module.requests, "get", fake_get)
+    rows = download_module._search_exact_cmr_granule(
+        collection="NISAR_L2_GCOV_PROVISIONAL_V1",
+        expected_name=GRANULE,
+    )
+
+    assert rows == [_cmr_result()]
+    assert calls[0][1]["params"] == {
+        "short_name": "NISAR_L2_GCOV_PROVISIONAL_V1",
+        "producer_granule_id": GRANULE,
+        "page_size": 2,
+    }
+
+
 def test_download_refuses_missing_exact_cmr_match(monkeypatch, tmp_path):
     fake = FakeEarthaccess(results=[_cmr_result(name="NISAR_OTHER_GRANULE")])
     monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)

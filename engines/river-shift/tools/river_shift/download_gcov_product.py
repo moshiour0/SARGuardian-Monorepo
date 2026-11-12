@@ -25,6 +25,8 @@ RANGE_DOWNLOAD_WORKERS = 2
 RANGE_MAX_ATTEMPTS = 3
 DOWNLOAD_STREAM_CHUNK_BYTES = 8 * 1024 * 1024
 EARTHDATA_LOGIN_MAX_ATTEMPTS = 3
+CMR_LOOKUP_MAX_ATTEMPTS = 3
+CMR_GRANULE_SEARCH_URL = "https://cmr.earthdata.nasa.gov/search/granules.json"
 TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504, 522, 524})
 
 
@@ -153,6 +155,57 @@ def _safe_error_message(error: BaseException) -> str:
         if secret:
             message = message.replace(secret, "[REDACTED]")
     return message[:240]
+
+
+def _search_exact_cmr_granule(*, collection: str, expected_name: str) -> list[dict[str, Any]]:
+    """Query CMR with its current exact-product field after an earthaccess failure.
+
+    earthaccess 0.19.0 documents ``granule_name``, but the CMR endpoint currently
+    rejects that serialized parameter.  CMR still supports the exact public
+    product identity as ``producer_granule_id``.  Keep this fallback metadata-only
+    and bounded; the returned entry is still checked against the exact name before
+    it can reach the downloader.
+    """
+    params = {
+        "short_name": collection,
+        "producer_granule_id": expected_name,
+        "page_size": 2,
+    }
+    for attempt in range(1, CMR_LOOKUP_MAX_ATTEMPTS + 1):
+        response = None
+        try:
+            response = requests.get(
+                CMR_GRANULE_SEARCH_URL,
+                params=params,
+                headers={"Accept": "application/json"},
+                timeout=(20, 60),
+            )
+            response.raise_for_status()
+            payload = response.json()
+            entries = payload.get("feed", {}).get("entry", []) if isinstance(payload, dict) else []
+            if not isinstance(entries, list):
+                raise RuntimeError("NASA CMR returned a malformed granule feed.")
+            return [entry for entry in entries if isinstance(entry, dict)]
+        except (requests.exceptions.RequestException, ValueError, RuntimeError) as exc:
+            transient = _transient_network_error(exc)
+            retrying = transient and attempt < CMR_LOOKUP_MAX_ATTEMPTS
+            print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                "stage": "exact_cmr_granule_lookup_fallback",
+                "status": "RETRY" if retrying else "FAIL",
+                "attempt_number": attempt,
+                "max_attempts": CMR_LOOKUP_MAX_ATTEMPTS,
+                "http_status": _http_status_code(exc),
+                "transient_network_error": transient,
+                "error_type": type(exc).__name__,
+                "error_message": _safe_error_message(exc),
+            }), flush=True)
+            if not retrying:
+                raise RuntimeError("NASA CMR direct exact-granule lookup failed.") from None
+            time.sleep(min(2 ** attempt, 8))
+        finally:
+            if response is not None and callable(getattr(response, "close", None)):
+                response.close()
+    raise RuntimeError("NASA CMR direct exact-granule lookup exhausted its retry budget.")
 
 
 def _login_with_bounded_retry(earthaccess, *, retry_wave: bool) -> str:
@@ -584,8 +637,18 @@ def download_product(product: dict, output_dir: Path) -> dict:
             "stage": "exact_cmr_granule_lookup",
             "status": "FAIL",
             "error_type": type(exc).__name__,
+            "fallback": "direct_cmr_producer_granule_id",
         }), flush=True)
-        raise RuntimeError("NASA CMR exact-granule lookup failed.") from None
+        candidates = _search_exact_cmr_granule(
+            collection=collection,
+            expected_name=expected_name,
+        )
+        print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+            "stage": "exact_cmr_granule_lookup_fallback",
+            "status": "PASS",
+            "backend": "cmr_producer_granule_id",
+            "candidate_count": len(candidates),
+        }), flush=True)
 
     exact_matches = [
         row for row in (candidates or [])

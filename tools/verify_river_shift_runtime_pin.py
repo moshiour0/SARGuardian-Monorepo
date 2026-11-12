@@ -17,11 +17,16 @@ def verify(root: Path) -> list[str]:
         # Git's Windows checkout conversion only when the source blob uses LF.
         raw = path.read_bytes()
         candidates = (raw, raw.replace(b"\r\n", b"\n"))
-        if not any(
+        source_match = any(
             hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest() == item["source_blob_sha"]
             and hashlib.sha256(data).hexdigest() == item["sha256"]
             for data in candidates
-        ):
+        )
+        transformed_match = item["path"] in manifest.get("changed_content_paths", []) and any(
+            hashlib.sha256(data).hexdigest() == item.get("post_transform_sha256")
+            for data in candidates
+        )
+        if not source_match and not transformed_match:
             failures.append(f"Source mismatch: {item['path']}")
     for item in manifest["shared_source_regions"]:
         data = (root / item["path"]).read_text(encoding="utf-8")

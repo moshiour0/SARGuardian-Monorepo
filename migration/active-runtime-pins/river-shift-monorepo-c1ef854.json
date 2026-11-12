@@ -5,7 +5,7 @@
   "source_ref": "refs/heads/main",
   "source_commit_sha": "c1ef8549dfd409107afc3cbf46dca6c4c27a797a",
   "import_date": "2026-11-12",
-  "transformation": "Listed files copied as exact Git blob bytes. Shared persistence RiverShift declarations copied verbatim; unrelated local methods preserved. Retry adapter is a separate local addition.",
+  "transformation": "Listed files copied as exact Git blob bytes. Shared persistence RiverShift declarations copied verbatim; unrelated local methods preserved. Retry adapter is a separate local addition. Post-import compatibility fix: download_gcov_product.py falls back from the earthaccess 0.19.0 granule_name CMR query to a bounded exact producer_granule_id CMR query; its regression test records the fallback contract.",
   "changed_content_paths": [
     "apps/api/app/river_shift_jobs.py",
     "apps/api/tests/test_river_shift_jobs.py",
@@ -164,7 +164,8 @@
     {
       "path": "engines/river-shift/tools/river_shift/download_gcov_product.py",
       "source_blob_sha": "80d21e13a5cd90b3f4f20d5095e6c27a79bef980",
-      "sha256": "701ef7544ebf7540aebfccb4b8fdc788f4d41c66cc76403e66c28f9865db7fc4"
+      "sha256": "701ef7544ebf7540aebfccb4b8fdc788f4d41c66cc76403e66c28f9865db7fc4",
+      "post_transform_sha256": "8cb9b18b3164a962b7f645aba027fa229cbf854e6ea0347482ee1951f5f2b884"
     },
     {
       "path": "engines/river-shift/tools/river_shift/drive_upload_adapter.py",
@@ -304,7 +305,8 @@
     {
       "path": "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py",
       "source_blob_sha": "41fbcf781c54027900e2577db37a52f29793e843",
-      "sha256": "f59f48e14f2786746561c95caa50fd38084a7329b933cda9e7039388021fae21"
+      "sha256": "f59f48e14f2786746561c95caa50fd38084a7329b933cda9e7039388021fae21",
+      "post_transform_sha256": "cf8ae6d447d0b9b107c99ca94b8abbebbf2b8e2eadf88146bad4ad06e44f8002"
     },
     {
       "path": "engines/river-shift/tools/river_shift/tests/test_drive_upload_adapter.py",
