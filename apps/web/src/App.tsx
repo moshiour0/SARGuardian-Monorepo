@@ -10,8 +10,9 @@ import { parseDashboardView } from './dashboardDocument';
 import { LandslidePage } from '../landslide/ui/LandslidePage';
 import { KnownPlaceResultsPage } from '../landslide/ui/KnownPlaceResultsPage';
 import { RiverShiftPage } from './pages/RiverShiftPage';
+import { RiverShiftProcessingPage } from './pages/RiverShiftProcessingPage';
 import { auth, firebaseConfigured, googleProvider, missingFirebaseConfig } from './firebase';
-import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_OUTPUTS_PATH, FIND_DISPLACEMENT_RESULTS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultViewsRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { isArchiveRoute, isDashboardRoute, isHowItWorksRoute, isRiverShiftProcessingRoute, isRiverShiftRoute, RIVER_SHIFT_PATH, RIVER_SHIFT_PROCESSING_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_OUTPUTS_PATH, FIND_DISPLACEMENT_RESULTS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultViewsRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
 
 function App() {
   const [pathname, setPathname] = useState(() => normalizePathname(window.location.pathname));
@@ -276,13 +277,25 @@ function App() {
       );
     }
 
+    if (isRiverShiftProcessingRoute(pathname)) {
+      return (
+        <RiverShiftProcessingPage
+          key={user.uid}
+          user={user}
+          authState={authState}
+          onSignIn={handleSignIn}
+          onSignOut={handleSignOut}
+        />
+      );
+    }
+
     return (
       <RiverShiftPage
-        key={user.uid}
         user={user}
         authState={authState}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
+        onStart={() => navigateTo(RIVER_SHIFT_PROCESSING_PATH)}
       />
     );
   }

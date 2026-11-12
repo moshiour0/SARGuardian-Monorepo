@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, isArchiveRoute, isHowItWorksRoute, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, navigatePath, normalizePathname } from './routing';
+import { ARCHIVE_PATH, FIND_DISPLACEMENT_DISPLACEMENT_PATH, FIND_DISPLACEMENT_PATH, FIND_DISPLACEMENT_RESULTS_PATH, HOW_IT_WORKS_PATH, KNOWN_PLACE_ANALYSIS_PATH, KNOWN_PLACE_RESULTS_PATH, KNOWN_PLACE_SETUP_PATH, RIVER_SHIFT_PATH, RIVER_SHIFT_PROCESSING_PATH, isArchiveRoute, isHowItWorksRoute, isKnownPlaceResultsRoute, isLandslideDisplacementRoute, isLandslideKnownPlaceAnalysisRoute, isLandslideKnownPlaceSetupAnalysisRoute, isLandslideKnownPlaceSetupRoute, isLandslideResultsRoute, isLandslideRoute, isRiverShiftProcessingRoute, isRiverShiftRoute, navigatePath, normalizePathname } from './routing';
 
 describe('client-side route recognition', () => {
   it('recognizes Archive as its own page route, not a Home anchor', () => {
@@ -16,6 +16,15 @@ describe('client-side route recognition', () => {
     expect(isHowItWorksRoute('/how-it-works?from=home')).toBe(true);
     expect(isHowItWorksRoute('/')).toBe(false);
     expect(isLandslideRoute('/how-it-works')).toBe(false);
+  });
+
+  it('recognizes the River Shift launch and processing routes', () => {
+    expect(RIVER_SHIFT_PATH).toBe('/river-shift');
+    expect(RIVER_SHIFT_PROCESSING_PATH).toBe('/river-shift/processing');
+    expect(isRiverShiftRoute(RIVER_SHIFT_PATH)).toBe(true);
+    expect(isRiverShiftRoute(RIVER_SHIFT_PROCESSING_PATH)).toBe(true);
+    expect(isRiverShiftProcessingRoute(RIVER_SHIFT_PROCESSING_PATH)).toBe(true);
+    expect(isRiverShiftProcessingRoute(RIVER_SHIFT_PATH)).toBe(false);
   });
 
   it('normalizes query strings and hashes without changing the route', () => {
