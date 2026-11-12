@@ -7,6 +7,7 @@ and returns checksum-bound provisional layers through the signed job callback.
 """
 from __future__ import annotations
 
+import gzip
 import hashlib
 import hmac
 import json
@@ -42,8 +43,11 @@ TOOLS = Path(__file__).resolve().parent
 MAX_SELECTED_DATES = 12
 MAX_SELECTED_GRANULES = 48
 MAX_GRANULES_PER_DATE = 4
-MAX_WEB_PREVIEW_BYTES = 3_500_000
-MAX_SPARSE_PREVIEW_MARKERS = 8_000
+# Bound browser payload size and Google Maps Data-layer geometry work. These are
+# display-only limits; the source masks and all scientific calculations remain
+# full resolution and are retained separately.
+MAX_WEB_PREVIEW_BYTES = 2_500_000
+MAX_SPARSE_PREVIEW_MARKERS = 1_500
 
 from drive_upload_adapter import (
     DriveClient,
@@ -1340,7 +1344,7 @@ def create_web_previews(
     # All three source masks share the same exact analysis grid. Use one common
     # reduced grid so a majority cell from one class is compared with the same
     # spatial cell in every other class.
-    common_preview_dimension = 384
+    common_preview_dimension = 256
     common_preview_grid: tuple[int, int] | None = None
     common_preview_pixel_size_m: float | None = None
     for source_path, destination, layer_type in sources:
@@ -1759,16 +1763,45 @@ def _ensure_credentials() -> None:
 
 
 def _copy_result_files(source_dirs: list[tuple[str, Path]], output_root: Path) -> list[dict[str, str]]:
+    """Build the retained Drive package, losslessly compressing full GeoJSON layers.
+
+    Display previews stay as ordinary small GeoJSON. Full-resolution vector
+    outputs are gzip-compressed only in the retained copy; source files used
+    for science and validation are never modified.
+    """
     output_root.mkdir(parents=True, exist_ok=True)
     inventory = []
     for label, source_dir in source_dirs:
         for path in sorted(source_dir.iterdir()):
             if not path.is_file() or path.suffix.lower() not in {".json", ".geojson", ".tif"}:
                 continue
-            destination = output_root / label / path.name
+            compress_geojson = path.suffix.lower() == ".geojson" and not path.stem.endswith("_preview")
+            retained_name = f"{path.name}.gz" if compress_geojson else path.name
+            destination = output_root / label / retained_name
             destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, destination)
-            inventory.append({"path": destination.relative_to(output_root.parent).as_posix(), "sha256": sha256_file(destination)})
+            if compress_geojson:
+                with path.open("rb") as source, destination.open("wb") as raw_destination:
+                    with gzip.GzipFile(
+                        filename="",
+                        mode="wb",
+                        fileobj=raw_destination,
+                        compresslevel=6,
+                        mtime=0,
+                    ) as compressed:
+                        shutil.copyfileobj(source, compressed, length=1024 * 1024)
+            else:
+                shutil.copy2(path, destination)
+            entry = {
+                "path": destination.relative_to(output_root.parent).as_posix(),
+                "sha256": sha256_file(destination),
+            }
+            if compress_geojson:
+                entry.update({
+                    "compression": "gzip",
+                    "source_bytes": path.stat().st_size,
+                    "source_sha256": sha256_file(path),
+                })
+            inventory.append(entry)
     return inventory
 
 
