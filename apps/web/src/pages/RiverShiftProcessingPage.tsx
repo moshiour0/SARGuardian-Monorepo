@@ -319,12 +319,12 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     return () => window.clearInterval(timer);
   }, [riverJob]);
 
-  const startLiveProcessing = async () => {
+  const startLiveProcessing = async (allowReplacingActive = false) => {
     if (!user || !setup) {
       setRiverJobError('Return to the AOI page and choose a valid study area first.');
       return;
     }
-    if (riverJob && activeRiverShiftStates.has(riverJob.state)) {
+    if (!allowReplacingActive && riverJob && activeRiverShiftStates.has(riverJob.state)) {
       if (signaturesMatch(setup, riverJob)) return;
       setSignatureConflict(true);
       return;
@@ -414,7 +414,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
       window.sessionStorage.removeItem('sarguardian.riverShiftActiveJobId');
       setRiverJob(null);
       setSignatureConflict(false);
-      setRiverJobError('The previous River Shift run was cancelled. Review the new signature and press Run River Shift.');
+      await startLiveProcessing(true);
     } catch (error) {
       setRiverJobError(error instanceof Error ? error.message : 'Could not cancel the previous River Shift processing.');
     } finally {
