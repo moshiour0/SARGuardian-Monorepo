@@ -35,6 +35,8 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 
 ## Active runtime scope (evidence-based)
 
+> **Historical migration snapshot:** the runtime-gate notes in this section were last audited on 6 November 2026. RiverShift Run #25 on 12 November was executed in the public `shourov-04/SARGuardian` fork; it demonstrates that fork's 10-product path and does not, by itself, prove that a separately gated Monorepo API dispatcher has been enabled or cut over. Use the dated run links above and the [final submission pack](docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for current judge-facing evidence.
+
 The migration preserves all **82 historical source workflow instances** without activating them indiscriminately. The current API application graph contains two primary processing paths—**Find Displacements** and the generic two-polygon **Known Place Analysis** workflow—and two separately gated paths: **RiverShift GCOV** and author-exact **P05023** reproduction.
 
 - **Find Displacements:** target-free AOI discovery and the separate GOFF/GUNW diagnostics remain isolated. Backend run [42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed its processing chain, recovered one failed GUNW product through a failed-only retry, assembled the dashboard and reported a terminal callback. A Monorepo live pilot is still pending.
