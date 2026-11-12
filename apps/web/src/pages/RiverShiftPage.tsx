@@ -1596,7 +1596,7 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
           </section>
         )}
         {jobPreview?.jobId === riverJob.id && jobPreview.error && <p className="rs-warning-inline" role="status">{jobPreview.error}</p>}
-        {!!riverJob.artifact_manifest?.length && <div className="rs-artifact-list"><strong>Private result files · upload checksum verified</strong><p className="rs-muted">Upload receipts preserve the original size and checksum. In-app downloads and previews are checked again before use.</p>{riverJob.artifact_manifest.map((artifact, index) => artifact.bytes <= 4_000_000
+        {!!riverJob.artifact_manifest?.length && <div className="rs-artifact-list"><strong>Private result files · upload checksum verified</strong><p className="rs-muted">Upload receipts verify the retained file bytes. Full-resolution GeoJSON layers are stored losslessly as .geojson.gz; decompress them before GIS review. Small preview GeoJSON files remain uncompressed for the in-app map.</p>{riverJob.artifact_manifest.map((artifact, index) => artifact.bytes <= 4_000_000
           ? <button className="rs-secondary-button" key={`${artifact.path}-${index}`} type="button" onClick={() => void saveRiverArtifact(index, artifact.name)}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB</button>
           : <span className="rs-muted" key={`${artifact.path}-${index}`}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB · stored privately; too large for in-app download</span>)}</div>}
       </section>}
