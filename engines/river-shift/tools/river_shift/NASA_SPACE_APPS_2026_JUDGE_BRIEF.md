@@ -61,6 +61,7 @@ These are explainable screening indicators. They are not automatically field-con
 [Open the successful RiverShift Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660).
 
 - AOI case: Jamuna–Chowhali demonstration request.
+- Request window: 12 November 2025–12 November 2026 (general scan). NASA CMR returned 68 catalogue candidates; the compatibility/support audit selected 10 exact granules across 10 actual acquisition dates (one per selected date).
 - Ten exact NISAR L2 GCOV PROVISIONAL P05023 granules were processed at ten actual acquisition dates: 18 June, 30 June, 12 July, 24 July, 17 August, 29 August, 10 September, 22 September, 4 October and 16 October 2026.
 - All **10/10 first-attempt product worker jobs passed**; the whole workflow completed with 24 successful jobs and 6 intentionally skipped jobs, with no failed jobs.
 - Detailed worker logs show authenticated product retrieval, HTTP 206 range support, native HDF5 inspection, requested-layer validation, AOI raster extraction and product-artifact preparation.
