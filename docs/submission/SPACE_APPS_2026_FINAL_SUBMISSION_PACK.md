@@ -230,5 +230,5 @@ The most score-efficient remaining work is: (1) finish and upload the real demo 
 - [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo)
 - [RiverShift Run #25 — 10-product end-to-end evidence](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660)
 - [Monorepo Snapshot Regression — 20/20 jobs passed](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/43243267939)
-- [RiverShift-specific evidence brief](../../engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_BRIEF.md)
+- [RiverShift-specific evidence brief](RIVERSHIFT_2026_JUDGE_BRIEF.md)
 - [Local judge score-sheet evidence matrix](score-sheet-evidence-matrix.md)
