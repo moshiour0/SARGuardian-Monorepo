@@ -1272,35 +1272,7 @@ export function RiverShiftPage({ user, authState, onSignIn, onSignOut }: Props) 
   return (
     <div className="home-page claude-home river-shift-page">
       <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
-      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage hideProfile />
-
-      <section className="rs-hero">
-        <div>
-          <p className="rs-kicker">GLOBAL NISAR L-BAND OBSERVATION WORKFLOW</p>
-          <h1>Explore rivers worldwide.<br /><em>Measure observed change.</em></h1>
-          <p className="rs-intro">
-            Select a river reach within NISAR's global L-band land-observation footprint. RiverShift discovers
-            the compatible GCOV acquisitions available for your AOI and date window, then screens actual
-            observations for water and persistent land–water change candidates.
-          </p>
-          <div className="rs-hero-tags">
-            <span>GLOBAL L-BAND OBSERVATIONS</span><span>USER-DEFINED AOI</span><span>NASA · ASF DAAC</span>
-          </div>
-        </div>
-        <div className="rs-hero-visual" aria-hidden="true">
-          <div className="rs-river-contour rs-contour-one" />
-          <div className="rs-river-contour rs-contour-two" />
-          <div className="rs-river-contour rs-contour-three" />
-          <div className="rs-river-dot rs-dot-one" /><div className="rs-river-dot rs-dot-two" /><div className="rs-river-dot rs-dot-three" />
-          <span>GLOBAL RIVER SYSTEM<br />CHANGE OBSERVATORY</span>
-        </div>
-      </section>
-
-      <section className="rs-quick-start" aria-label="RiverShift quick start">
-        <div><span>01</span><strong>Find a river or region</strong><small>Search a place on the map, zoom to it, then draw one WGS84 river-reach AOI, up to 1,000 km².</small></div>
-        <div><span>02</span><strong>Choose observation dates</strong><small>Find at least four compatible NISAR acquisition dates within a window of up to 366 days.</small></div>
-        <div><span>03</span><strong>Review evidence, not just colours</strong><small>Check source dates, overlap QA and independent-reference status.</small></div>
-      </section>
+      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage hideProfile showPageTitle pageTitle="River Shift" />
 
       <section className="rs-workspace-grid">
         <div className="rs-panel">

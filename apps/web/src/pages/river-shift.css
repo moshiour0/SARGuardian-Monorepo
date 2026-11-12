@@ -1,4 +1,5 @@
 .river-shift-page { min-height: 100vh; padding: 0 0 34px; color: #e8f5fa; background: transparent; }
+.river-shift-page .claude-nav-title { display: block; }
 .rs-chip { padding: 7px 10px; border: 1px solid rgba(106, 203, 202, .28); border-radius: 999px; color: #92d9d5; background: rgba(20, 91, 101, .18); font-size: 9px; letter-spacing: .1em; white-space: nowrap; }
 .rs-hero { max-width: 1440px; margin: 40px auto 28px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; align-items: center; }
 .rs-kicker { margin: 0 0 10px; color: #64cfc9; font-size: 9px; font-weight: 800; letter-spacing: .19em; }
