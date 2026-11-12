@@ -136,6 +136,18 @@ class RiverShiftJobResponse(BaseModel):
     updated_at: datetime
 
 
+class RiverShiftJobStatusResponse(BaseModel):
+    id: UUID
+    state: JobState
+    stage: str
+    github_run_id: str | None = None
+    github_run_url: str | None = None
+    error_code: str | None = None
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
 def _owner_uid(user: dict[str, Any]) -> str:
     value = user.get("uid")
     if not isinstance(value, str) or not value.strip():
@@ -529,6 +541,19 @@ def _refresh_workflow_state(store: Any, record: dict[str, Any]) -> dict[str, Any
     state = str(record.get("state"))
     if state not in {JobState.DISPATCHING.value, JobState.RUNNING.value}:
         return record
+    # A signed worker callback updates updated_at at each lifecycle transition.
+    # Once a run is correlated, GitHub is only a fallback for a missing callback;
+    # checking it on every browser poll is unnecessary.
+    if record.get("github_run_id") and record.get("github_run_url"):
+        updated_raw = record.get("updated_at")
+        try:
+            updated_at = datetime.fromisoformat(str(updated_raw).replace("Z", "+00:00"))
+            if updated_at.tzinfo is None:
+                updated_at = updated_at.replace(tzinfo=UTC)
+            if (datetime.now(UTC) - updated_at.astimezone(UTC)).total_seconds() < 60:
+                return record
+        except (TypeError, ValueError):
+            pass
     try:
         settings = get_settings()
         if not settings.river_shift_actions_enabled:
@@ -585,6 +610,12 @@ def _refresh_workflow_state(store: Any, record: dict[str, Any]) -> dict[str, Any
                 })
             if not updates:
                 return record
+        updates = {
+            key: value for key, value in updates.items()
+            if record.get(key) != value
+        }
+        if not updates:
+            return record
         return store.update_river_shift_job(
             UUID(str(record["id"])),
             updates,
@@ -609,6 +640,22 @@ def list_river_shift_jobs(
     except PersistenceError:
         raise HTTPException(status_code=503, detail="Could not list RiverShift processing jobs.") from None
     return [_response(_refresh_workflow_state(store, record)) for record in records]
+
+
+@router.get("/jobs/{job_id}/status", response_model=RiverShiftJobStatusResponse)
+def get_river_shift_job_status(
+    job_id: UUID,
+    user: dict = Depends(get_current_user),
+) -> RiverShiftJobStatusResponse:
+    try:
+        store = _store()
+        record = store.get_river_shift_job_status(_owner_uid(user), job_id)
+    except PersistenceError:
+        raise HTTPException(status_code=503, detail="Could not read the RiverShift job status.") from None
+    if not record:
+        raise HTTPException(status_code=404, detail="RiverShift job was not found for this account.")
+    record = _refresh_workflow_state(store, record)
+    return RiverShiftJobStatusResponse.model_validate(record)
 
 
 @router.get("/jobs/{job_id}", response_model=RiverShiftJobResponse)

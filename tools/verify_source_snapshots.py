@@ -164,6 +164,11 @@ def load_promotion_overrides() -> dict[str, dict[str, str]]:
             "destination": "engines/find-displacements/tools/",
             "verification": "engines/find-displacements/tools/tests/",
         },
+        "RiverShift GCOV engine promotion": {
+            "source": "migration/source-snapshots/backend-main/tools/river_shift/",
+            "destination": "engines/river-shift/tools/river_shift/",
+            "verification": "engines/river-shift/tools/river_shift/tests/",
+        },
     }
     approved: dict[str, dict[str, str]] = {}
     for row in rows:
@@ -537,6 +542,7 @@ def main() -> int:
             "Dynamic active API promotion",
             "Dynamic frontend promotion",
             "Find Displacements tools promotion",
+            "RiverShift GCOV engine promotion",
         }:
             raise RuntimeError(f"{label}: promotion overrides are not permitted for this source.")
         print(f"PROMOTED_PATH_BLOB_INTEGRITY_PASS {label}: {len(source_view)} entries")

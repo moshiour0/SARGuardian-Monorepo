@@ -953,6 +953,12 @@ export type RiverShiftJob = {
   updated_at: string;
 };
 
+export type RiverShiftJobStatus = Pick<
+  RiverShiftJob,
+  'id' | 'state' | 'stage' | 'github_run_id' | 'github_run_url'
+  | 'error_code' | 'error_message' | 'created_at' | 'updated_at'
+>;
+
 export async function createRiverShiftJob(input: {
   aoiWkt: string;
   startDate: string;
@@ -1016,6 +1022,20 @@ export async function getRiverShiftJob(
   if (!/^[0-9a-f-]{36}$/i.test(safeId)) throw new Error('A valid RiverShift job ID is required.');
   return readAuthenticatedPayload<RiverShiftJob>(
     `${API_BASE}/api/river-shift/jobs/${encodeURIComponent(safeId)}`,
+    user,
+    'Could not refresh RiverShift job status.',
+    { cache: 'no-store' },
+  );
+}
+
+export async function getRiverShiftJobStatus(
+  jobId: string,
+  user: Pick<User, 'getIdToken'> | null,
+): Promise<RiverShiftJobStatus> {
+  const safeId = jobId.trim();
+  if (!/^[0-9a-f-]{36}$/i.test(safeId)) throw new Error('A valid RiverShift job ID is required.');
+  return readAuthenticatedPayload<RiverShiftJobStatus>(
+    `${API_BASE}/api/river-shift/jobs/${encodeURIComponent(safeId)}/status`,
     user,
     'Could not refresh RiverShift job status.',
     { cache: 'no-store' },

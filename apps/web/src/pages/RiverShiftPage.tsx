@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { createRiverShiftJob, downloadRiverShiftArtifact, getRiverShiftJob, listRiverShiftJobs, type RiverShiftJob } from '../api/catalog';
+import { createRiverShiftJob, downloadRiverShiftArtifact, getRiverShiftJob, getRiverShiftJobStatus, listRiverShiftJobs, type RiverShiftJob } from '../api/catalog';
 import { resolveApiBaseUrl } from '../api/apiOrigin';
 import type { RiverShiftGeoJSON, RiverShiftReport, RiverShiftTimeSeriesFrame } from '../riverShift/manifest';
 import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRiverShiftEventObservationNote, getRiverShiftOverlapAuditAvailability, isRiverShiftGeoJSONApproved, isRiverShiftReportVerified, isRiverShiftTimeSeriesGeoJSONApproved, parseRiverShiftGeoJSON, parseRiverShiftReport } from '../riverShift/manifest';
@@ -531,7 +531,7 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
       return undefined;
     }
     let cancelled = false;
-    void listRiverShiftJobs(user, 10).then((jobs) => {
+    void listRiverShiftJobs(user, 1).then((jobs) => {
       if (!cancelled && jobs.length) {
         setRiverJob((current) => current ?? jobs[0]);
       }
@@ -544,14 +544,50 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
   }, [user]);
 
   useEffect(() => {
-    if (!user || !riverJob || !['queued', 'dispatching', 'running'].includes(riverJob.state)) return undefined;
-    const timer = window.setInterval(() => {
-      void getRiverShiftJob(riverJob.id, user).then(setRiverJob).catch((error: unknown) => {
+    const jobId = riverJob?.id;
+    if (!user || !jobId || !['queued', 'dispatching', 'running'].includes(riverJob.state)) return undefined;
+    let cancelled = false;
+    let timeoutId: number | undefined;
+    let consecutiveFailures = 0;
+    const retryDelays = [15_000, 30_000, 60_000];
+
+    const scheduleNext = (delay: number) => {
+      timeoutId = window.setTimeout(() => { void pollStatus(); }, delay);
+    };
+
+    const pollStatus = async () => {
+      try {
+        // Poll only lifecycle metadata. The full result and Drive manifest are
+        // retrieved once, after the worker reports a terminal state.
+        const status = await getRiverShiftJobStatus(jobId, user);
+        if (cancelled) return;
+        if (['succeeded', 'failed', 'cancelled'].includes(status.state)) {
+          const completed = await getRiverShiftJob(jobId, user);
+          if (!cancelled) {
+            setRiverJob(completed);
+            setRiverJobError('');
+          }
+          return;
+        }
+        setRiverJob((current) => current?.id === jobId ? { ...current, ...status } : current);
+        setRiverJobError('');
+        consecutiveFailures = 0;
+        scheduleNext(retryDelays[0]);
+      } catch (error: unknown) {
+        if (cancelled) return;
         setRiverJobError(error instanceof Error ? error.message : 'Could not refresh processing status.');
-      });
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [riverJob, user]);
+        const delay = retryDelays[Math.min(consecutiveFailures, retryDelays.length - 1)];
+        consecutiveFailures += 1;
+        scheduleNext(delay);
+      }
+    };
+
+    scheduleNext(retryDelays[0]);
+    return () => {
+      cancelled = true;
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, [riverJob?.id, riverJob?.state, user]);
 
   useEffect(() => {
     if (!user || riverJob?.state !== 'succeeded' || !riverJob.artifact_manifest?.length) {
@@ -1560,7 +1596,7 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
           </section>
         )}
         {jobPreview?.jobId === riverJob.id && jobPreview.error && <p className="rs-warning-inline" role="status">{jobPreview.error}</p>}
-        {!!riverJob.artifact_manifest?.length && <div className="rs-artifact-list"><strong>Private result files · upload checksum verified</strong><p className="rs-muted">Upload receipts preserve the original size and checksum. In-app downloads and previews are checked again before use.</p>{riverJob.artifact_manifest.map((artifact, index) => artifact.bytes <= 4_000_000
+        {!!riverJob.artifact_manifest?.length && <div className="rs-artifact-list"><strong>Private result files · upload checksum verified</strong><p className="rs-muted">Upload receipts verify the retained file bytes. Full-resolution GeoJSON layers are stored losslessly as .geojson.gz; decompress them before GIS review. Small preview GeoJSON files remain uncompressed for the in-app map.</p>{riverJob.artifact_manifest.map((artifact, index) => artifact.bytes <= 4_000_000
           ? <button className="rs-secondary-button" key={`${artifact.path}-${index}`} type="button" onClick={() => void saveRiverArtifact(index, artifact.name)}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB</button>
           : <span className="rs-muted" key={`${artifact.path}-${index}`}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB · stored privately; too large for in-app download</span>)}</div>}
       </section>}

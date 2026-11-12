@@ -9,6 +9,7 @@ import {
   getProcessingJob,
   listDisplacementJobs,
   getDisplacementJobStatus,
+  getRiverShiftJobStatus,
   hasActiveDisplacementJob,
   nextDisplacementStatusPollDelay,
   listProcessingJobs,
@@ -544,6 +545,41 @@ describe('NISAR catalogue preflight API contract', () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.analysis_mode).toBe('general_scan');
     expect(body.event_date).toBeNull();
+  });
+
+  it('polls the compact owner-authenticated RiverShift status endpoint', async () => {
+    const jobId = '736bd4e6-8963-43be-a916-bc62336c8557';
+    const status = {
+      id: jobId,
+      state: 'running',
+      stage: 'mosaic',
+      github_run_id: '123456789',
+      github_run_url: 'https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/123456789',
+      error_code: null,
+      error_message: null,
+      created_at: '2026-11-12T10:00:00Z',
+      updated_at: '2026-11-12T10:02:00Z',
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue('application/json; charset=utf-8') },
+      json: async () => status,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const jobUser = { getIdToken: vi.fn().mockResolvedValue('firebase-id-token') };
+
+    await expect(getRiverShiftJobStatus(jobId, jobUser)).resolves.toEqual(status);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls[0][0]).toBe(`http://localhost:8000/api/river-shift/jobs/${jobId}/status`);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer firebase-id-token',
+      },
+    });
   });
 
   it('restores the most recent River Shift jobs through an owner-authenticated no-store request', async () => {
