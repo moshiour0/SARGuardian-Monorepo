@@ -337,13 +337,6 @@ def test_download_resolves_exact_raw_cmr_hit_to_data_granule_before_download(mon
     assert (tmp_path / f"{GRANULE}.h5").read_bytes() == fake.payload
 
 
-@pytest.mark.parametrize(
-    "raw_entries",
-    [
-        [_cmr_json_result("NISAR_OTHER_GRANULE")],
-        [_cmr_json_result(), _cmr_json_result()],
-    ],
-)
 def test_download_retries_transient_public_cmr_umm_resolution_with_fresh_sessions(monkeypatch, tmp_path):
     raw_entry = _cmr_json_result()
     response = _cmr_json_response([raw_entry])
@@ -371,6 +364,13 @@ def test_download_retries_transient_public_cmr_umm_resolution_with_fresh_session
     assert fake.download_calls[0]["granules"] == [fake.resolved_results[0]]
 
 
+@pytest.mark.parametrize(
+    "raw_entries",
+    [
+        [_cmr_json_result("NISAR_OTHER_GRANULE")],
+        [_cmr_json_result(), _cmr_json_result()],
+    ],
+)
 def test_download_rejects_missing_or_ambiguous_raw_cmr_exact_match(monkeypatch, tmp_path, raw_entries):
     fake = EarthaccessSearchUnavailable()
     response = _cmr_json_response(raw_entries)
