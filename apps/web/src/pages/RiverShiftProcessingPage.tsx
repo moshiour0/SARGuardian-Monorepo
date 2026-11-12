@@ -5,7 +5,7 @@ import { createRiverShiftJob, downloadRiverShiftArtifact, getRiverShiftJob, list
 import { resolveApiBaseUrl } from '../api/apiOrigin';
 import type { RiverShiftGeoJSON, RiverShiftReport, RiverShiftTimeSeriesFrame } from '../riverShift/manifest';
 import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRiverShiftEventObservationNote, getRiverShiftOverlapAuditAvailability, isRiverShiftGeoJSONApproved, isRiverShiftReportVerified, isRiverShiftTimeSeriesGeoJSONApproved, parseRiverShiftGeoJSON, parseRiverShiftReport } from '../riverShift/manifest';
-import { formatWktPolygon, parseWktPolygon, type Wgs84Point } from '../riverShift/aoi';
+import { parseWktPolygon, type Wgs84Point } from '../riverShift/aoi';
 import { deriveGeneralChangeMarkers } from '../riverShift/generalChangeMarkers';
 import { deriveImpactMapPoints, parseImpactExposureGeoJSON, parseOpenStreetMapImpactResponse, summarizeImpactExposure, type ImpactExposurePointCollection } from '../riverShift/impactContext';
 import { Header } from '../components/Header';
@@ -390,11 +390,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
   const [geoJSONError, setGeoJSONError] = useState('');
   const [mapError, setMapError] = useState('');
   const [mapReady, setMapReady] = useState(false);
-  const [aoiSearchError, setAoiSearchError] = useState('');
-  const [aoiSearchSelection, setAoiSearchSelection] = useState('');
-  const [drawingAoi, setDrawingAoi] = useState(false);
-  const [aoiVertices, setAoiVertices] = useState<Wgs84Point[]>([]);
-  const [aoiError, setAoiError] = useState('');
+
   const [timeSeriesIndex, setTimeSeriesIndex] = useState(0);
   const [timeSeriesPlaying, setTimeSeriesPlaying] = useState(false);
   const [analysisMode, setAnalysisMode] = useState<'general_scan' | 'event_based'>('general_scan');
@@ -425,15 +421,10 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
   const [impactSourceVintage, setImpactSourceVintage] = useState('');
   const [impactValueField, setImpactValueField] = useState('');
   const [showImpactMapMarkers, setShowImpactMapMarkers] = useState(true);
-  const aoiMapElement = useRef<HTMLDivElement>(null);
   const resultMapElement = useRef<HTMLDivElement>(null);
-  const aoiMapInstance = useRef<google.maps.Map | null>(null);
-  const aoiSearchMarker = useRef<google.maps.Marker | null>(null);
   const resultMapInstance = useRef<google.maps.Map | null>(null);
   const resultMapFitKey = useRef('');
   const resultAoiPolygon = useRef<google.maps.Polygon | null>(null);
-  const aoiPolygon = useRef<google.maps.Polygon | null>(null);
-  const aoiPreviewLine = useRef<google.maps.Polyline | null>(null);
   const timeSeriesFrames = useMemo(() => (report?.time_series || []).flatMap((frame) => {
     const loaded = geoJSONFiles.find((file) => file.fileName === frame.water_geojson
       && file.sha256.toLowerCase() === frame.water_geojson_sha256.toLowerCase());
@@ -897,16 +888,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
     }
   };
 
-  const finishAoiDrawing = () => {
-    try {
-      setAoiWkt(formatWktPolygon(aoiVertices));
-      setAoiError('');
-      setDrawingAoi(false);
-      setAoiVertices([]);
-    } catch (error) {
-      setAoiError(error instanceof Error ? error.message : 'Could not finish the AOI polygon.');
-    }
-  };
+
 
   useEffect(() => {
     if (!GOOGLE_MAPS_KEY) {
@@ -929,174 +911,17 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
         mapTypeControl: true,
         fullscreenControl: true,
       };
-      if (aoiMapElement.current && !aoiMapInstance.current) {
-        aoiMapInstance.current = new maps.Map(aoiMapElement.current, mapOptions);
-      }
       if (resultMapElement.current && !resultMapInstance.current) {
         resultMapInstance.current = new maps.Map(resultMapElement.current, mapOptions);
+        setMapReady(true);
       }
-      if (aoiMapInstance.current && resultMapInstance.current) setMapReady(true);
     }).catch((error: unknown) => {
       if (!cancelled) setMapError(error instanceof Error ? error.message : 'Google Maps could not be loaded.');
     });
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    const map = aoiMapInstance.current;
-    if (!mapReady || !map) return undefined;
 
-    let cancelled = false;
-    let controlCard: HTMLDivElement | null = null;
-    let autocomplete: google.maps.places.PlaceAutocompleteElement | null = null;
-    let mapIdleListener: google.maps.MapsEventListener | null = null;
-    let placeSelectListener: ((event: google.maps.places.PlacePredictionSelectEvent) => void) | null = null;
-
-    const installPlaceSearch = async () => {
-      try {
-        const placesLibrary = await importLibrary('places') as google.maps.PlacesLibrary;
-        if (cancelled) return;
-
-        autocomplete = new placesLibrary.PlaceAutocompleteElement();
-        autocomplete.placeholder = 'Search for a river, place or address';
-        autocomplete.setAttribute('aria-label', 'Search the map for a river, place or address');
-
-        controlCard = document.createElement('div');
-        controlCard.className = 'rs-map-search-control';
-        controlCard.setAttribute('role', 'group');
-        controlCard.setAttribute('aria-label', 'Map place search');
-
-        const caption = document.createElement('span');
-        caption.className = 'rs-map-search-caption';
-        caption.textContent = 'FIND A PLACE';
-        controlCard.appendChild(caption);
-        controlCard.appendChild(autocomplete);
-        map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlCard);
-
-        const updateSearchBias = () => {
-          if (!autocomplete) return;
-          const zoom = map.getZoom() ?? 0;
-          const bounds = map.getBounds();
-          // A focused viewport improves local river/place matches. Avoid biasing
-          // worldwide searches while the map is still at its world overview.
-          autocomplete.locationBias = zoom >= 4 && bounds ? bounds : null;
-        };
-        mapIdleListener = map.addListener('idle', updateSearchBias);
-        updateSearchBias();
-
-        placeSelectListener = async (event: google.maps.places.PlacePredictionSelectEvent) => {
-          try {
-            setAoiSearchError('');
-            const place = event.placePrediction.toPlace();
-            await place.fetchFields({
-              fields: ['displayName', 'formattedAddress', 'location', 'viewport'],
-            });
-            if (cancelled) return;
-            if (!place.location) {
-              setAoiSearchError('This search result did not include a map location. Try a nearby place or river name.');
-              return;
-            }
-
-            if (place.viewport) {
-              map.fitBounds(place.viewport);
-            } else {
-              map.setCenter(place.location);
-              map.setZoom(14);
-            }
-
-            aoiSearchMarker.current?.setMap(null);
-            aoiSearchMarker.current = new google.maps.Marker({
-              map,
-              position: place.location,
-              title: place.displayName || place.formattedAddress || 'Selected map location',
-              animation: google.maps.Animation.DROP,
-            });
-            setAoiSearchSelection(
-              [place.displayName, place.formattedAddress].filter(Boolean).join(' · ')
-              || 'Selected location shown on map',
-            );
-          } catch (error) {
-            if (!cancelled) {
-              setAoiSearchError(error instanceof Error
-                ? error.message
-                : 'Place search could not retrieve the selected location.');
-            }
-          }
-        };
-        autocomplete.addEventListener('gmp-select', placeSelectListener);
-      } catch {
-        if (!cancelled) {
-          setAoiSearchError(
-            'Map search is unavailable. Enable Places API (New) for the Google Cloud project used by VITE_GOOGLE_MAPS_API_KEY, then reload RiverShift.',
-          );
-        }
-      }
-    };
-
-    void installPlaceSearch();
-
-    return () => {
-      cancelled = true;
-      if (autocomplete && placeSelectListener) {
-        autocomplete.removeEventListener('gmp-select', placeSelectListener);
-      }
-      mapIdleListener?.remove();
-      if (controlCard) {
-        const controls = map.controls[google.maps.ControlPosition.TOP_LEFT];
-        const controlIndex = controls.getArray().indexOf(controlCard);
-        if (controlIndex >= 0) controls.removeAt(controlIndex);
-      }
-    };
-  }, [mapReady]);
-
-  useEffect(() => {
-    const map = aoiMapInstance.current;
-    if (!mapReady || !map || !drawingAoi) return;
-    const listener = map.addListener('click', (event: google.maps.MapMouseEvent) => {
-      if (event.latLng) setAoiVertices((vertices) => [...vertices, [event.latLng!.lng(), event.latLng!.lat()]]);
-    });
-    return () => listener.remove();
-  }, [mapReady, drawingAoi]);
-
-  useEffect(() => {
-    if (!mapReady) return;
-    const map = aoiMapInstance.current;
-    if (!map) return;
-    if (aoiPolygon.current) aoiPolygon.current.setMap(null);
-    aoiPolygon.current = null;
-    let points: Wgs84Point[] = [];
-    try {
-      points = drawingAoi ? aoiVertices : parseWktPolygon(aoiWkt).slice(0, -1);
-    } catch {
-      points = drawingAoi ? aoiVertices : [];
-    }
-    if (points.length >= 3) {
-      if (aoiPreviewLine.current) aoiPreviewLine.current.setMap(null);
-      aoiPolygon.current = new google.maps.Polygon({
-        paths: points.map(([lng, lat]) => ({ lng, lat })),
-        strokeColor: '#70eee0',
-        strokeOpacity: 0.95,
-        strokeWeight: 3,
-        fillColor: '#51d9cc',
-        fillOpacity: 0.16,
-        clickable: false,
-      });
-      aoiPolygon.current.setMap(map);
-    } else if (points.length > 0) {
-      if (!aoiPreviewLine.current) aoiPreviewLine.current = new google.maps.Polyline({
-        strokeColor: '#70eee0', strokeOpacity: 0.95, strokeWeight: 3,
-      });
-      aoiPreviewLine.current.setPath(points.map(([lng, lat]) => ({ lng, lat })));
-      aoiPreviewLine.current.setMap(map);
-    } else if (aoiPreviewLine.current) {
-      aoiPreviewLine.current.setMap(null);
-    }
-    if (aoiWkt && !drawingAoi) {
-      const bounds = new google.maps.LatLngBounds();
-      points.forEach(([lng, lat]) => bounds.extend({ lng, lat }));
-      if (!bounds.isEmpty()) map.fitBounds(bounds);
-    }
-  }, [mapReady, drawingAoi, aoiVertices, aoiWkt]);
 
   useEffect(() => {
     if (!mapReady) return;
@@ -1288,45 +1113,8 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
 
       <section className="rs-workspace-grid">
         <div className="rs-panel">
-          <div className="rs-section-heading">
-            <div><p className="rs-kicker">01 · DATA DISCOVERY</p><h2>Find NISAR GCOV acquisitions</h2></div>
-            <span className="rs-chip">LIVE ASF CATALOGUE</span>
-          </div>
-          <p className="rs-muted">
-            Draw your AOI, set the observation window and choose Run. RiverShift discovers compatible NASA GCOV acquisitions, selects scenes, dispatches processing and loads the retained outputs automatically. An ASF catalogue preview is optional.
-          </p>
           <form onSubmit={(event) => { event.preventDefault(); void startLiveProcessing(); }} className="rs-form">
-            <section className="rs-aoi-draw" aria-label="Draw study area on the map">
-              <div className="rs-section-heading">
-                <div><p className="rs-kicker">STUDY AREA</p><h3>Draw AOI on satellite map</h3></div>
-              </div>
-              <p className="rs-muted">Search for a river, town, watershed or address in the map search box, select a result to zoom there, then click the map to add AOI boundary vertices in order.</p>
-              <div className="rs-map rs-aoi-map" ref={aoiMapElement} role="application" aria-label="Click-to-draw AOI map" />
-              {mapError && <p className="rs-warning-inline" role="status">{mapError}</p>}
-              {aoiSearchError && <p className="rs-warning-inline" role="status">{aoiSearchError}</p>}
-              {aoiSearchSelection && !aoiSearchError && <p className="rs-info-banner" role="status">Map location: {aoiSearchSelection}. Draw the study polygon around the river reach you want to analyse.</p>}
-              <div className="rs-aoi-controls">
-                <button className="rs-secondary-button" type="button" disabled={!GOOGLE_MAPS_KEY || !mapReady || drawingAoi}
-                  onClick={() => { setAoiError(''); setAoiVertices([]); setDrawingAoi(true); }}>
-                  {drawingAoi ? 'Drawing… click the map' : 'Start drawing'}
-                </button>
-                <button className="rs-secondary-button" type="button" disabled={!drawingAoi || aoiVertices.length < 3} onClick={finishAoiDrawing}>Finish AOI</button>
-                <button className="rs-secondary-button" type="button" onClick={() => { setDrawingAoi(false); setAoiVertices([]); setAoiWkt(''); setAoiError(''); setAoiSearchError(''); setAoiSearchSelection(''); aoiSearchMarker.current?.setMap(null); aoiSearchMarker.current = null; }}>Clear</button>
-                <span>{drawingAoi ? `${aoiVertices.length} vertex/vertices added` : 'Click “Start drawing” to place vertices'}</span>
-              </div>
-              {aoiError && <p className="rs-error" role="alert">{aoiError}</p>}
-              {!GOOGLE_MAPS_KEY && <p className="rs-warning-inline">Set VITE_GOOGLE_MAPS_API_KEY in Frontend/.env.local and restart the frontend to enable the map.</p>}
-            </section>
-            <label className="rs-field rs-field-full">
-              <span>Study area · WGS84 Polygon WKT</span>
-              <textarea value={aoiWkt} onChange={(event) => setAoiWkt(event.target.value)}
-                placeholder="Paste a closed POLYGON ((longitude latitude, ...)) from ASF Vertex."
-                rows={4} required />
-              <small>Coordinates are longitude, latitude. Choose any eligible river reach in the global NISAR L-band observation footprint. Current request limits: one Polygon up to 1,000 km² and a date window up to 366 days. At least four distinct acquisition dates and 90% catalogue-footprint coverage per selected date are required; the worker rechecks actual raster support.</small>
-            </label>
             <div className="rs-fields-two">
-              <label className="rs-field"><span>Start date</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required /></label>
-              <label className="rs-field"><span>End date</span><input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} required /></label>
               <label className="rs-field rs-field-full"><span>Analysis mode</span>
                 <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as typeof analysisMode); if (event.target.value === 'general_scan') setEventDate(''); }}>
                   <option value="general_scan">General River Change Scan</option>
