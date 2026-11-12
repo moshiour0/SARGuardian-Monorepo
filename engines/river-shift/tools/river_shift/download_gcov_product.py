@@ -484,6 +484,41 @@ def _download_via_http_ranges(
     return destination, downloaded
 
 
+def _download_via_authenticated_stream(
+    *, session_factory, url: str, destination: Path, granule_name: str
+) -> tuple[Path, int]:
+    """Download a trusted ASF object when CMR cannot provide an earthaccess granule."""
+    session = session_factory()
+    response = None
+    downloaded = 0
+    try:
+        response = session.get(
+            url,
+            headers={"Accept-Encoding": "identity"},
+            stream=True,
+            allow_redirects=True,
+            timeout=(20, 300),
+        )
+        status = int(getattr(response, "status_code", 0) or 0)
+        if status in {401, 403}:
+            raise RuntimeError(f"Earthdata rejected the exact NISAR download with HTTP status: {status}")
+        if status < 200 or status >= 300:
+            raise RuntimeError(f"ASF returned HTTP status {status} for the exact NISAR download.")
+        with destination.open("wb") as stream:
+            for chunk in response.iter_content(chunk_size=DOWNLOAD_STREAM_CHUNK_BYTES):
+                if chunk:
+                    stream.write(chunk)
+                    downloaded += len(chunk)
+        if downloaded <= 0:
+            raise RuntimeError(f"The authenticated ASF stream returned no bytes for {granule_name}.")
+        return destination, downloaded
+    finally:
+        if response is not None and callable(getattr(response, "close", None)):
+            response.close()
+        if session is not None and callable(getattr(session, "close", None)):
+            session.close()
+
+
 def is_hdf5_file(path: Path) -> bool:
     """Recognize the HDF5 signature, including a permitted user block."""
     with path.open("rb") as stream:
@@ -545,6 +580,7 @@ def download_product(product: dict, output_dir: Path) -> dict:
         "delayed_retry_wave": retry_wave,
         "max_transient_attempts": EARTHDATA_LOGIN_MAX_ATTEMPTS,
     }), flush=True)
+    cmr_lookup_fallback = False
     try:
         auth_mode = _login_with_bounded_retry(earthaccess, retry_wave=retry_wave)
     except Exception as exc:
@@ -593,6 +629,7 @@ def download_product(product: dict, output_dir: Path) -> dict:
                 "NASA CMR exact-granule lookup failed and the accepted manifest has no trusted exact ASF download URL."
             ) from None
         candidates = [product]
+        cmr_lookup_fallback = True
 
     exact_matches = [
         row for row in (candidates or [])
@@ -639,6 +676,26 @@ def download_product(product: dict, output_dir: Path) -> dict:
                 range_metadata=range_metadata,
             )
             download_method = "earthaccess_authenticated_http_range"
+        elif cmr_lookup_fallback:
+            factory = _authenticated_requests_session_factory(earthaccess)
+            if factory is None:
+                raise RuntimeError(
+                    "NASA CMR lookup failed and earthaccess did not provide an authenticated ASF download session."
+                )
+            print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                "stage": "earthaccess_download",
+                "status": "START",
+                "threads": 1,
+                "requested_granule_count": 1,
+                "fallback_reason": "CMR lookup fallback requires direct authenticated ASF stream",
+            }), flush=True)
+            downloaded_path, downloaded_bytes = _download_via_authenticated_stream(
+                session_factory=factory,
+                url=source_url,
+                destination=temporary_dir / f"{expected_name}.h5",
+                granule_name=expected_name,
+            )
+            download_method = "earthaccess_authenticated_http_stream"
         else:
             print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
                 "stage": "earthaccess_download",
