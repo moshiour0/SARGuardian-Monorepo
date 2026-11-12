@@ -1183,7 +1183,7 @@ function loadSubmittedHarmonyJobs(): SubmittedHarmonyLayerJob[] {
   }
 }
 
-export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onShowKnownPlaceResults, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut }: {
+export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onShowKnownPlaceResults, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut, continueLabel, onContinue }: {
   user: User;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   onHome: () => void;
@@ -1202,6 +1202,8 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   onKnownPlaceAnalysis: () => void;
   onShowKnownPlaceResults: () => void;
   onSignOut: () => void;
+  continueLabel?: string;
+  onContinue?: (setup: { aoiWkt: string; startDate: string; endDate: string }) => void;
 }) {
   const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
   const [initialSessionState] = useState(() => {
@@ -1465,6 +1467,14 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   useEffect(() => { displacementNavigating.current = false; }, [isDisplacementPage]);
   const openDisplacements = async () => {
     if (!catalogValidation.valid || catalogInFlightRef.current || displacementNavigating.current || isDisplacementSubmitting) return;
+    if (onContinue) {
+      onContinue({
+        aoiWkt: catalogValidation.payload.aoi_wkt,
+        startDate: catalogValidation.payload.start_date,
+        endDate: catalogValidation.payload.end_date,
+      });
+      return;
+    }
     displacementNavigating.current = true;
     catalogInFlightRef.current = true;
     setIsDisplacementSubmitting(true);
@@ -2601,7 +2611,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
                     </button>
                   ) : (
                     <button className="investigate-button find-displacement-primary" type="button" disabled={!canSubmitCatalogPreflight(catalogValidation, isCatalogLoading) || isDisplacementSubmitting} onClick={() => void openDisplacements()}>
-                      {isDisplacementSubmitting ? 'Starting processing…' : 'Find displacements'}
+                      {isDisplacementSubmitting ? 'Starting processing…' : continueLabel || 'Find displacements'}
                     </button>
                   )}
                 </div>
