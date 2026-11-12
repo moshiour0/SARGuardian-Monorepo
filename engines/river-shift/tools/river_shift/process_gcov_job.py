@@ -1762,23 +1762,59 @@ def _ensure_credentials() -> None:
     _log_worker_stage("river_shift_storage_folder_privacy", "PASS")
 
 
-def _copy_result_files(source_dirs: list[tuple[str, Path]], output_root: Path) -> list[dict[str, str]]:
+def _rewrite_retained_geojson_references(
+    value: Any,
+    compressed_files: dict[str, dict[str, Any]],
+) -> None:
+    """Point copied JSON reports at retained gzip files and bind both checksums."""
+    if isinstance(value, list):
+        for item in value:
+            _rewrite_retained_geojson_references(item, compressed_files)
+        return
+    if not isinstance(value, dict):
+        return
+    for key, item in list(value.items()):
+        if key.endswith("_geojson") and isinstance(item, str):
+            retained = compressed_files.get(Path(item).name)
+            if retained is not None:
+                hash_key = f"{key}_sha256"
+                source_hash = value.get(hash_key)
+                if source_hash is not None and source_hash != retained["source_sha256"]:
+                    raise WorkerFailure(
+                        "RESULT_PACKAGE_ASSEMBLY_FAILED",
+                        f"The {key} source checksum in a retained report does not match its GeoJSON source.",
+                    )
+                value[key] = retained["name"]
+                value[f"{key}_source_sha256"] = retained["source_sha256"]
+                value[hash_key] = retained["sha256"]
+                value[f"{key}_compression"] = "gzip"
+                value[f"{key}_source_bytes"] = retained["source_bytes"]
+                value[f"{key}_retained_bytes"] = retained["bytes"]
+        else:
+            _rewrite_retained_geojson_references(item, compressed_files)
+
+
+def _copy_result_files(source_dirs: list[tuple[str, Path]], output_root: Path) -> list[dict[str, Any]]:
     """Build the retained Drive package, losslessly compressing full GeoJSON layers.
 
     Display previews stay as ordinary small GeoJSON. Full-resolution vector
     outputs are gzip-compressed only in the retained copy; source files used
-    for science and validation are never modified.
+    for science and validation are never modified. Copied reports are updated
+    to point to the compressed files and carry both source and retained hashes.
     """
     output_root.mkdir(parents=True, exist_ok=True)
-    inventory = []
+    inventory: list[dict[str, Any]] = []
     for label, source_dir in source_dirs:
+        retained_dir = output_root / label
+        retained_dir.mkdir(parents=True, exist_ok=True)
+        compressed_files: dict[str, dict[str, Any]] = {}
+        label_inventory: list[dict[str, Any]] = []
         for path in sorted(source_dir.iterdir()):
             if not path.is_file() or path.suffix.lower() not in {".json", ".geojson", ".tif"}:
                 continue
             compress_geojson = path.suffix.lower() == ".geojson" and not path.stem.endswith("_preview")
             retained_name = f"{path.name}.gz" if compress_geojson else path.name
-            destination = output_root / label / retained_name
-            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination = retained_dir / retained_name
             if compress_geojson:
                 with path.open("rb") as source, destination.open("wb") as raw_destination:
                     with gzip.GzipFile(
@@ -1791,17 +1827,49 @@ def _copy_result_files(source_dirs: list[tuple[str, Path]], output_root: Path) -
                         shutil.copyfileobj(source, compressed, length=1024 * 1024)
             else:
                 shutil.copy2(path, destination)
-            entry = {
+            retained_bytes = destination.stat().st_size
+            retained_sha256 = sha256_file(destination)
+            entry: dict[str, Any] = {
                 "path": destination.relative_to(output_root.parent).as_posix(),
-                "sha256": sha256_file(destination),
+                "sha256": retained_sha256,
             }
             if compress_geojson:
+                source_bytes = path.stat().st_size
+                source_sha256 = sha256_file(path)
+                compressed_files[path.name] = {
+                    "name": retained_name,
+                    "bytes": retained_bytes,
+                    "sha256": retained_sha256,
+                    "source_bytes": source_bytes,
+                    "source_sha256": source_sha256,
+                }
                 entry.update({
                     "compression": "gzip",
-                    "source_bytes": path.stat().st_size,
-                    "source_sha256": sha256_file(path),
+                    "source_bytes": source_bytes,
+                    "source_sha256": source_sha256,
                 })
-            inventory.append(entry)
+            label_inventory.append(entry)
+
+        # Reports and source layers are copied together, so update the JSON
+        # references in the retained package only. Science working files are
+        # left byte-for-byte intact.
+        for report_path in sorted(retained_dir.glob("*.json")):
+            try:
+                report = json.loads(report_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise WorkerFailure(
+                    "RESULT_PACKAGE_ASSEMBLY_FAILED",
+                    f"Could not read retained JSON report {report_path.name}: {type(exc).__name__}.",
+                ) from None
+            _rewrite_retained_geojson_references(report, compressed_files)
+            report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+
+        # JSON checksums are calculated after their retained file references
+        # and gzip/source checksum metadata have been rewritten.
+        for entry in label_inventory:
+            retained_path = output_root.parent / entry["path"]
+            entry["sha256"] = sha256_file(retained_path)
+        inventory.extend(label_inventory)
     return inventory
 
 
@@ -2160,7 +2228,7 @@ def run_job(request: dict[str, Any], callbacks: JobCallbacks) -> tuple[dict[str,
     time_report = json.loads((time_dir / "river_shift_timeseries.json").read_text(encoding="utf-8"))
     time_report["selection"] = selection
     time_report["quality"]["warnings"].append(
-        "Any companion *_preview.geojson layers are simplified for web display; use the full GeoJSON result for detailed GIS review."
+        "Companion *_preview.geojson layers are display-only. Full-resolution GeoJSON layers are retained as losslessly compressed .geojson.gz files; decompress them before detailed GIS review."
     )
     time_report_path.write_text(json.dumps(time_report, indent=2), encoding="utf-8")
     preview_layers = create_web_previews(
