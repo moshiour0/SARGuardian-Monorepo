@@ -534,14 +534,15 @@
       "source_path": "migration/source-snapshots/backend-main/tools/river_shift/process_gcov_job.py",
       "destination_path": "engines/river-shift/tools/river_shift/process_gcov_job.py",
       "source_blob_sha": "7e57dc2cb053128aa70833c98af036031b923ff0",
-      "destination_blob_sha": "62e547e0bd4864e1b8d622b8add5b5086632a304",
+      "destination_blob_sha": "a4f79c527c5c2d35d1deaf772eed01940f38141c",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Compress retained full-resolution GeoJSON copies losslessly as deterministic gzip while leaving original science outputs, raster masks, checksums and browser preview files unchanged; reduce display-only preview grid and marker budgets.",
+      "reason": "Compress retained full-resolution GeoJSON copies losslessly as deterministic gzip while leaving original science outputs and masks unchanged. Rewrite retained JSON report paths and checksums to the compressed artifact, preserve decompressed source hashes, and reduce only display-preview grid/marker budgets.",
       "implementation_commits": [
         "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7",
         "d9f2a742aa06b1599baaed5caf2b709051fabcaf",
-        "22591a12daea228ef5409c5fc6314cb64f8f4b44"
+        "22591a12daea228ef5409c5fc6314cb64f8f4b44",
+        "1267dd276891c34d1c07748ab3d7db8c7915828f"
       ],
       "verification_paths": [
         "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
@@ -570,13 +571,15 @@
       "source_path": "migration/source-snapshots/backend-main/tools/river_shift/tests/test_process_gcov_job.py",
       "destination_path": "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
       "source_blob_sha": "fb9de2cb775733caad99294276d9311377f27456",
-      "destination_blob_sha": "f6ee81db0a71243617c17e24112431f19c18d00e",
+      "destination_blob_sha": "ec8813eb14271ef6768d99eea54183757f95cac8",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Verify lossless gzip retention of full GeoJSON, preserve plain display previews and reports, and check source/destination checksum metadata.",
+      "reason": "Verify lossless gzip retention, rewrite full-GeoJSON report references to .geojson.gz, preserve source and compressed checksums/byte counts, and leave previews/reports/masks usable.",
       "implementation_commits": [
         "22591a12daea228ef5409c5fc6314cb64f8f4b44",
-        "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7"
+        "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7",
+        "1267dd276891c34d1c07748ab3d7db8c7915828f",
+        "701e8e333ff3576bcc696232cd8f87057606f529"
       ],
       "verification_paths": [
         "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py"
