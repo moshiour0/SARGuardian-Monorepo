@@ -341,6 +341,19 @@ def _prepare_job(request: dict[str, Any], callbacks: JobCallbacks) -> None:
         note="Each runner downloads and processes one exact granule; the next batch waits for this batch to finish.",
     )
 
+    # Publish the exact GitHub-discovered GCOV/date counts as soon as the
+    # selection is complete. The browser polls the API callback state, so it
+    # can replace "Searching…" before product processing finishes.
+    callbacks.send(
+        "running",
+        "observation_selection",
+        result_summary={
+            "expected_product_count": len(selected_product_names),
+            "verified_product_count": 0,
+            "observation_count": len(dates),
+        },
+    )
+
     callbacks.send("running", "exact_product_download")
     callbacks.send("running", "hdf5_inspection_and_aoi_extraction")
     prepared["callback_sequence"] = callbacks.sequence
@@ -902,10 +915,11 @@ def _report_batch() -> None:
         f"batch_{batch_number:02d}_completed",
         result_summary={
             "batch_number": batch_number,
-            "expected_product_count": len(rows),
+            "expected_product_count": len(prepared["selected_product_names"]),
             "verified_product_count": passed,
             "failed_or_unverifiable_product_count": failed,
             "retry_eligible_count": failed,
+            "observation_count": len(prepared.get("products_by_date", {})),
         },
     )
     _write_output("callback_sequence", str(callbacks.sequence))

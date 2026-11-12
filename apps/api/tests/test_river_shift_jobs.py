@@ -559,6 +559,23 @@ def test_signed_worker_callbacks_advance_only_the_river_shift_job(monkeypatch) -
     assert running.status_code == 200, running.text
     assert running.json()["job_status"] == "running"
 
+    progress = callback({
+        "job_id": job_id,
+        "request_fingerprint": fingerprint,
+        "state": "running",
+        "sequence": 2,
+        "stage": "observation_selection",
+        "github_run_id": "123456789",
+        "github_run_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
+        "result_summary": {
+            "expected_product_count": 8,
+            "verified_product_count": 0,
+            "observation_count": 4,
+        },
+    })
+    assert progress.status_code == 200, progress.text
+    assert store.rows[job_id]["result_summary"]["expected_product_count"] == 8
+
     result_bytes = b"verified RiverShift bytes"
     artifact = {
         "name": "river_change_candidates_preview.geojson",
@@ -572,7 +589,7 @@ def test_signed_worker_callbacks_advance_only_the_river_shift_job(monkeypatch) -
         "job_id": job_id,
         "request_fingerprint": fingerprint,
         "state": "succeeded",
-        "sequence": 2,
+        "sequence": 3,
         "stage": "completed",
         "github_run_id": "123456789",
         "github_run_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
@@ -586,7 +603,7 @@ def test_signed_worker_callbacks_advance_only_the_river_shift_job(monkeypatch) -
     })
     assert succeeded.status_code == 200, succeeded.text
     assert succeeded.json()["job_status"] == "succeeded"
-    assert store.rows[job_id]["callback_sequence"] == 2
+    assert store.rows[job_id]["callback_sequence"] == 3
 
     stale = callback({
         "job_id": job_id,

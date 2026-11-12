@@ -1014,6 +1014,14 @@ async def update_river_shift_job_from_worker(job_id: UUID, request: Request) -> 
         _validate_success_artifacts(payload.artifact_manifest)
         updates["result_summary"] = summary
         updates["artifact_manifest"] = payload.artifact_manifest
+    elif payload.state == "running" and isinstance(payload.result_summary, dict):
+        # Progress callbacks publish discovery/batch counts before the terminal
+        # report exists. Keep the latest fields while retaining counts from
+        # earlier barriers that are not repeated by every callback.
+        previous_summary = record.get("result_summary")
+        merged_summary = dict(previous_summary) if isinstance(previous_summary, dict) else {}
+        merged_summary.update(payload.result_summary)
+        updates["result_summary"] = merged_summary
     elif payload.state == "failed":
         if payload.artifact_manifest is not None:
             raise HTTPException(status_code=409, detail="Failed RiverShift callbacks cannot publish a result artifact manifest.")

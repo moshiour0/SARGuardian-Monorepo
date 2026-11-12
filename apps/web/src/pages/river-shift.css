@@ -14,6 +14,7 @@
 .river-shift-page .processing-details-card dd { color: #000; }
 .river-shift-page .processing-products-card strong.processing-count-pending { color: #000; }
 .river-shift-page .processing-products-card strong.processing-count-pending .processing-searching-word { color: #6b7280; }
+.river-shift-page .processing-searching-word { color: #6b7280 !important; }
 .river-shift-page .processing-copy-button { color: #000; }
 .processing-config-page { width: min(864px, calc(100% - 48px)); }
 .processing-config-card { padding: 0; overflow: hidden; color: #000; }
