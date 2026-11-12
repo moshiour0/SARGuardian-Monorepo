@@ -160,7 +160,7 @@ export function KnownPlaceResultsDashboard({
   }
 
   return (
-    <section className="known-place-results" aria-label="Known Place scientific results dashboard">
+    <section className={`known-place-results${loading ? ' is-loading' : ''}`} aria-label="Known Place scientific results dashboard">
       <div className="known-place-results-heading">
         <div>
           <span className="result-kicker">MEASURED RESULT · GENERIC TWO-POLYGON ANALYSIS</span>
@@ -178,10 +178,10 @@ export function KnownPlaceResultsDashboard({
       </div>
 
       {loading && (
-        <div className="known-place-results-message" role="status" aria-live="polite">
-          <span className="known-place-results-spinner" />
-          <strong>Retrieving and validating the saved measurement bundle…</strong>
-          <p>No NISAR products are being downloaded again. This only reads the completed workflow artifact.</p>
+        <div className="known-place-results-loading" role="status" aria-live="polite">
+          <div className="known-place-results-loading-track" role="progressbar" aria-label="Loading result dashboard">
+            <span />
+          </div>
         </div>
       )}
       {error && !loading && (

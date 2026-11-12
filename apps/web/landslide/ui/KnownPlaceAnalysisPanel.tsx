@@ -625,6 +625,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           </div>
           <div className="known-place-analysis-progress-body">
             <div className="known-place-analysis-timer" style={{ '--known-place-progress': `${analysisProgress.percent}%` } as CSSProperties}>
+              <i className="known-place-analysis-orbit" aria-hidden="true"><b /></i>
               <strong>{analysisProgress.stage}</strong><span>{elapsed}</span>
             </div>
             <div className="known-place-analysis-stepper" aria-label="Known Place analysis progress">
@@ -638,7 +639,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
-        {(!analysisProgress || runTerminal) && <div className="known-place-run-action">
+        {(!analysisProgress || (runTerminal && !runSucceeded)) && <div className="known-place-run-action">
           <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
             {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
           </button>
