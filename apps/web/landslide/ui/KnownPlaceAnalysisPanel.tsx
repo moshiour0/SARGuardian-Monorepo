@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { parsePolygonWkt } from '../engine/investigation';
 import type { User } from 'firebase/auth';
@@ -20,6 +20,29 @@ import {
 type StoredRun = KnownPlaceAnalysisRun & { execute_downloads: boolean; request_fingerprint?: string };
 type VariantOption = { key: string; releaseId: string; processing: string; granules: string[]; latest?: boolean };
 type CatalogSummary = { products: number; releases: number; series: number };
+
+type StoredCatalogState = {
+  requestFingerprint: string;
+  preflightRun: StoredRun | null;
+  releaseIds: string[];
+  variantOptions: VariantOption[];
+  summary: CatalogSummary | null;
+  allowedReleaseIds: string;
+  preferredGranules: string;
+  selectedVariantKey: string;
+};
+
+type StoredAnalysisUiState = {
+  schemaVersion: 1;
+  hazardMode: KnownPlaceHazardMode;
+  analysisMode: KnownPlaceAnalysisMode;
+  polarization: 'HH' | 'HV' | 'VV' | 'VH';
+  track: string;
+  direction: 'ANY' | 'A' | 'D';
+  coherenceNeighbours: '1' | '5' | '10' | '15' | '20' | '25';
+  geometryHeight: string;
+  catalog: StoredCatalogState | null;
+};
 
 type CandidateTransfer = {
   schemaVersion: 'sarguardian-known-place-candidate/1.0';
@@ -70,6 +93,10 @@ const analysisModes: { value: KnownPlaceAnalysisMode; label: string }[] = [
 
 function storageKey(uid: string): string {
   return `sarguardian.knownPlaceAnalysis.v1:${uid}`;
+}
+
+function uiStorageKey(uid: string): string {
+  return `sarguardian.knownPlaceAnalysisUi.v1:${uid}`;
 }
 
 function geometryDraftKey(uid: string): string {
@@ -129,6 +156,20 @@ export function loadKnownPlaceRunRequestId(uid: string): string | null {
   return run?.execute_downloads === true && run.conclusion === 'success' ? run.request_id : null;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function loadKnownPlaceAnalysisUiState(uid: string): StoredAnalysisUiState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(uiStorageKey(uid));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredAnalysisUiState>;
+    if (parsed.schemaVersion !== 1) return null;
+    return parsed as StoredAnalysisUiState;
+  } catch {
+    return null;
+  }
+}
+
 function resultLabel(run: StoredRun): string {
   if (run.status !== 'completed') return run.status === 'dispatching' ? 'Processing' : 'Processing';
   if (run.conclusion === 'success') return 'Complete';
@@ -152,50 +193,66 @@ type ReleaseLookupProgress = {
   tone: 'running' | 'complete' | 'failed';
 };
 
+type AnalysisProgress = ReleaseLookupProgress & { step: number };
+
 function getReleaseLookupProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | null, run: StoredRun | null): ReleaseLookupProgress | null {
   if (pendingAction === 'dry-run') {
     return { percent: 8, stage: 'Starting', detail: 'Sending the catalog request…', tone: 'running' };
   }
   if (!run) return null;
   if (run.status === 'dispatching') {
-    return { percent: 20, stage: 'Starting', detail: 'Finding available releases.', tone: 'running' };
+    return { percent: 20, stage: 'Starting', detail: '', tone: 'running' };
   }
   if (run.status === 'queued') {
     return { percent: 38, stage: 'Queued', detail: '', tone: 'running' };
   }
   if (run.status === 'in_progress') {
     return run.execute_downloads
-      ? { percent: 72, stage: 'Processing', detail: 'Computing the Known Place measurement.', tone: 'running' }
-      : { percent: 72, stage: 'Searching catalog', detail: 'Finding releases and planning a consistent series.', tone: 'running' };
+      ? { percent: 72, stage: 'Processing', detail: '', tone: 'running' }
+      : { percent: 72, stage: 'Searching catalog', detail: '', tone: 'running' };
   }
   if (run.conclusion === 'success') {
-    return { percent: 100, stage: 'Complete', detail: run.execute_downloads ? 'Analysis complete.' : 'Choose an available release below.', tone: 'complete' };
+    return { percent: 100, stage: 'Complete', detail: '', tone: 'complete' };
   }
   if (run.conclusion === 'cancelled') return null;
   return { percent: 100, stage: 'Lookup failed', detail: 'Open the workflow details, then try again.', tone: 'failed' };
 }
 
+function getAnalysisProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | null, run: StoredRun | null): AnalysisProgress | null {
+  if (pendingAction === 'analysis') return { percent: 8, stage: 'Initializing', detail: '', tone: 'running', step: 0 };
+  if (!run || run.execute_downloads !== true) return null;
+  if (run.status === 'dispatching') return { percent: 20, stage: 'Initializing', detail: '', tone: 'running', step: 0 };
+  if (run.status === 'queued') return { percent: 38, stage: 'Processing', detail: '', tone: 'running', step: 1 };
+  if (run.status === 'in_progress') return { percent: 72, stage: 'Processing', detail: '', tone: 'running', step: 1 };
+  if (run.conclusion === 'success') return { percent: 100, stage: 'Complete', detail: '', tone: 'complete', step: 3 };
+  if (run.conclusion === 'cancelled') return { percent: 100, stage: 'Cancelled', detail: '', tone: 'failed', step: 3 };
+  return { percent: 100, stage: 'Failed', detail: '', tone: 'failed', step: 3 };
+}
+
 export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack, onShowResults }: Props) {
-  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
-  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
-  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>('HH');
-  const [track, setTrack] = useState('ANY');
-  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>('ANY');
-  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>('1');
-  const [allowedReleaseIds, setAllowedReleaseIds] = useState('');
-  const [preferredGranules, setPreferredGranules] = useState('');
-  const [selectedVariantKey, setSelectedVariantKey] = useState('');
+  const [storedUiState] = useState<StoredAnalysisUiState | null>(() => loadKnownPlaceAnalysisUiState(user.uid));
+  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>(storedUiState?.hazardMode ?? 'mixed');
+  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>(storedUiState?.analysisMode ?? 'exploratory');
+  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>(storedUiState?.polarization ?? 'HH');
+  const [track, setTrack] = useState(storedUiState?.track ?? 'ANY');
+  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>(storedUiState?.direction ?? 'ANY');
+  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>(storedUiState?.coherenceNeighbours ?? '1');
+  const [allowedReleaseIds, setAllowedReleaseIds] = useState(storedUiState?.catalog?.allowedReleaseIds ?? '');
+  const [preferredGranules, setPreferredGranules] = useState(storedUiState?.catalog?.preferredGranules ?? '');
+  const [selectedVariantKey, setSelectedVariantKey] = useState(storedUiState?.catalog?.selectedVariantKey ?? '');
   const [candidateTransfer] = useState<CandidateTransfer | null>(() => consumeCandidateTransfer());
   const [geometryDraft] = useState<GeometryDraft>(() => loadGeometryDraft(user.uid));
   const measurementWkt = candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '';
   const referenceWkt = geometryDraft.referenceWkt;
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
-  const [geometryHeight, setGeometryHeight] = useState('');
+  const [geometryHeight, setGeometryHeight] = useState(storedUiState?.geometryHeight ?? '');
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | 'cancel' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
-  const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
-  const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
-  const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(null);
+  const [catalogFingerprint, setCatalogFingerprint] = useState(storedUiState?.catalog?.requestFingerprint ?? '');
+  const [catalogPreflightRun, setCatalogPreflightRun] = useState<StoredRun | null>(storedUiState?.catalog?.preflightRun ?? null);
+  const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>(storedUiState?.catalog?.releaseIds ?? []);
+  const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>(storedUiState?.catalog?.variantOptions ?? []);
+  const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(storedUiState?.catalog?.summary ?? null);
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
@@ -238,7 +295,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     confirm_raw_downloads: executeDownloads,
   });
   const currentRequestFingerprint = knownPlaceRequestFingerprint(createAnalysisInput(false));
-  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(run, currentRequestFingerprint);
+  // Persisted runs belong to the exact geometry/date/settings fingerprint that
+  // created them. A changed setup must not resurrect an older completed run.
+  const activeRun = run?.request_fingerprint === currentRequestFingerprint ? run : null;
+  const catalogMatchesCurrentRequest = catalogFingerprint === currentRequestFingerprint;
+  const currentDryRun = activeRun?.execute_downloads === false ? activeRun : null;
+  const catalogEvidenceRun = currentDryRun ?? (catalogMatchesCurrentRequest ? catalogPreflightRun : null);
+  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(catalogEvidenceRun, currentRequestFingerprint);
   const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
@@ -268,8 +331,33 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     try { localStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* local storage is optional */ }
   }, [run, user.uid]);
 
-  const runRequestId = run?.request_id ?? null;
-  const runStatus = run?.status ?? null;
+  useEffect(() => {
+    const catalog: StoredCatalogState | null = catalogFingerprint ? {
+      requestFingerprint: catalogFingerprint,
+      preflightRun: catalogPreflightRun,
+      releaseIds: catalogReleaseIds,
+      variantOptions: catalogVariantOptions,
+      summary: catalogSummary,
+      allowedReleaseIds,
+      preferredGranules,
+      selectedVariantKey,
+    } : null;
+    const uiState: StoredAnalysisUiState = {
+      schemaVersion: 1,
+      hazardMode,
+      analysisMode,
+      polarization,
+      track,
+      direction,
+      coherenceNeighbours,
+      geometryHeight,
+      catalog,
+    };
+    try { localStorage.setItem(uiStorageKey(user.uid), JSON.stringify(uiState)); } catch { /* optional browser storage */ }
+  }, [allowedReleaseIds, analysisMode, catalogFingerprint, catalogPreflightRun, catalogReleaseIds, catalogSummary, catalogVariantOptions, coherenceNeighbours, direction, geometryHeight, hazardMode, polarization, preferredGranules, selectedVariantKey, track, user.uid]);
+
+  const runRequestId = activeRun?.request_id ?? null;
+  const runStatus = activeRun?.status ?? null;
 
   useEffect(() => {
     const requestId = runRequestId;
@@ -299,19 +387,19 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [runRequestId, runStatus, user]);
 
   useEffect(() => {
-    if (!run || run.status !== 'completed' || run.conclusion !== 'success' || run.execute_downloads !== false) {
-      setCatalogReleaseIds([]);
-      setCatalogVariantOptions([]);
-      setCatalogSummary(null);
-      setCatalogReleaseError('');
-      return undefined;
-    }
+    if (!activeRun) return undefined;
+    // Keep the verified release options visible while the subsequent raw
+    // analysis run is processing.
+    if (activeRun.execute_downloads !== false) return undefined;
+    if (activeRun.status !== 'completed' || activeRun.conclusion !== 'success') return undefined;
     let active = true;
+    setCatalogFingerprint(currentRequestFingerprint);
+    setCatalogPreflightRun(activeRun);
     setCatalogReleaseIds([]);
     setCatalogVariantOptions([]);
     setCatalogSummary(null);
     setCatalogReleaseError('');
-    void getKnownPlaceAnalysisResults(run.request_id, user)
+    void getKnownPlaceAnalysisResults(activeRun.request_id, user)
       .then((payload) => {
         if (!active) return;
         const ids = Array.from(new Set(
@@ -382,7 +470,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
       });
     return () => { active = false; };
-  }, [run, user]);
+  }, [activeRun, currentRequestFingerprint, user]);
 
   const submit = async (executeDownloads: boolean) => {
     if (!startDate || !endDate) {
@@ -442,6 +530,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         request_fingerprint: requestFingerprint,
       });
       if (!executeDownloads) {
+        setCatalogFingerprint(requestFingerprint);
+        setCatalogPreflightRun(null);
+        setCatalogReleaseIds([]);
+        setCatalogVariantOptions([]);
+        setCatalogSummary(null);
         setAllowedReleaseIds('');
         setPreferredGranules('');
         setSelectedVariantKey('');
@@ -467,19 +560,24 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     }
   };
 
-  const runTerminal = run?.status === 'completed';
-  const runSucceeded = runTerminal && run?.conclusion === 'success';
-  const runCancelled = runTerminal && run?.conclusion === 'cancelled';
-  const releaseLookupProgress = getReleaseLookupProgress(pendingAction, run);
-  const lookupStarted = lookupStartedAt ?? (run?.created_at ? Date.parse(run.created_at) : null);
-  const lookupFinished = runTerminal && run?.updated_at ? Date.parse(run.updated_at) : null;
+  const runTerminal = activeRun?.status === 'completed';
+  const runSucceeded = runTerminal && activeRun?.conclusion === 'success';
+  const runCancelled = runTerminal && activeRun?.conclusion === 'cancelled';
+  const releaseLookupProgress = useMemo(() => getReleaseLookupProgress(pendingAction, activeRun), [pendingAction, activeRun]);
+  const analysisProgress = useMemo(() => getAnalysisProgress(pendingAction, activeRun), [pendingAction, activeRun]);
+  const catalogSelectionAvailable = catalogMatchesCurrentRequest && Boolean(catalogSummary || catalogReleaseIds.length > 0);
+  const releaseDisplayProgress = useMemo(() => analysisProgress
+    ? (catalogSelectionAvailable ? { percent: 100, stage: 'Release ready', detail: '', tone: 'complete' as const } : null)
+    : releaseLookupProgress, [analysisProgress, catalogSelectionAvailable, releaseLookupProgress]);
+  const lookupStarted = lookupStartedAt ?? (activeRun?.created_at ? Date.parse(activeRun.created_at) : null);
+  const lookupFinished = runTerminal && activeRun?.updated_at ? Date.parse(activeRun.updated_at) : null;
   const elapsed = formatElapsed(lookupStarted, lookupFinished, clock);
 
   useEffect(() => {
-    if (!releaseLookupProgress) return undefined;
+    if (!releaseDisplayProgress && !analysisProgress) return undefined;
     const interval = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(interval);
-  }, [releaseLookupProgress]);
+  }, [releaseDisplayProgress, analysisProgress]);
 
   return (
     <main className="nisar-results-main displacement-preparation known-place-analysis">
@@ -543,12 +641,12 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
               {pendingAction === 'dry-run' ? 'Finding release ID…' : 'Find release ID'}
             </button>
           </div>
-          {releaseLookupProgress && <section className={`known-place-release-progress is-${releaseLookupProgress.tone}`} aria-live="polite">
+          {releaseDisplayProgress && <section className={`known-place-release-progress is-${releaseDisplayProgress.tone}`} aria-live="polite">
               <div className="known-place-status-heading">
                 <h2>Run status</h2>
                 <div className="known-place-status-actions">
-                  {run && run.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
-                  <span className={`known-place-status-chip is-${releaseLookupProgress.tone}`}><i />{run ? resultLabel(run) : 'Processing'}</span>
+                  {activeRun && activeRun.status !== 'completed' && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+                  <span className={`known-place-status-chip is-${releaseDisplayProgress.tone}`}><i />{releaseDisplayProgress.tone === 'complete' ? 'Complete' : activeRun ? resultLabel(activeRun) : 'Processing'}</span>
                 </div>
               </div>
               <div
@@ -557,23 +655,23 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 aria-label="Release ID lookup progress"
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={releaseLookupProgress.percent}
-                aria-valuetext={releaseLookupProgress.stage}
+                aria-valuenow={releaseDisplayProgress.percent}
+                aria-valuetext={releaseDisplayProgress.stage}
               >
-                <i style={{ width: `${releaseLookupProgress.percent}%` }} />
+                <i style={{ width: `${releaseDisplayProgress.percent}%` }} />
               </div>
               <div className="known-place-progress-meta">
-                <span>{runCancelled ? 'Cancelled' : releaseLookupProgress.tone === 'complete' ? 'Complete' : releaseLookupProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
-                <b>{releaseLookupProgress.percent}% · {elapsed}</b>
+                <span>{runCancelled && !analysisProgress ? 'Cancelled' : releaseDisplayProgress.tone === 'complete' ? 'Complete' : releaseDisplayProgress.tone === 'failed' ? 'Failed' : 'Processing'}</span>
+                <b>{releaseDisplayProgress.percent}% · {elapsed}</b>
               </div>
-              {runCancelled ? <p className="known-place-progress-message">Run cancelled.</p> : releaseLookupProgress.tone === 'complete' ? <p className="known-place-progress-message">Select an available release below.</p> : releaseLookupProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseLookupProgress.detail ? <p className="known-place-progress-message">{releaseLookupProgress.detail}</p> : null}
+              {runCancelled && !analysisProgress ? <p className="known-place-progress-message">Run cancelled.</p> : releaseDisplayProgress.tone === 'failed' ? <p className="known-place-progress-message">Release lookup failed. Try again.</p> : releaseDisplayProgress.detail ? <p className="known-place-progress-message">{releaseDisplayProgress.detail}</p> : null}
               {pollError && !runTerminal && <p className="action-hint" role="status">{pollError} Automatic status checks will retry.</p>}
               {catalogSummary && <div className="known-place-catalog-summary" aria-label="Catalog lookup summary">
                 <div><span>Products found</span><strong>{catalogSummary.products}</strong></div>
                 <div><span>Releases</span><strong>{catalogSummary.releases}</strong></div>
                 <div><span>Series planned</span><strong>{catalogSummary.series}</strong></div>
               </div>}
-              {runSucceeded && run?.execute_downloads === false && <div className="known-place-release-results">
+              {catalogSelectionAvailable && <div className="known-place-release-results">
                 <h3>Select a release</h3>
                 {catalogReleaseIds.length > 0 ? <div className="catalog-release-options" role="radiogroup" aria-label="Release and processing variants found by the catalog dry run">
                   {catalogVariantOptions.length > 0 ? catalogVariantOptions.map((option) => <label key={option.key}>
@@ -587,18 +685,38 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
                 </div> : <p className="known-place-release-loading">{catalogReleaseError || 'Loading release IDs from the verified dry-run result…'}</p>}
               </div>}
           </section>}
-          <div className="known-place-consent">
-            <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
-              {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
-            </button>
-          </div>
           {error && <p className="catalog-error" role="alert">{error}</p>}
         </section>
 
-        {runSucceeded && run.execute_downloads && (
+        {analysisProgress && <section className={`known-place-analysis-progress is-${analysisProgress.tone}`} aria-live="polite">
+          <div className="known-place-status-heading">
+            <h2>Run status</h2>
+            <div className="known-place-status-actions">
+              {activeRun && !runTerminal && <button type="button" className="known-place-cancel" disabled={pendingAction !== null} onClick={() => void cancelRun()}>{pendingAction === 'cancel' ? 'Cancelling…' : 'Cancel run'}</button>}
+              <span className={`known-place-status-chip is-${analysisProgress.tone}`}><i />{analysisProgress.tone === 'complete' ? 'Complete' : analysisProgress.tone === 'failed' ? (runCancelled ? 'Cancelled' : 'Failed') : 'Running'}</span>
+            </div>
+          </div>
+          <div className="known-place-analysis-progress-body">
+            <div className="known-place-analysis-timer" style={{ '--known-place-progress': `${analysisProgress.percent}%` } as CSSProperties}>
+              <i className="known-place-analysis-orbit" aria-hidden="true"><b /></i>
+              <strong>{analysisProgress.stage}</strong><span>{elapsed}</span>
+            </div>
+            <div className="known-place-analysis-stepper" aria-label="Known Place analysis progress">
+              {['Initializing', 'Processing', 'Screening', 'Complete'].map((label, index) => <div className={index <= analysisProgress.step ? 'is-active' : ''} key={label}><i /><span>{label}</span></div>)}
+            </div>
+          </div>
+          <div className="known-place-progress-meta"><span>{analysisProgress.stage}</span><b>{analysisProgress.percent}% · {elapsed}</b></div>
+        </section>}
+
+        {runSucceeded && activeRun?.execute_downloads && (
           <button type="button" className="investigate-button known-place-show-results" onClick={onShowResults}>Show result</button>
         )}
         </section>
+        {(!analysisProgress || (runTerminal && !runSucceeded)) && <div className="known-place-run-action">
+          <button type="button" className="investigate-button" disabled={!canSubmitGeometry || !catalogPreflightReady || pendingAction !== null} onClick={() => void submit(true)}>
+            {pendingAction === 'analysis' ? 'Starting GOFF analysis…' : 'Run Known Place Analysis'}
+          </button>
+        </div>}
         <button type="button" className="workspace-nav-link known-place-back" onClick={onBack}>← Back to AOI map</button>
     </main>
   );

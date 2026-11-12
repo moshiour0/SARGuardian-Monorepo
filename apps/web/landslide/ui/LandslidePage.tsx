@@ -1219,7 +1219,13 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [coordinates, setCoordinates] = useState<Coordinate[]>(initialSessionState.coordinates);
   const [areaClosed, setAreaClosed] = useState(initialSessionState.areaClosed);
   const [drawing, setDrawing] = useState(initialSessionState.drawing);
-  const [initialKnownPlaceGeometry] = useState(() => isKnownPlaceSetupPage ? loadKnownPlaceGeometryDraft(user.uid) : { measurement: [], reference: [] });
+  // Setup and analysis are two views of the same Known Place draft. Loading
+  // the draft only on the map route meant that returning from the results
+  // page mounted the analysis route with empty polygons; navigating back to
+  // the map then persisted those empty values over the user's saved draft.
+  const [initialKnownPlaceGeometry] = useState(() => sessionScope === 'known-place'
+    ? loadKnownPlaceGeometryDraft(user.uid)
+    : { measurement: [], reference: [] });
   const [measurementCoordinates, setMeasurementCoordinates] = useState<Coordinate[]>(initialKnownPlaceGeometry.measurement);
   const [referenceCoordinates, setReferenceCoordinates] = useState<Coordinate[]>(initialKnownPlaceGeometry.reference);
   const [measurementClosed, setMeasurementClosed] = useState(initialKnownPlaceGeometry.measurement.length >= 3);

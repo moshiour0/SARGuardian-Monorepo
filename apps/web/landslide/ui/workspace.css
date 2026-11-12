@@ -732,7 +732,8 @@
 .landslide-route-shell .known-place-analysis .known-place-run-options,
 .landslide-route-shell .known-place-analysis .known-place-release-finder,
 .landslide-route-shell .known-place-analysis .known-place-release-progress,
-.landslide-route-shell .known-place-analysis .known-place-consent {
+.landslide-route-shell .known-place-analysis .known-place-consent,
+.landslide-route-shell .known-place-analysis .known-place-run-action {
   margin: 0;
   border: 1px solid rgba(255, 255, 255, .7);
   border-radius: 28px;
@@ -837,6 +838,7 @@
 .landslide-route-shell .known-place-release-finder { display: grid; gap: 14px; padding: 22px 24px 0; }
 .landslide-route-shell .known-place-analysis .known-place-find-release,
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button,
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button,
 .landslide-route-shell .known-place-analysis .known-place-show-results {
   min-height: 48px;
   border: 0;
@@ -850,6 +852,7 @@
 .landslide-route-shell .known-place-analysis .known-place-find-release { width: fit-content; min-width: 170px; margin: 0; padding: 0 24px; }
 .landslide-route-shell .known-place-analysis .known-place-find-release:hover:not(:disabled),
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button:hover:not(:disabled),
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button:hover:not(:disabled),
 .landslide-route-shell .known-place-analysis .known-place-show-results:hover:not(:disabled) {
   background: linear-gradient(180deg, #38a8f6, #0878d1);
 }
@@ -888,24 +891,6 @@
 }
 .known-place-cancel:hover:not(:disabled) { background: rgba(255, 235, 232, .9); }
 .known-place-cancel:disabled { cursor: wait; opacity: .65; }
-
-/* Keep the run action below the release/status toaster as a standalone control. */
-.landslide-route-shell .known-place-analysis .known-place-run-options {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.landslide-route-shell .known-place-analysis .known-place-run-options > .known-place-release-finder,
-.landslide-route-shell .known-place-analysis .known-place-run-options > .known-place-release-progress {
-  border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, .42);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .92), 0 14px 40px -16px rgba(30, 65, 95, .32);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-}
 .known-place-status-heading h2 { margin: 0; color: var(--known-ink); font-size: 20px; }
 .known-place-status-chip {
   display: inline-flex;
@@ -981,6 +966,70 @@
 .known-place-release-results .catalog-release-options label > small { color: var(--known-muted); font-size: 12px; font-weight: 500; }
 .known-place-release-loading { margin: 0; color: var(--known-muted); font-size: 13px; }
 @keyframes known-place-progress-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.known-place-analysis-progress {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 24px 26px;
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 28px;
+  background: rgba(255,255,255,.42);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 14px 40px -16px rgba(30,65,95,.32);
+  color: var(--known-ink);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+.known-place-analysis-progress.is-complete { border-color: rgba(29,158,106,.58); }
+.known-place-analysis-progress.is-failed { border-color: rgba(194,65,45,.62); }
+.known-place-analysis-progress-body { display: grid; justify-items: center; gap: 20px; }
+.known-place-analysis-timer { position: relative;
+  display: grid;
+  place-items: center;
+  width: min(238px, 52vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(from 220deg, var(--known-blue) var(--known-place-progress), rgba(255,255,255,.55) 0);
+  box-shadow: inset 0 0 0 14px rgba(255,255,255,.8), 0 10px 28px -16px rgba(10,132,224,.7);
+  text-align: center;
+}
+.known-place-analysis-timer::after { content: ''; position: absolute; width: calc(min(238px, 52vw) - 26px); aspect-ratio: 1; border-radius: 50%; background: rgba(245,250,252,.92); }
+.known-place-analysis-orbit {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.known-place-analysis-orbit b {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(255,255,255,.95);
+  border-radius: 50%;
+  background: var(--known-cyan);
+  box-shadow: 0 0 0 4px rgba(10,132,224,.18), 0 0 16px rgba(73,205,224,.9);
+}
+.known-place-analysis-progress.is-running .known-place-analysis-orbit {
+  opacity: 1;
+  animation: known-place-analysis-orbit 1.65s linear infinite;
+}
+@keyframes known-place-analysis-orbit { to { transform: rotate(360deg); } }
+.known-place-analysis-timer strong, .known-place-analysis-timer span { position: relative; z-index: 1; }
+.known-place-analysis-timer strong { max-width: 140px; color: var(--known-ink); font-size: clamp(20px, 3vw, 30px); line-height: 1.05; }
+.known-place-analysis-timer span { margin-top: -48px; color: var(--known-ink); font-size: 16px; font-variant-numeric: tabular-nums; }
+.known-place-analysis-stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
+.known-place-analysis-stepper > div { position: relative; display: grid; justify-items: center; gap: 8px; color: var(--known-muted); font-size: 12px; font-weight: 700; text-align: center; }
+.known-place-analysis-stepper > div:not(:last-child)::after { position: absolute; top: 7px; left: 50%; width: 100%; height: 3px; background: rgba(255,255,255,.6); content: ''; }
+.known-place-analysis-stepper > div.is-active { color: var(--known-ink); }
+.known-place-analysis-stepper > div.is-active:not(:last-child)::after { background: linear-gradient(90deg, var(--known-blue), var(--known-cyan)); }
+.known-place-analysis-stepper i { position: relative; z-index: 1; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,.9); border-radius: 50%; background: rgba(255,255,255,.68); }
+.known-place-analysis-stepper > div.is-active i { border-color: var(--known-cyan); background: var(--known-blue); box-shadow: 0 0 0 3px rgba(10,132,224,.16); }
+.known-place-analysis-progress.is-complete .known-place-analysis-stepper > div.is-active i { border-color: #1d9e6a; background: #1d9e6a; }
+.known-place-analysis-progress.is-failed .known-place-analysis-stepper > div.is-active i { border-color: #c2412d; background: #c2412d; }
 .landslide-route-shell .known-place-analysis .known-place-consent {
   margin: 0;
   padding: 22px 24px;
@@ -990,6 +1039,11 @@
 .landslide-route-shell .known-place-analysis .known-place-consent b { color: var(--known-ink); }
 .landslide-route-shell .known-place-analysis .known-place-consent input { accent-color: var(--known-blue); }
 .landslide-route-shell .known-place-analysis .known-place-consent .investigate-button { width: 100%; }
+.landslide-route-shell .known-place-analysis .known-place-run-action {
+  margin-top: 18px;
+  padding: 16px 20px;
+}
+.landslide-route-shell .known-place-analysis .known-place-run-action .investigate-button { width: 100%; }
 .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 24px 26px; }
 .landslide-route-shell .known-place-analysis .known-place-run-status p,
 .landslide-route-shell .known-place-analysis .known-place-run-status code { color: var(--known-ink); }
@@ -1024,6 +1078,7 @@
   .landslide-route-shell .known-place-analysis .known-place-release-finder,
   .landslide-route-shell .known-place-analysis .known-place-release-progress,
   .landslide-route-shell .known-place-analysis .known-place-consent,
+  .landslide-route-shell .known-place-analysis .known-place-run-action,
   .landslide-route-shell .known-place-analysis .known-place-run-status { border-radius: 22px; }
   .landslide-route-shell .known-place-analysis .known-place-release-progress,
   .landslide-route-shell .known-place-analysis .known-place-run-status { padding: 20px 18px; }
@@ -1036,7 +1091,9 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .known-place-release-progress.is-running .known-place-progress-track i::after { animation: none; }
+  .known-place-analysis-progress.is-running .known-place-analysis-orbit { animation: none; }
   .known-place-progress-track i { transition: none; }
+  .known-place-analysis-timer { transition: none; }
   .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary,
   .landslide-route-shell .known-place-analysis .known-place-additional-settings > summary::before,
   .landslide-route-shell .known-place-analysis .known-place-additional-settings > .known-place-form-grid { transition: none; }
