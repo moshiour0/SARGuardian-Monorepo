@@ -678,19 +678,31 @@ def download_product(product: dict, output_dir: Path) -> dict:
             "status": "START",
         }), flush=True)
         try:
-            candidates = earthaccess.search_data(
+            # Do not reuse earthaccess.search_data() here: when earthaccess has an
+            # authenticated Auth object, search_data() binds its CMR query to that
+            # authenticated session. The public CMR granule metadata endpoint can
+            # return the exact UMM record without EDL authentication, and this avoids
+            # turning a valid raw CMR hit into a false processing failure when the
+            # user's EDL password session cannot query CMR.
+            data_granules_factory = getattr(earthaccess, "DataGranules", None)
+            if not callable(data_granules_factory):
+                raise RuntimeError("earthaccess.DataGranules is unavailable.")
+            public_query = data_granules_factory().parameters(
                 concept_id=[cmr_concept_id],
                 downloadable=True,
-                count=2,
             )
+            candidates = public_query.get(2)
         except Exception as resolve_exc:
             print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
                 "stage": "cmr_concept_id_resolution",
                 "status": "FAIL",
+                "query_session": "unauthenticated_public_cmr",
                 "error_type": type(resolve_exc).__name__,
+                "error_message": _safe_error_message(resolve_exc),
             }), flush=True)
             raise RuntimeError(
-                "NASA CMR exact result could not be resolved to an earthaccess DataGranule."
+                "NASA CMR exact result could not be resolved to an earthaccess DataGranule; "
+                "see the sanitized cmr_concept_id_resolution diagnostic above."
             ) from None
 
         resolved_exact_matches = [
