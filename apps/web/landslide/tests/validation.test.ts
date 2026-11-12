@@ -97,6 +97,8 @@ describe('Landslide investigation contract', () => {
     const coordinates = [[0, 0], [0.2, 0], [0.2, 0.2], [0, 0.2]] as [number, number][];
     expect(validateCatalogPreflight({ coordinates, areaClosed: true, startDate: '2026-08-15', endDate: '2026-08-01', today: '2026-10-15' }).errors.join(' ')).toContain('on or after');
     expect(validateCatalogPreflight({ coordinates, areaClosed: true, startDate: '2026-01-01', endDate: '2026-04-02', today: '2026-10-15' }).errors.join(' ')).toContain('90 days');
+    expect(validateCatalogPreflight({ coordinates, areaClosed: true, startDate: '2025-10-15', endDate: '2026-10-15', today: '2026-10-15', maxWindowDays: 365 }).valid).toBe(true);
+    expect(validateCatalogPreflight({ coordinates, areaClosed: true, startDate: '2025-10-14', endDate: '2026-10-15', today: '2026-10-15', maxWindowDays: 365 }).errors.join(' ')).toContain('365 days');
     expect(validateCatalogPreflight({ coordinates, areaClosed: true, startDate: '2026-08-01', endDate: '2026-08-15', today: '2026-10-15', maxAreaKm2: 1 }).errors.join(' ')).toContain('maximum allowed area');
   });
 

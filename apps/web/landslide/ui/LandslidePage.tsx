@@ -1235,8 +1235,22 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   const [referenceClosed, setReferenceClosed] = useState(initialKnownPlaceGeometry.reference.length >= 3);
   const [polygonDrawingRole, setPolygonDrawingRole] = useState<'measurement' | 'reference' | null>(null);
   const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
-  const [windowStart, setWindowStart] = useState(initialSessionState.windowStart);
-  const [windowEnd, setWindowEnd] = useState(initialSessionState.windowEnd);
+  const [windowStart, setWindowStart] = useState(() => {
+    if (initialSessionState.windowStart) return initialSessionState.windowStart;
+    if (sessionScope === 'river-shift') {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - 365);
+      return d.toISOString().slice(0, 10);
+    }
+    return '';
+  });
+  const [windowEnd, setWindowEnd] = useState(() => {
+    if (initialSessionState.windowEnd) return initialSessionState.windowEnd;
+    if (sessionScope === 'river-shift') {
+      return new Date().toISOString().slice(0, 10);
+    }
+    return '';
+  });
   const [result, setResult] = useState<InvestigationResult | null>(null);
   const [error, setError] = useState('');
   const [layerOpen, setLayerOpen] = useState(false);
@@ -1442,6 +1456,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   }, []);
 
   const today = new Date().toISOString().slice(0, 10);
+  const maxWindowDays = sessionScope === 'river-shift' ? 365 : 90;
   const polygonAreaKm2 = coordinates.length > 2 ? calculateGeodesicAreaKm2(coordinates) : 0;
   const catalogValidation = prepareInvestigation({
     coordinates,
@@ -1450,6 +1465,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     startDate: windowStart,
     endDate: windowEnd,
     today,
+    maxWindowDays,
   });
   // Keep field-level AOI/date feedback available even when prepareInvestigation
   // short-circuits on an incomplete date pair.
@@ -1459,6 +1475,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
     startDate: windowStart,
     endDate: windowEnd,
     today,
+    maxWindowDays,
   });
   const fieldValidationErrors = fieldValidation.valid ? [] : fieldValidation.errors;
   const selectionKey = JSON.stringify([coordinates, areaClosed, windowStart, windowEnd, location]);
@@ -2437,7 +2454,7 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
         isArchivePage
         hideProfile
         showPageTitle
-        pageTitle={isKnownPlaceSetupPage ? 'Known Place Analysis' : 'Find displacement'}
+        pageTitle={sessionScope === 'river-shift' ? 'River Shift' : isKnownPlaceSetupPage ? 'Known Place Analysis' : 'Find displacement'}
       />
 
       <main className="map-main">
