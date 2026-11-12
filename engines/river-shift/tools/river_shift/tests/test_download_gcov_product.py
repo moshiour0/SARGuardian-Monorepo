@@ -116,6 +116,12 @@ class RangedFakeEarthaccess(FakeEarthaccess):
         return FakeRangeSession(self)
 
 
+class CmrLookupFailingRangedEarthaccess(RangedFakeEarthaccess):
+    def search_data(self, **kwargs):
+        del kwargs
+        raise RuntimeError("simulated temporary CMR lookup failure")
+
+
 def _exact_range_catalogue_row():
     return {
         **_catalogue_row(),
@@ -210,6 +216,17 @@ def test_download_refuses_ambiguous_exact_cmr_matches(monkeypatch, tmp_path):
     with pytest.raises(RuntimeError, match="did not return exactly one"):
         download_product(_catalogue_row(), tmp_path)
 
+    assert fake.download_calls == []
+
+
+def test_download_falls_back_to_the_accepted_trusted_manifest_url_when_cmr_lookup_fails(monkeypatch, tmp_path):
+    fake = CmrLookupFailingRangedEarthaccess()
+    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
+
+    result = download_product(_exact_range_catalogue_row(), tmp_path)
+
+    assert result["download_method"] == "earthaccess_authenticated_http_range"
+    assert (tmp_path / f"{GRANULE}.h5").is_file()
     assert fake.download_calls == []
 
 

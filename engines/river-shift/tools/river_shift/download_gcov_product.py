@@ -582,15 +582,24 @@ def download_product(product: dict, output_dir: Path) -> dict:
     except Exception as exc:
         print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
             "stage": "exact_cmr_granule_lookup",
-            "status": "FAIL",
+            "status": "FALLBACK",
             "error_type": type(exc).__name__,
+            "error_message": _safe_error_message(exc),
+            "fallback": "accepted_manifest_download_url",
         }), flush=True)
-        raise RuntimeError("NASA CMR exact-granule lookup failed.") from None
+        manifest_url = product.get("download_url")
+        if not _is_trusted_nisar_url(manifest_url, expected_name):
+            raise RuntimeError(
+                "NASA CMR exact-granule lookup failed and the accepted manifest has no trusted exact ASF download URL."
+            ) from None
+        candidates = [product]
 
     exact_matches = [
         row for row in (candidates or [])
         if _earthaccess_granule_name(row) == expected_name
     ]
+    if exact_matches == [] and candidates == [product]:
+        exact_matches = [product]
     if len(exact_matches) != 1:
         print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
             "stage": "exact_cmr_granule_lookup",
