@@ -83,7 +83,7 @@ The selected series has a real observation gap between 24 July and 17 August. AS
 
 - [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo) — promoted application, API and RiverShift engine source.
 - [Monorepo Snapshot Regression run 43243267939](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/43243267939) — **20/20 jobs passed**, including the promoted RiverShift engine tests (276 passed), archived OPERA reference tests (20 passed) and RiverShift worker tests (259 passed).
-- [Full SARGuardian submission pack](../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) — project story, workflow boundaries, run evidence, score projection and demo storyboard.
+- [Full SARGuardian submission pack](../../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) — project story, workflow boundaries, run evidence, score projection and demo storyboard.
 
 Regression tests verify software contracts, processing gates and reproducibility. They are not a substitute for independent geophysical validation.
 
@@ -114,7 +114,7 @@ An independent score is published only when the reference source, temporal match
 
 1. Read this brief for the global product proposition and operating envelope.
 2. Open the [live RiverShift application](https://sar-guardian-dynamic-lilac.vercel.app) and inspect the world-centred AOI workflow (the current production alias may require the latest Vercel deployment before these UI changes are visible).
-3. Read the [final SARGuardian submission pack](../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for the public story, latest 10-product live run and demo sequence.
+3. Read the [final SARGuardian submission pack](../../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for the public story, latest 10-product live run and demo sequence.
 4. Read the [full judge guide](NASA_SPACE_APPS_2026_JUDGE_GUIDE.md) for methods, data roles, QA, validation protocol and Run #36 evidence.
 5. Inspect the [Monorepo RiverShift engine](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/engines/river-shift/tools/river_shift) and [application source](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/apps/web) for implementation details.
 
