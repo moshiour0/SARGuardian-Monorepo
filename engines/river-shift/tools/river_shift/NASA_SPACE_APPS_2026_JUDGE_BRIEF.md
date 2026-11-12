@@ -11,7 +11,7 @@ The Jamuna–Chowhali run is the concrete demonstration case. It is not a countr
 ## Why global applicability is technically grounded
 
 - NASA lists NISAR coverage as **Global** and L-band data acquisitions as global, with a nominal 12-day exact repeat cycle: [NASA Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/).
-- ASF reports L-band data collection over nearly all global landmasses since August 2025. PROVISIONAL L-band products are being released for acquisitions from 17 June 2026 onward: [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/).
+- ASF's current availability guide records PROVISIONAL L-band products (P05023) for acquisitions beginning 17 June 2026 through part of 23 October 2026, and VALIDATED L-band Level 0–2 products for acquisitions beginning 21 October 2026, released on 6 November 2026: [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/). The selected Run #25 series uses the earlier PROVISIONAL period.
 - RiverShift submits the user's WGS84 polygon and date range to NASA CMR; it does not use a Bangladesh-only catalogue query or substitute a built-in Jamuna AOI: [catalogue discovery implementation](https://github.com/moshiour0/SARGuardian-backend/blob/main/tools/river_shift/discover_gcov_products.py).
 - The request is geospatially parameterised; AOI and date window are supplied per job: [Dynamic AOI/catalogue implementation](https://github.com/moshiour0/SARGuardian_Dynamic/blob/main/Backend/app/river_shift.py) and [RiverShift job implementation](https://github.com/moshiour0/SARGuardian_Dynamic/blob/main/Backend/app/river_shift_jobs.py).
 
@@ -56,18 +56,36 @@ These are explainable screening indicators. They are not automatically field-con
 
 ## Demonstrated evidence
 
-**Retained Jamuna example — Run #36:** [processing run](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163).
+### Current live end-to-end run — Run #25 (12 November 2026)
+
+[Open the successful RiverShift Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660).
+
+- AOI case: Jamuna–Chowhali demonstration request.
+- Ten exact NISAR L2 GCOV PROVISIONAL P05023 granules were processed at ten actual acquisition dates: 18 June, 30 June, 12 July, 24 July, 17 August, 29 August, 10 September, 22 September, 4 October and 16 October 2026.
+- All **10/10 first-attempt product worker jobs passed**; the whole workflow completed with 24 successful jobs and 6 intentionally skipped jobs, with no failed jobs.
+- Detailed worker logs show authenticated product retrieval, HTTP 206 range support, native HDF5 inspection, requested-layer validation, AOI raster extraction and product-artifact preparation.
+- Ten date rasters passed assembly and shared-grid alignment; the 10-product source-provenance manifest passed validation.
+- The result manifest validated **72 output entries**. Private result publication passed with 73 publication receipts, followed by successful final assembly and signed callback.
+- This proves the selected AOI/date request completed. It does not prove universal coverage, field-confirmed erosion/deposition, flood causality or an independent accuracy score.
+
+The selected series has a real observation gap between 24 July and 17 August. ASF documents an instrument data gap from 27 July to 10 August 2026; RiverShift does not interpolate missing dates.
+
+### Historical retained Jamuna reproducibility case — Run #36
+
+[Open the historical Run #36 processing evidence](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163).
 
 - Six actual NISAR GCOV acquisition dates: 30 June–10 September 2026.
-- Reported provisional screening areas: 17.6721 km² newly water-covered candidate; 1,244.230 ha persistent erosion candidate; 5,078.140 ha persistent deposition candidate.
+- Historical provisional screening areas: 17.6721 km² newly water-covered candidate; 1,244.230 ha persistent erosion candidate; 5,078.140 ha persistent deposition candidate.
 - Six retained source-COG SHA-256 values matched their sidecars in the retrospective replay; all three reported areas were reproduced.
-- Full-resolution mask-overlap diagnostics and shared-grid preview geometry QA are recorded separately.
-- This is reproducibility and internal QA evidence. The Run #36 independent-reference workflow returned **NO_MATCH_NO_SCORE / PROVISIONAL**; no F1/IoU or field-accuracy claim is made for that run.
+- The historical independent OPERA DSWx-S1 reference review returned **NO_MATCH_NO_SCORE / PROVISIONAL**. No F1/IoU or field-accuracy claim is made for that run.
 
-**Code and regression evidence:**
-- [Dynamic frontend repository](https://github.com/moshiour0/SARGuardian_Dynamic) — global-first AOI interface, catalogue preflight, map layers, result explorer and local exposure-context tools.
-- [Backend scientific worker](https://github.com/moshiour0/SARGuardian-backend/tree/main/tools/river_shift) — NISAR CMR discovery, GCOV selection, processing, provenance, overlap QA and validation tools.
-- Documented mainline CI evidence includes 155 passing frontend tests and 259 passing RiverShift worker tests. These verify software contracts, processing gates and reproducibility; they are not a substitute for independent geophysical validation.
+### Code and regression evidence
+
+- [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo) — promoted application, API and RiverShift engine source.
+- [Monorepo Snapshot Regression run 43243267939](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/43243267939) — **20/20 jobs passed**, including the promoted RiverShift engine tests (276 passed), archived OPERA reference tests (20 passed) and RiverShift worker tests (259 passed).
+- [Full SARGuardian submission pack](../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) — project story, workflow boundaries, run evidence, score projection and demo storyboard.
+
+Regression tests verify software contracts, processing gates and reproducibility. They are not a substitute for independent geophysical validation.
 
 ## Where the rubric evidence lives
 
@@ -96,9 +114,9 @@ An independent score is published only when the reference source, temporal match
 
 1. Read this brief for the global product proposition and operating envelope.
 2. Open the [live RiverShift application](https://sar-guardian-dynamic-lilac.vercel.app) and inspect the world-centred AOI workflow (the current production alias may require the latest Vercel deployment before these UI changes are visible).
-3. Read the [project-page draft](NASA_SPACE_APPS_2026_PROJECT_PAGE_DRAFT.md) for the public story and Jamuna case study.
+3. Read the [final SARGuardian submission pack](../../../docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for the public story, latest 10-product live run and demo sequence.
 4. Read the [full judge guide](NASA_SPACE_APPS_2026_JUDGE_GUIDE.md) for methods, data roles, QA, validation protocol and Run #36 evidence.
-5. Inspect the [worker code](https://github.com/moshiour0/SARGuardian-backend/tree/main/tools/river_shift) and [Dynamic integration](https://github.com/moshiour0/SARGuardian_Dynamic/tree/main/Frontend/src/pages/RiverShiftPage.tsx) for implementation details.
+5. Inspect the [Monorepo RiverShift engine](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/engines/river-shift/tools/river_shift) and [application source](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/apps/web) for implementation details.
 
 ## Core references
 
