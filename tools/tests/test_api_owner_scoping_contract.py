@@ -10,8 +10,10 @@ class RecordingQuery:
     def __init__(self, table_name: str) -> None:
         self.table_name = table_name
         self.filters: list[tuple[str, object]] = []
+        self.columns: str | None = None
 
-    def select(self, _columns: str) -> "RecordingQuery":
+    def select(self, columns: str) -> "RecordingQuery":
+        self.columns = columns
         return self
 
     def eq(self, column: str, value: object) -> "RecordingQuery":
@@ -64,6 +66,7 @@ def test_every_user_facing_job_read_filters_by_firebase_owner_uid() -> None:
         ("river_shift_jobs", lambda: store.list_river_shift_jobs(owner_uid)),
         ("river_shift_jobs", lambda: store.list_active_river_shift_jobs(owner_uid)),
         ("river_shift_jobs", lambda: store.get_river_shift_job(owner_uid, job_id)),
+        ("river_shift_jobs", lambda: store.get_river_shift_job_status(owner_uid, job_id)),
     ]
 
     for expected_table, read in owner_reads:
@@ -74,4 +77,12 @@ def test_every_user_facing_job_read_filters_by_firebase_owner_uid() -> None:
             f"{expected_table} owner-facing read omitted owner_uid={owner_uid}"
         )
 
-    assert len(client.queries) == len(owner_reads) == 13
+    assert len(client.queries) == len(owner_reads) == 14
+
+    status_query = client.queries[-1]
+    assert status_query.columns is not None
+    assert "*" not in status_query.columns
+    assert "request_snapshot" not in status_query.columns
+    assert "manifest_snapshot" not in status_query.columns
+    assert "result_summary" not in status_query.columns
+    assert "artifact_manifest" not in status_query.columns
