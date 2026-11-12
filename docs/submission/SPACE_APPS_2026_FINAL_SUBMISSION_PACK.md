@@ -237,7 +237,7 @@ The local score sheet supplied for this project totals **118 points before its c
 | Validity | 20 | **16** | Exact granule provenance, HDF5/layer gates, shared-grid alignment and live end-to-end success are demonstrated; independent physical validation remains incomplete for the retained Jamuna reference window. |
 | Relevance | 20 | **19** | NISAR is the primary measurement source across the product's central workflows; the application is directly aligned to Dancing with the SARs. |
 | Presentation | 20 | **15** | The narrative and evidence pack are prepared, and the team has supplied a demo-video file; its playback, audio, scientific claims and final public link have not been independently reviewed. Recorded first-time-user tests are also not included. |
-| Teamwork | 5 | **4** | Named roles and responsibilities are documented; the official project page and collaboration evidence still need final confirmation. |
+| Teamwork | 5 | **4** | Four complementary workstreams are documented, including the River Shift prototype-to-core-engine integration hand-off; member confirmation and the official project-page record are still needed before claiming fully verified collaboration. |
 | User experience | 5 | **3** | The user journey and map-first workflow are defined; independent first-use and mobile/keyboard test records are not included here. |
 | NASA data usage | 5 | **5** | NISAR products drive the analysis and provenance; the data role is explicit and separated from basemaps/context. |
 | Challenge category identified | 1 | **1** | “Dancing with the SARs” and “Earth Science” are explicit. |
