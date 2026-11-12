@@ -28,6 +28,18 @@ function loadRiverShiftSetup(): RiverShiftSetup | null {
   }
 }
 
+function riverShiftSignature(aoiWkt: string, startDate: string, endDate: string): string {
+  return `${aoiWkt.trim().replace(/\s+/g, ' ').replace(/\s*([(),])\s*/g, '$1').toUpperCase()}|${startDate}|${endDate}`;
+}
+
+function setupForJob(job: RiverShiftJob): RiverShiftSetup {
+  return { aoiWkt: job.aoi_wkt, startDate: job.start_date, endDate: job.end_date };
+}
+
+function signaturesMatch(setup: RiverShiftSetup | null, job: RiverShiftJob | null): boolean {
+  return Boolean(setup && job && riverShiftSignature(setup.aoiWkt, setup.startDate, setup.endDate) === riverShiftSignature(job.aoi_wkt, job.start_date, job.end_date));
+}
+
 const activeRiverShiftStates = new Set(['queued', 'dispatching', 'running']);
 
 type RiverShiftSettings = {
@@ -123,9 +135,9 @@ export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retryi
       </section>
 
       <section className="processing-card processing-products-card" aria-label="River Shift processing counters">
-        <div><span>GCOV</span><strong className={expectedProducts === null ? 'processing-count-pending' : ''}>{expectedProducts ?? (active ? 'Searching…' : '—')}</strong></div>
-        <div><span>Verified</span><strong className={verifiedProducts === null ? 'processing-count-pending' : ''}>{verifiedProducts ?? (active ? 'Searching…' : '—')}</strong></div>
-        <div><span>Dates</span><strong className={observations === null ? 'processing-count-pending' : ''}>{observations ?? (active ? 'Searching…' : '—')}</strong></div>
+        <div><span>GCOV</span><strong className={expectedProducts === null ? 'processing-count-pending' : ''}>{expectedProducts ?? (active ? <span className="processing-searching-word">Searching…</span> : '—')}</strong></div>
+        <div><span>Verified</span><strong className={verifiedProducts === null ? 'processing-count-pending' : ''}>{verifiedProducts ?? (active ? <span className="processing-searching-word">Searching…</span> : '—')}</strong></div>
+        <div><span>Dates</span><strong className={observations === null ? 'processing-count-pending' : ''}>{observations ?? (active ? <span className="processing-searching-word">Searching…</span> : '—')}</strong></div>
       </section>
 
       <section className="processing-card processing-details-card" aria-label="River Shift task details">
@@ -160,6 +172,7 @@ function RiverShiftSettingsPanel({
   error,
   startDate,
   endDate,
+  runDisabled,
 }: {
   settings: RiverShiftSettings;
   onChange: (next: Partial<RiverShiftSettings>) => void;
@@ -169,6 +182,7 @@ function RiverShiftSettingsPanel({
   error: string;
   startDate: string;
   endDate: string;
+  runDisabled?: boolean;
 }) {
   return (
     <main className="displacement-preparation processing-page processing-config-page">
@@ -190,22 +204,37 @@ function RiverShiftSettingsPanel({
         </details>
         <div className="processing-config-summary"><span>Dates</span><strong>{startDate} – {endDate}</strong><small>River-wide GCOV screening</small></div>
         {error && <p className="processing-error" role="alert">{error}</p>}
+        {runDisabled && <p className="processing-config-note">This polygon and date window are already processing below.</p>}
         <div className="processing-page-actions processing-config-actions">
           <button type="button" className="processing-ghost-button" onClick={onBack}>Back to AOI</button>
-          <button type="button" className="processing-primary-button" disabled={busy} onClick={onRun}>{busy ? 'Starting River Shift...' : 'Run River Shift'}</button>
+          <button type="button" className="processing-primary-button" disabled={busy || runDisabled} onClick={onRun}>{busy ? 'Starting River Shift...' : 'Run River Shift'}</button>
         </div>
       </section>
     </main>
   );
 }
 
+function RiverShiftSignatureConflict({ onStartNew, onKeepCurrent, busy }: { onStartNew: () => void; onKeepCurrent: () => void; busy: boolean }) {
+  return (
+    <div className="processing-confirmation-backdrop" role="presentation">
+      <section className="processing-confirmation processing-signature-dialog" role="dialog" aria-modal="true" aria-labelledby="river-shift-signature-title">
+        <h2 id="river-shift-signature-title">Another River Shift is running</h2>
+        <p>Starting a new River Shift will cancel the old processing run. Keep the current run to continue with its original polygon and dates.</p>
+        <button type="button" className="processing-primary-button" disabled={busy} onClick={onStartNew}>{busy ? 'Cancelling old run...' : 'Start new River Shift'}</button>
+        <button type="button" className="processing-dialog-cancel" disabled={busy} onClick={onKeepCurrent}>Keep current run</button>
+      </section>
+    </div>
+  );
+}
+
 export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut, onBack, onViewResults }: Props) {
-  const [setup] = useState(() => loadRiverShiftSetup());
+  const [setup, setSetup] = useState(() => loadRiverShiftSetup());
   const [settings, setSettings] = useState<RiverShiftSettings>(defaultRiverShiftSettings);
   const [riverJob, setRiverJob] = useState<RiverShiftJob | null>(null);
   const [riverJobLoading, setRiverJobLoading] = useState(true);
   const [riverJobBusy, setRiverJobBusy] = useState(false);
   const [riverJobCancelling, setRiverJobCancelling] = useState(false);
+  const [signatureConflict, setSignatureConflict] = useState(false);
   const [riverJobError, setRiverJobError] = useState('');
   const retryPending = useRef(false);
   const [clock, setClock] = useState(() => Date.now());
@@ -223,31 +252,41 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     async function initialize() {
       const pendingRun = window.sessionStorage.getItem('sarguardian.riverShiftPendingRun') === 'true'
         || window.sessionStorage.getItem('sarguardian.riverShiftPendingDispatch') === 'true';
-      if (pendingRun && setup?.aoiWkt && setup.startDate && setup.endDate) {
-        setRiverJob(null);
-        setRiverJobLoading(false);
-        return;
-      }
-
       try {
         const storedActiveId = window.sessionStorage.getItem('sarguardian.riverShiftActiveJobId');
+        let existing: RiverShiftJob | null = null;
         if (storedActiveId) {
           try {
-            const existing = await getRiverShiftJob(storedActiveId, user);
-            if (!cancelled && existing) {
-              setRiverJob(existing);
-              setRiverJobLoading(false);
-              return;
-            }
+            existing = await getRiverShiftJob(storedActiveId, user);
           } catch {
             // fallback to list
           }
         }
-        const jobs = await listRiverShiftJobs(user, 10);
+        if (!existing) {
+          const jobs = await listRiverShiftJobs(user, 10);
+          existing = jobs[0] || null;
+          if (existing) window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', existing.id);
+        }
         if (!cancelled) {
-          if (jobs.length) {
-            setRiverJob(jobs[0]);
-            window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', jobs[0].id);
+          if (pendingRun && setup?.aoiWkt && setup.startDate && setup.endDate) {
+            if (existing && activeRiverShiftStates.has(existing.state)) {
+              setRiverJob(existing);
+              if (signaturesMatch(setup, existing)) {
+                window.sessionStorage.removeItem('sarguardian.riverShiftPendingRun');
+                window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
+              } else {
+                setSignatureConflict(true);
+              }
+            } else {
+              setRiverJob(null);
+            }
+          } else if (existing) {
+            setRiverJob(existing);
+            if (!setup || activeRiverShiftStates.has(existing.state)) {
+              const restoredSetup = setupForJob(existing);
+              setSetup(restoredSetup);
+              window.sessionStorage.setItem(RIVER_SHIFT_SETUP_STORAGE_KEY, JSON.stringify(restoredSetup));
+            }
           }
           setRiverJobLoading(false);
         }
@@ -283,6 +322,11 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
   const startLiveProcessing = async () => {
     if (!user || !setup) {
       setRiverJobError('Return to the AOI page and choose a valid study area first.');
+      return;
+    }
+    if (riverJob && activeRiverShiftStates.has(riverJob.state)) {
+      if (signaturesMatch(setup, riverJob)) return;
+      setSignatureConflict(true);
       return;
     }
     if (settings.analysisMode === 'event_based' && (!settings.eventDate || settings.eventDate < setup.startDate || settings.eventDate > setup.endDate)) {
@@ -361,6 +405,34 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     }
   };
 
+  const startNewRiverShift = async () => {
+    if (!user || !riverJob || !activeRiverShiftStates.has(riverJob.state) || riverJobCancelling) return;
+    setRiverJobCancelling(true);
+    setRiverJobError('');
+    try {
+      await cancelRiverShiftJob(riverJob.id, user);
+      window.sessionStorage.removeItem('sarguardian.riverShiftActiveJobId');
+      setRiverJob(null);
+      setSignatureConflict(false);
+      setRiverJobError('The previous River Shift run was cancelled. Review the new signature and press Run River Shift.');
+    } catch (error) {
+      setRiverJobError(error instanceof Error ? error.message : 'Could not cancel the previous River Shift processing.');
+    } finally {
+      setRiverJobCancelling(false);
+    }
+  };
+
+  const keepCurrentRiverShift = () => {
+    if (!riverJob) return;
+    const oldSetup = setupForJob(riverJob);
+    setSetup(oldSetup);
+    window.sessionStorage.setItem(RIVER_SHIFT_SETUP_STORAGE_KEY, JSON.stringify(oldSetup));
+    window.sessionStorage.removeItem('sarguardian.riverShiftPendingRun');
+    window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
+    setSignatureConflict(false);
+    setRiverJobError('');
+  };
+
   const handleBackToMap = () => {
     window.sessionStorage.removeItem('sarguardian.riverShiftPendingRun');
     window.sessionStorage.removeItem('sarguardian.riverShiftPendingDispatch');
@@ -387,39 +459,42 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
 
       {riverJobLoading ? (
         <ProcessingPageSkeleton />
-      ) : riverJob ? (
-        <RiverShiftJobStatus
-          job={riverJob}
-          clock={clock}
-          retrying={riverJobBusy}
-          cancelling={riverJobCancelling}
-          onCancel={() => void cancelRiverShift()}
-          onBack={handleBackToMap}
-          onRetry={() => void retryRiverShift()}
-          onViewResults={() => {
-            window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id);
-            onViewResults?.();
-          }}
-        />
-      ) : setup ? (
-        <RiverShiftSettingsPanel
-          settings={settings}
-          onChange={(next) => setSettings((current) => ({ ...current, ...next }))}
-          onRun={() => void startLiveProcessing()}
-          busy={riverJobBusy}
-          onBack={handleBackToMap}
-          error={riverJobError}
-          startDate={setup.startDate}
-          endDate={setup.endDate}
-        />
       ) : (
-        <main className="displacement-preparation" style={{ width: 'min(720px, calc(100% - 32px))', margin: '40px auto' }}>
-          <section className="processing-card processing-load-error" role="alert">
-            <p>{riverJobError || 'No River Shift AOI is ready. Return to the map to choose a study area.'}</p>
-            <button type="button" className="processing-ghost-button" onClick={handleBackToMap}>Back to AOI</button>
-          </section>
-        </main>
+        <>
+          {setup && <RiverShiftSettingsPanel
+            settings={settings}
+            onChange={(next) => setSettings((current) => ({ ...current, ...next }))}
+            onRun={() => void startLiveProcessing()}
+            busy={riverJobBusy}
+            onBack={handleBackToMap}
+            error={riverJobError}
+            startDate={setup.startDate}
+            endDate={setup.endDate}
+            runDisabled={Boolean(riverJob && signaturesMatch(setup, riverJob) && activeRiverShiftStates.has(riverJob.state))}
+          />}
+          {riverJob && <RiverShiftJobStatus
+            job={riverJob}
+            clock={clock}
+            retrying={riverJobBusy}
+            cancelling={riverJobCancelling}
+            onCancel={() => void cancelRiverShift()}
+            onBack={handleBackToMap}
+            onRetry={() => void retryRiverShift()}
+            onViewResults={() => {
+              window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id);
+              onViewResults?.();
+            }}
+          />}
+          {!setup && !riverJob && <main className="displacement-preparation" style={{ width: 'min(720px, calc(100% - 32px))', margin: '40px auto' }}>
+            <section className="processing-card processing-load-error" role="alert">
+              <p>{riverJobError || 'No River Shift AOI is ready. Return to the map to choose a study area.'}</p>
+              <button type="button" className="processing-ghost-button" onClick={handleBackToMap}>Back to AOI</button>
+            </section>
+          </main>}
+        </>
       )}
+
+      {signatureConflict && riverJob && <RiverShiftSignatureConflict onStartNew={() => void startNewRiverShift()} onKeepCurrent={keepCurrentRiverShift} busy={riverJobCancelling} />}
 
       {riverJob && riverJobError && (
         <section className="rs-panel rs-job-feedback" aria-live="assertive" style={{ width: 'min(720px, calc(100% - 32px))', margin: '16px auto 0' }}>

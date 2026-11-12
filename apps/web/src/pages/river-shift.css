@@ -2,8 +2,9 @@
 .river-shift-page:has(.processing-page) { --processing-ink: #000; --processing-muted: #000; --processing-accent: #087bd3; }
 .river-shift-page .displacement-preparation.processing-page,
 .river-shift-page .displacement-preparation.processing-page-skeleton { width: min(864px, calc(100% - 48px)); }
-.river-shift-page .processing-hero { padding: 32px 30px 28px; color: #000; }
-.river-shift-page .processing-orbit { width: 288px; height: 288px; }
+.river-shift-page .displacement-preparation.processing-page { padding: 18px 0 24px; }
+.river-shift-page .processing-hero { padding: 24px 26px 22px; color: #000; }
+.river-shift-page .processing-orbit { width: 260px; height: 260px; margin-top: 16px; margin-bottom: 20px; }
 .river-shift-page .processing-status-chip,
 .river-shift-page .processing-stepper,
 .river-shift-page .processing-safe-note,
@@ -12,7 +13,7 @@
 .river-shift-page .processing-details-card dt,
 .river-shift-page .processing-details-card dd { color: #000; }
 .river-shift-page .processing-products-card strong.processing-count-pending { color: #000; }
-.river-shift-page .processing-products-card .processing-searching-word { color: #6b7280; }
+.river-shift-page .processing-products-card strong.processing-count-pending .processing-searching-word { color: #6b7280; }
 .river-shift-page .processing-copy-button { color: #000; }
 .processing-config-page { width: min(864px, calc(100% - 48px)); }
 .processing-config-card { padding: 0; overflow: hidden; color: #000; }
@@ -31,6 +32,8 @@
 .processing-config-summary small { color: #516477; font-size: 12px; }
 .processing-config-actions { justify-content: space-between; margin: 0; padding: 18px 28px 24px; }
 .processing-config-actions .processing-ghost-button { color: #152c43; }
+.processing-config-note { margin: 0 28px; padding: 11px 14px; border-radius: 14px; background: rgba(255, 255, 255, .34); color: #526476; font-size: 13px; line-height: 1.4; }
+.processing-signature-dialog { width: min(430px, 100%); }
 .river-shift-page .processing-cancel-button { min-height: 48px; padding: 0 20px; border: 1px solid rgba(190, 48, 48, .25); border-radius: 999px; background: rgba(255, 235, 235, .58); color: #a82828; font: 750 14px/1 inherit; cursor: pointer; }
 .river-shift-page .processing-cancel-button:disabled { cursor: wait; opacity: .55; }
 .river-shift-page .claude-nav-title { display: block; }
