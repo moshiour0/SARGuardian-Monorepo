@@ -12,8 +12,8 @@ The Jamuna–Chowhali run is the concrete demonstration case. It is not a countr
 
 - NASA lists NISAR coverage as **Global** and L-band data acquisitions as global, with a nominal 12-day exact repeat cycle: [NASA Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/).
 - ASF's current availability guide records PROVISIONAL L-band products (P05023) for acquisitions beginning 17 June 2026 through part of 23 October 2026, and VALIDATED L-band Level 0–2 products for acquisitions beginning 21 October 2026, released on 6 November 2026: [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/). The selected Run #25 series uses the earlier PROVISIONAL period.
-- RiverShift submits the user's WGS84 polygon and date range to NASA CMR; it does not use a Bangladesh-only catalogue query or substitute a built-in Jamuna AOI: [catalogue discovery implementation](https://github.com/moshiour0/SARGuardian-backend/blob/main/tools/river_shift/discover_gcov_products.py).
-- The request is geospatially parameterised; AOI and date window are supplied per job: [Dynamic AOI/catalogue implementation](https://github.com/moshiour0/SARGuardian_Dynamic/blob/main/Backend/app/river_shift.py) and [RiverShift job implementation](https://github.com/moshiour0/SARGuardian_Dynamic/blob/main/Backend/app/river_shift_jobs.py).
+- RiverShift submits the user's WGS84 polygon and date range to NASA CMR; it does not use a Bangladesh-only catalogue query or substitute a built-in Jamuna AOI: [catalogue discovery implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/engines/river-shift/tools/river_shift/discover_gcov_products.py).
+- The request is geospatially parameterised; AOI and date window are supplied per job: [Dynamic AOI/catalogue implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift.py) and [RiverShift job implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift_jobs.py).
 
 **Inspect the mission footprint directly:** [ASF/NISAR Reference Observation Plan — interactive global acquisition map](https://experience.arcgis.com/experience/6052a864cd01459393884a7f751558e3) · [ASF Data Search — NISAR PROVISIONAL L-band products](https://search.asf.alaska.edu/) · [ASF data availability and global footprint explanation](https://nisar-docs.asf.alaska.edu/availability-overview/).
 
@@ -73,7 +73,7 @@ The selected series has a real observation gap between 24 July and 17 August. AS
 
 ### Historical retained Jamuna reproducibility case — Run #36
 
-[Open the historical Run #36 processing evidence](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163).
+[Open the historical Run #36 processing evidence](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660).
 
 - Six actual NISAR GCOV acquisition dates: 30 June–10 September 2026.
 - Historical provisional screening areas: 17.6721 km² newly water-covered candidate; 1,244.230 ha persistent erosion candidate; 5,078.140 ha persistent deposition candidate.
@@ -116,7 +116,7 @@ An independent score is published only when the reference source, temporal match
 1. Read this brief for the global product proposition and operating envelope.
 2. Open the [live RiverShift application](https://sar-guardian-dynamic-lilac.vercel.app) and inspect the world-centred AOI workflow (the current production alias may require the latest Vercel deployment before these UI changes are visible).
 3. Read the [final SARGuardian submission pack](SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for the public story, latest 10-product live run and demo sequence.
-4. Read the [full judge guide](NASA_SPACE_APPS_2026_JUDGE_GUIDE.md) for methods, data roles, QA, validation protocol and Run #36 evidence.
+4. Read the [full judge guide](../../engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_GUIDE.md) for methods, data roles, QA, validation protocol and Run #36 evidence.
 5. Inspect the [Monorepo RiverShift engine](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/engines/river-shift/tools/river_shift) and [application source](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/apps/web) for implementation details.
 
 ## Core references
