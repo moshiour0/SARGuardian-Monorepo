@@ -1,4 +1,5 @@
 from datetime import date
+import gzip
 import json
 from netrc import netrc
 import stat
@@ -8,6 +9,7 @@ from shapely.geometry import Polygon, mapping
 
 from process_gcov_job import (
     WorkerFailure,
+    _copy_result_files,
     event_observation_timing,
     _configure_earthdata_credentials,
     _ensure_credentials,
@@ -474,3 +476,64 @@ def test_event_observation_timing_rejects_same_day_or_pre_event_acquisition():
             date(2026, 7, 28), {"event_proximal_observation": "2026-07-28"}
         )
     assert error.value.code == "EVENT_WINDOW_INVALID"
+
+
+
+def test_retained_full_geojson_is_lossless_gzip_while_preview_and_other_outputs_stay_plain(tmp_path):
+    source_dir = tmp_path / "source"
+    output_root = tmp_path / "work" / "outputs"
+    source_dir.mkdir(parents=True)
+
+    full_payload = (
+        b'{"type":"FeatureCollection","features":['
+        + b'{"type":"Feature","properties":{"class":"erosion"},"geometry":{"type":"Point","coordinates":[90.0,24.0]}},' * 5000
+        + b']}'
+    )
+    preview_payload = b'{"type":"FeatureCollection","features":[],"river_shift_preview":{"status":"DISPLAY_ONLY"}}'
+    source_geojson_sha256 = __import__("hashlib").sha256(full_payload).hexdigest()
+    report_payload = json.dumps({
+        "schema_version": 1,
+        "engine": "RiverShift",
+        "outputs": {
+            "erosion_geojson": "erosion_candidates.geojson",
+            "erosion_geojson_sha256": source_geojson_sha256,
+        },
+    }).encode("utf-8")
+    mask_payload = b"validated raster bytes"
+
+    (source_dir / "erosion_candidates.geojson").write_bytes(full_payload)
+    (source_dir / "erosion_candidates_preview.geojson").write_bytes(preview_payload)
+    (source_dir / "river_shift_result.json").write_bytes(report_payload)
+    (source_dir / "erosion_candidate_mask.tif").write_bytes(mask_payload)
+
+    inventory = _copy_result_files([("morphology", source_dir)], output_root)
+
+    compressed_path = output_root / "morphology" / "erosion_candidates.geojson.gz"
+    assert compressed_path.is_file()
+    assert gzip.decompress(compressed_path.read_bytes()) == full_payload
+    assert compressed_path.stat().st_size < len(full_payload)
+    assert not (output_root / "morphology" / "erosion_candidates.geojson").exists()
+
+    assert (output_root / "morphology" / "erosion_candidates_preview.geojson").read_bytes() == preview_payload
+    retained_report_path = output_root / "morphology" / "river_shift_result.json"
+    retained_report = json.loads(retained_report_path.read_text(encoding="utf-8"))
+    erosion_ref = retained_report["outputs"]
+    assert erosion_ref["erosion_geojson"] == "erosion_candidates.geojson.gz"
+    assert erosion_ref["erosion_geojson_compression"] == "gzip"
+    assert erosion_ref["erosion_geojson_source_sha256"] == source_geojson_sha256
+    assert erosion_ref["erosion_geojson_sha256"] == __import__("hashlib").sha256(compressed_path.read_bytes()).hexdigest()
+    assert erosion_ref["erosion_geojson_source_bytes"] == len(full_payload)
+    assert erosion_ref["erosion_geojson_retained_bytes"] == compressed_path.stat().st_size
+    assert sha256_file(retained_report_path) == next(
+        item["sha256"] for item in inventory if item["path"].endswith("river_shift_result.json")
+    )
+    assert (output_root / "morphology" / "erosion_candidate_mask.tif").read_bytes() == mask_payload
+
+    compressed_receipt = next(
+        item for item in inventory if item["path"].endswith("erosion_candidates.geojson.gz")
+    )
+    assert compressed_receipt["compression"] == "gzip"
+    assert compressed_receipt["source_bytes"] == len(full_payload)
+    assert compressed_receipt["source_sha256"] == __import__("hashlib").sha256(full_payload).hexdigest()
+    assert compressed_receipt["sha256"] == sha256_file(compressed_path)
+    assert not any(item["path"].endswith("erosion_candidates.geojson") for item in inventory)

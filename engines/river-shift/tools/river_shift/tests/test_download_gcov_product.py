@@ -76,8 +76,6 @@ class FakeRangeSession:
 
     def get(self, url, *, headers, stream, allow_redirects, timeout):
         del url, stream, allow_redirects, timeout
-        if "Range" not in headers:
-            return FakeRangeResponse(status_code=200, payload=self.owner.payload)
         value = headers["Range"]
         start, end = (int(item) for item in value.removeprefix("bytes=").split("-", 1))
         key = (start, end)
@@ -116,12 +114,6 @@ class RangedFakeEarthaccess(FakeEarthaccess):
 
     def get_requests_https_session(self):
         return FakeRangeSession(self)
-
-
-class CmrLookupFailingRangedEarthaccess(RangedFakeEarthaccess):
-    def search_data(self, **kwargs):
-        del kwargs
-        raise RuntimeError("simulated temporary CMR lookup failure")
 
 
 def _exact_range_catalogue_row():
@@ -218,29 +210,6 @@ def test_download_refuses_ambiguous_exact_cmr_matches(monkeypatch, tmp_path):
     with pytest.raises(RuntimeError, match="did not return exactly one"):
         download_product(_catalogue_row(), tmp_path)
 
-    assert fake.download_calls == []
-
-
-def test_download_falls_back_to_the_accepted_trusted_manifest_url_when_cmr_lookup_fails(monkeypatch, tmp_path):
-    fake = CmrLookupFailingRangedEarthaccess()
-    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
-
-    result = download_product(_exact_range_catalogue_row(), tmp_path)
-
-    assert result["download_method"] == "earthaccess_authenticated_http_range"
-    assert (tmp_path / f"{GRANULE}.h5").is_file()
-    assert fake.download_calls == []
-
-
-def test_cmr_lookup_fallback_streams_when_asf_does_not_support_ranges(monkeypatch, tmp_path):
-    fake = CmrLookupFailingRangedEarthaccess()
-    fake.range_supported = False
-    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
-
-    result = download_product(_exact_range_catalogue_row(), tmp_path)
-
-    assert result["download_method"] == "earthaccess_authenticated_http_stream"
-    assert (tmp_path / f"{GRANULE}.h5").read_bytes() == fake.payload
     assert fake.download_calls == []
 
 

@@ -1,0 +1,547 @@
+{
+  "schema_version": "source-import-provenance/1.0",
+  "engine": "river-shift",
+  "source_repository": "https://github.com/moshiour0/SARGuardian-Monorepo",
+  "source_ref": "refs/heads/main",
+  "source_commit_sha": "c1ef8549dfd409107afc3cbf46dca6c4c27a797a",
+  "import_date": "2026-11-12",
+  "transformation": "Listed files copied as exact Git blob bytes. Shared persistence RiverShift declarations copied verbatim; unrelated local methods preserved. Retry adapter is a separate local addition.",
+  "changed_content_paths": [
+    "apps/api/app/river_shift_jobs.py",
+    "apps/api/tests/test_river_shift_jobs.py",
+    "engines/river-shift/tools/river_shift/download_gcov_product.py",
+    "engines/river-shift/tools/river_shift/process_gcov_job.py",
+    "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py",
+    "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
+    "engines/river-shift/tools/river_shift/tests/test_raster_first_previews.py"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/river-shift-gcov-process.yml",
+      "source_blob_sha": "e5dc6ae68c3effba0392c3fb766f77ea5a61c1bd",
+      "sha256": "986f554ee7a73ae70fca4d32dab5ab05fdf67b5f4f893bc1a0b555527994e728"
+    },
+    {
+      "path": ".github/workflows/river-shift-independent-reference-validation.yml",
+      "source_blob_sha": "e6f7b1d11a06af7cb8d3917811083098401244dd",
+      "sha256": "64ec6181ec5aed5fe0fa2fc24ba366a2236d3fa4638755063fd410305ad15511"
+    },
+    {
+      "path": ".github/workflows/river-shift-opera-dswx-s1-retained-replay.yml",
+      "source_blob_sha": "6695ed392bd8d9e3bf50a2b3a3962140f79f4f9d",
+      "sha256": "23fd005e79dc7581271a655e6f2dea1e0c0fb757f9bc778bd6f9717b64eb6b2e"
+    },
+    {
+      "path": ".github/workflows/river-shift-run36-retrospective-replay.yml",
+      "source_blob_sha": "095283a287b1e11754be36c493dc621c88852aa2",
+      "sha256": "0debb0bdf2f314675578143108b46950182861eba24d3938071a0311a92da427"
+    },
+    {
+      "path": ".github/workflows/river-shift-sentinel2-retained-replay.yml",
+      "source_blob_sha": "5e971f9142ca1bbd9c32a49c47f6d9f9252119c6",
+      "sha256": "d8639c95fdb670e7f7b42517394dd3b6baf18d102f97399a7c13373dcd4b75e7"
+    },
+    {
+      "path": "apps/api/app/river_shift.py",
+      "source_blob_sha": "466c3dddbd84d52a6252a06710da71ffaade6cca",
+      "sha256": "b0bcfb04f638d4c8245b56756545e106d64cfdd9e1917347b65f30d97b1ea453"
+    },
+    {
+      "path": "apps/api/app/river_shift_jobs.py",
+      "source_blob_sha": "da350ed750446606c938d314b2642863990c32c9",
+      "sha256": "ab0649aa5d98f5fdcfbc625ab8d581ee38e9bb8db80ed0e00635cd8b71d0b3dd"
+    },
+    {
+      "path": "apps/api/tests/test_river_shift_catalog.py",
+      "source_blob_sha": "f2bdcb20604fc3e01892ba76f6d20c99bc312318",
+      "sha256": "d631178507f1b701acff2a37ab2537a62e9183ca821d15479ca03dde413ce4d5"
+    },
+    {
+      "path": "apps/api/tests/test_river_shift_jobs.py",
+      "source_blob_sha": "8580fbe9343187bb253b1f5dc5f6db3d7b1cff70",
+      "sha256": "69463d25c32bf8605521cd7e14814b35fb9e9ae741b9671a9dd6217e22feef4b"
+    },
+    {
+      "path": "engines/river-shift/.github/workflows/river-shift-gcov-process.yml",
+      "source_blob_sha": "1720bc68ffb286d22caf48e94433301c8053a1a3",
+      "sha256": "de8bea22b19dee8b0aee6dfe71f6836288afc33993af55a6ffc829798ebd5697"
+    },
+    {
+      "path": "engines/river-shift/.github/workflows/river-shift-independent-reference-validation.yml",
+      "source_blob_sha": "adc1fd557885f4274cef29dc06a67d18ffe60903",
+      "sha256": "e1cbee5aacfe907bc3c839fa3aff5db34ff93df43e84950198d6ea8650fa0844"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_BRIEF.md",
+      "source_blob_sha": "e18b2b920c44b12699c34c44f7a80bc69d76a629",
+      "sha256": "0d03705abc7c063fc1ba34db807aeaf2cc45eb46efbf9bacd9959447ed7841da"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_GUIDE.md",
+      "source_blob_sha": "89c64fb6c12659a73df552a77d4865568d3cfb54",
+      "sha256": "ecf55613143aabaffde411a1ee7bed38228cea3f60c71682eef05d50dc3a135a"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_PROJECT_PAGE_DRAFT.md",
+      "source_blob_sha": "37ba1c3b428c16cb57bacd183c04cf213dc953cc",
+      "sha256": "fd12cb5556419a66e40b30dd75e8a62c5208d21d1d6ba3046ae065663bd58d1b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README.md",
+      "source_blob_sha": "7a374d4e3ffac296440a1b1469d637252535c302",
+      "sha256": "e8f9a591bc48d0fedd9b62142d2086fe8459228439999f7f069a188134528508"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_01_discover_gcov_products.md",
+      "source_blob_sha": "073568157f9a4514500be8d7c3cead9f79ef7350",
+      "sha256": "344e05a978340922765b95d8747cf6a61f181dab991bd19ca44ffc45c1830dc5"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_02_download_gcov_product.md",
+      "source_blob_sha": "727737948819ddd20f504a5bfdd6a25e9eb249dd",
+      "sha256": "67452eb2b47e4755ad1e7b1d97ce60d6dde964d6c050c0dc94a40ba614552a18"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_03_inspect_gcov_product.md",
+      "source_blob_sha": "f90954a4b93aae0cfa2b30bf4340bde9b9455e2e",
+      "sha256": "a3bf41954f96e7838c0a8892c72bd9632e891483877d025a4189ce36479872d2"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_04_export_gcov_layer.md",
+      "source_blob_sha": "d3f22ad3bcac6429f9482930541df4f818acb1ac",
+      "sha256": "1f03dd593863ad19cbbfd5a422a9b98a0874603cd9b164e9b6f284074d0eb34c"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_05_run_flood_analysis.md",
+      "source_blob_sha": "2d9da6936683916de4770cf0acc12b37335eeb1d",
+      "sha256": "a4dc257eebe7d9ca441fe12360bc16702db38420355471479af336266505cfd1"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_06_run_morphology_analysis.md",
+      "source_blob_sha": "8ca0b7e3f3a6100fa4e134a23b9a212515a09fe2",
+      "sha256": "2976c2378edee05a92b180accdbc8ed58ee761d0ecad57148ac6fe53c878aa5e"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_07_validate_water_classification.md",
+      "source_blob_sha": "92f0c6349817ffc4ebee7785965836d2849297f2",
+      "sha256": "3c4055f054a731519c9bdbc6b18f82c2ee90098e6b6acd48588403e8bb645ac9"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/README_11_validate_with_sentinel2.md",
+      "source_blob_sha": "4efb6971e5471b36529db9cf4d4fc331a9cb9d7b",
+      "sha256": "e1ccd9922ecff7c9f2b4b027d6f10c75641f3bad3266ad4a191e61017eccd2ca"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/audit_gcov_acquisitions.py",
+      "source_blob_sha": "3c617f5f4850051a550e9eda8d850c1841ec6ab6",
+      "sha256": "a142769c84681cee239234a0f494026e629bfff2ce3dd66a845c558876eb1685"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/batched_gcov_job.py",
+      "source_blob_sha": "7e34e1b762c8d0ac3257ba5e98637a738ff4176c",
+      "sha256": "050e7b170e234201da9a063c80dd30d2a8479c88664fb37e892db170cabce866"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/discover_gcov_products.py",
+      "source_blob_sha": "aa06c3cc41047d92a6a804cd8441cc30397d0fde",
+      "sha256": "4da94254699674d34db850b4072c9aada6e6f1076756a7882ed209ad5795eda9"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/docs/INDEPENDENT_REFERENCE_VALIDATION_RUNBOOK.md",
+      "source_blob_sha": "ec1f6c4d983453d2f28b045570bc80565673fc0f",
+      "sha256": "a278943701f155a4977e58823ed38b42442d01fc939946346cd1d62a59fb153d"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/docs/RIVERSHIFT_FINAL_READINESS_AND_VALIDATION_GAPS.md",
+      "source_blob_sha": "4715e42920e8e43d849f472be7c62bf6f189cbd2",
+      "sha256": "bf81ccf32cad930c2db65e84515ea49a79789d34b75890f8bc15d8e51592f98f"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/docs/SCIENTIFIC_VALIDATION_AND_OVERLAY_QA.md",
+      "source_blob_sha": "5162cf51fe616469836ce038279fb245deff80cd",
+      "sha256": "4f6047cf2265be32c56d20885f8a5e262798b75ffc203502d669e19d07f2741f"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/download_gcov_product.py",
+      "source_blob_sha": "80d21e13a5cd90b3f4f20d5095e6c27a79bef980",
+      "sha256": "701ef7544ebf7540aebfccb4b8fdc788f4d41c66cc76403e66c28f9865db7fc4"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/drive_upload_adapter.py",
+      "source_blob_sha": "5a3b0be509a7a1f67f0bb98a7ca40fb7d9c6da29",
+      "sha256": "8fe66e56bdf2035e2f26e1a44d477ce624fcebb664792854e925c5a7fefb6c46"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/environment.yml",
+      "source_blob_sha": "f75182746701f28bd928ae18d39362e225af0bd4",
+      "sha256": "c04f36d2973554734ba0a7b2cef9a4cda2511ad2e6c6bd67ce7b5e888294a4a4"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/export_gcov_layer.py",
+      "source_blob_sha": "aece2a278a9c6c4cb5304091170b96981b4479e5",
+      "sha256": "f07c7ca3efd66199bbbcec310d06e7c7225f4751dab17fd3e917d103d123583b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/inspect_gcov_product.py",
+      "source_blob_sha": "a59bc6de683a3bc203299a84a09e17f982f6d2ee",
+      "sha256": "4036b3066c2526d870e3a22aae8bfb944965c76bdc221dd5b59dc100640001de"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/measure_bankline_migration.py",
+      "source_blob_sha": "d8d63b1e1bee03074c9c4dce33920861959ee2fd",
+      "sha256": "d07a1263420125621b0605d623c06b808c2c76325c83a4990ee74715800aef4a"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/process_gcov_job.py",
+      "source_blob_sha": "a4f79c527c5c2d35d1deaf772eed01940f38141c",
+      "sha256": "f2fdca4eb29aa0087d8ee289afd49ae476b2e38c85492933260628f6d2d08a12"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/publish_sentinel2_references.py",
+      "source_blob_sha": "ed64a388c6700c42d0995bbb3144d3d3dde3ac4a",
+      "sha256": "21a0fa9e13a85000338b982951f9bb5cb1aaf90cb9e3c1ac0fb83d74d463916b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/replay_retained_run36.py",
+      "source_blob_sha": "413059cb18e2f38533f557c98f35336300a1e296",
+      "sha256": "1a605d7ee67aec418c3d2cc052c59033a012d66f8c0d6b524bc9508ad22064ee"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/replay_retained_run36_monorepo.py",
+      "source_blob_sha": "f1659dfa3d682f2605120a12b321003be2cb0a1c",
+      "sha256": "f4651d7d096163adeedf4d1002dcf4e56dbd678e282dde8f60bcb0c5cdfdb85a"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/replay_sentinel2_from_retained_run.py",
+      "source_blob_sha": "3a2708b851cdc0d6788b67ec42295bd70f178bd3",
+      "sha256": "5178c370621865d4132b261fa722782c6f89287b6a39b5b3695987b8cfed3ae3"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/requirements.txt",
+      "source_blob_sha": "dea1ab6d35336c6ce21ffa53daaea81ceb229f44",
+      "sha256": "393c7e5daf3f5ff6d0ae3e351de25cfa083d48ab4ea467fe1e71c9618e1b9c57"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/__init__.py",
+      "source_blob_sha": "09e317d962d7112a54e14a7b9c18c68c17403f8a",
+      "sha256": "2e468a441f2fe732b0f4a39512df9b870e8d1dfce9a0ddb88ee503c44df41ae3"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/flood.py",
+      "source_blob_sha": "05471d5e1649110ffc9412e7863785ab71bf7370",
+      "sha256": "17e90dc952b5598e754164b6ee186d73eb83bd718759d68c7583123c923206bf"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/morphology.py",
+      "source_blob_sha": "61c608090af1681b0a80624c8b3bc5142fc4212b",
+      "sha256": "d578b2bbbcc267dbddef8e30b45149f4482fcea7360efc3397aeb9ef07286d0d"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/overlap_audit.py",
+      "source_blob_sha": "148da8feb982c70da2e025fa913e553fcbe208aa",
+      "sha256": "5c5e98d54d56cf15bd24b0c70e6ce310c19c361f6f8df445f2424a544c0d50ae"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/raster_io.py",
+      "source_blob_sha": "3c58b69561ba13a984f8e64141f4088a04f17a9a",
+      "sha256": "9e1387bcf0893360ddb03769cdafde679e6be8993f9b46a9a612c748ad12a504"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/timeseries.py",
+      "source_blob_sha": "3ea07daca9276a6fc000b616483192c8bc091fc6",
+      "sha256": "0f82b5af713ec7710fadb95ecf45be5da8bc19ff1e3fa544523d1736ec0f91fe"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/transects.py",
+      "source_blob_sha": "ad3fa4b3a26ac63d6e5b630fa76a7d8102fe4659",
+      "sha256": "f89282d255d030690171307712840ecf87bf638ffa2a22cc41c548aeb7853e5c"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/validation.py",
+      "source_blob_sha": "a05cbdcfe08872cf6d52606234ebedbeae3acd3c",
+      "sha256": "c7bcd160bd9c52ffe1e00a37e30490ef122a96049a2a2e6861d5ebc63de8080a"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/river_shift/water_detection.py",
+      "source_blob_sha": "5406e58b68ace47e0c6487279195a4542a6e05da",
+      "sha256": "3074a6dfd0e7788cbb2c6cbe0516115fd72296a4c4d590fab7440a8731ded16e"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/run_flood_analysis.py",
+      "source_blob_sha": "3ec3cdba3b724e331f1012d8033a5adf1bae6aed",
+      "sha256": "6eaf5bd8317a777195efeca0e40bd0644d5af01ff359e09053253f594b17a8d0"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/run_morphology_analysis.py",
+      "source_blob_sha": "1a547156da430e74749a887307e9310246f414ed",
+      "sha256": "5b927a09438ac52d819bb38102be24a4730a8f40a40b3e49f87bf6c07883184b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/run_opera_dswx_s1_reference.py",
+      "source_blob_sha": "cdde52fc7043df89420b67dd344b88b2eb0c9fa2",
+      "sha256": "60f1b732aea4b89ce54c65906df7688def114a909117e5c9ddf3d5cb80591224"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/run_water_timeseries.py",
+      "source_blob_sha": "50fa6d892512fdcce4a90a24ce2dbf7c217d323a",
+      "sha256": "b8868afdf66468fa363a7dc6dde880cf87605d6809dd39ede59720af274a619c"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/conftest.py",
+      "source_blob_sha": "a70434ec8b1c22e049a8a4801d2489092a4f9536",
+      "sha256": "f9fb3c3b92233703c457365e00864e49d8321212fe20a57c4a9d3c31633b7f28"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_batched_gcov_job.py",
+      "source_blob_sha": "a3f8194267a04c0cb36708e44288f1e4912e1820",
+      "sha256": "644f54adcc899ed342dc5b65ecfc2f78398ba77adbbd09dcec8e8a8c3e9f9f7d"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_callbacks.py",
+      "source_blob_sha": "bb03e9829922a7aa3f23f8da360e0cf3cfde7da7",
+      "sha256": "cfc096db03878015f791ca94e0c314de3bb363b3fcf471e9a38a85fbfcee0662"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py",
+      "source_blob_sha": "41fbcf781c54027900e2577db37a52f29793e843",
+      "sha256": "f59f48e14f2786746561c95caa50fd38084a7329b933cda9e7039388021fae21"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_drive_upload_adapter.py",
+      "source_blob_sha": "4330b74d46adb3e0179f1c29c4fabe9c58314ccb",
+      "sha256": "6f315d4b807992d902b05a9174a33ae6d32edce8b6226bf7f1af107c493e5ad9"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_export_download_receipt.py",
+      "source_blob_sha": "d4d89ffac91b62b16561cb6dc9f3f05b9077452c",
+      "sha256": "a805c088cdf9e41a80ab27002c067c4326290c51705379ffb1548848fffde0ed"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_flood.py",
+      "source_blob_sha": "0bfd9b48c936c78fd18705a214c541e9f015a459",
+      "sha256": "e694f32cb633a006cca820c247993ba2aff34e6fba15ed53774bb69fa300ba09"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_gcov_audit.py",
+      "source_blob_sha": "c24a812b7e7e2b43d2a2946fd744a742b437ba42",
+      "sha256": "c28b7e7ae3928c26d9abb410985b6236b18b1a9541131a8c05a9a5a27f35c899"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_gcov_catalogue.py",
+      "source_blob_sha": "44aea2063ef0707794a88afe526fda08679dd5c6",
+      "sha256": "a67862076d14e265a194e460b66b023b6b73e083996a7061d03e86d69f64afd9"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_gcov_fallback.py",
+      "source_blob_sha": "a9bbd398bdba1ee99793934b3a45c5ef19040719",
+      "sha256": "e411b5f5373a0379ded49f963fa0f6847adfbc3839d0cbf1dc63c7e5e305e268"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_gcov_provenance.py",
+      "source_blob_sha": "db71ec922c0852ee30ff7e54056ce33999ce3467",
+      "sha256": "1fb3db6d602b60df9971c5ea6e0faf0e8ffeb6d09a163995052b7f8030416fc5"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_gcov_valid_mask.py",
+      "source_blob_sha": "44f4eeec958deb5d26e4195b4ca1b8c557167516",
+      "sha256": "56217bc1b71e1d33a387cc06a0c576ca4115a65e17c947c21d2e317d5604ce18"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_independent_reference_runner.py",
+      "source_blob_sha": "f7c7a657076da3eaa2e9e8c99a7677106058d768",
+      "sha256": "8fdc6d4760f0924278ed276b11e886df4e5973c1219852776dac3f1b03d19e00"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_inspect_gcov_product.py",
+      "source_blob_sha": "7b89a8b8e274a965493aa0d909f3259bab6ea564",
+      "sha256": "13c5d8cbd701559cc9d7d652c524c3073f8c4206398da89a3d2736d6eee43435"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_morphology.py",
+      "source_blob_sha": "04fb79810abed26fbb0ed3a830b1b7b103135c83",
+      "sha256": "33f6894f83599564d2a50faf8c8c7442f270df0363b86392573394e2d491f87b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_opera_dswx_s1_reference.py",
+      "source_blob_sha": "b25f738b6e5a4342b368aeafa52ade18889417b6",
+      "sha256": "5ad93b8b46e248ac1cab87d52eef07913a4421069f47272238445fffc6a7669b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_overlap_audit.py",
+      "source_blob_sha": "404fd942caf877742b4a1ff9c2f9012a2555793c",
+      "sha256": "30bd5e91cdb489656294996d5cca68636cc1ac44bcf8f4590292edab386c73a7"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
+      "source_blob_sha": "ec8813eb14271ef6768d99eea54183757f95cac8",
+      "sha256": "e282cd34cc49a75367029d53ed0a9afa05a31e96c9f3d88769ad73a3066d2d6b"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_raster_first_previews.py",
+      "source_blob_sha": "9a61e41b47afff23d67f8a468bbef12f6e01a8d8",
+      "sha256": "d88c9cb2b45cbf95fce90d14f49d14465dd3427e7e597eafe0a20ef3a3af9490"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_replay_sentinel2_from_retained_run.py",
+      "source_blob_sha": "043d983bd38d7cb167d9cc05298162988c214eab",
+      "sha256": "afa5dd14a3ed8a0739861241a215356925642e4e67c4fb0a31384058759bb24c"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_sentinel2_crosscheck.py",
+      "source_blob_sha": "384694cb9dff6385139cd647c0817c53cecb50ce",
+      "sha256": "82b771c9501e9f6f987f1415756ba73cb42e2b235e5b5bf9044463b5e207b520"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_sentinel2_reference_geotiffs.py",
+      "source_blob_sha": "6f7a53bb34d59ca4f856f5975121d0341f570bb1",
+      "sha256": "25d03c774f1052a247bf12ac9b9679b9a26d4780b98c2d6ef92b8d5ec2068ff4"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_timeseries.py",
+      "source_blob_sha": "c4f288b15398ab30809ec8de66e22d1bf36dfed7",
+      "sha256": "dd0604e51aaeebf76574c5a398af3b2e8a161e1bba90c8073b4082844f5560e3"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_transects.py",
+      "source_blob_sha": "a3ed217ef9f0b6affa094e13aa7852194d0637d3",
+      "sha256": "7a05bef2103999556ae2ec8ab8efc926c03c50017319b41c8a520aee1bd3fb32"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_validate_retry_matrix.py",
+      "source_blob_sha": "2b7b4ac8e6dd6d849ecf91ea8e21de5be06d1a19",
+      "sha256": "56f3463d510e64bdf78059a2ee27cb26f18b4da3dde5bf01aa7077c451c431c3"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_validation.py",
+      "source_blob_sha": "a57b2bd19c49a49af12de6c7c439970837a4e3ea",
+      "sha256": "56bca4146efa706a446fabc5e79df65483e3287a482b1aad440234fbd2c3eb8f"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_water_detection.py",
+      "source_blob_sha": "8d1b28435966d14619d4bb3c571ae87d54d4fb7b",
+      "sha256": "376151d74b95a8b3bef19c07de608bc42e13d27b8a66e6fa7f98cc9322e02f38"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/tests/test_workflow_retry_contract.py",
+      "source_blob_sha": "200658f9889116bbdf2edb0753dfc7121985b827",
+      "sha256": "74ac6d6ac0568d11b356b622a0cb04e6feb89fd4d4f3a9ede6dcacd6e2917967"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/validate_independent_reference.py",
+      "source_blob_sha": "6e4cc2807feec392cc760f16ed4c2cd5544eb97d",
+      "sha256": "5478cc2edc918e5d5c360c349719f6ab0fa3ce7a7dc28b3a2b72ced0009d0218"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/validate_retry_matrix.py",
+      "source_blob_sha": "1de8d459f66ba1d70a76e38528d77104fa55b9d4",
+      "sha256": "0ecbb32604122dd8524d92a0bd90b7cff8a6e3960166dc154d873a2f17bf1513"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/validate_water_classification.py",
+      "source_blob_sha": "c792b76fa80b8fa0d7a4f474ba2c4c48f90931cf",
+      "sha256": "7877809c8e545cba1134ed50724810a973543d23ec14f38f20f6731d879399e6"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/validate_with_sentinel2.py",
+      "source_blob_sha": "b3fece2dfd4cb713acee9f7d52f7e7d2fdb409cd",
+      "sha256": "407b333a6d34ed4afcdaa2cc2009db652f32001f356cbec1c6d8c90af27cda43"
+    },
+    {
+      "path": "engines/river-shift/tools/river_shift/verify_monorepo_source_run.py",
+      "source_blob_sha": "a564202bb4342e304c145c4f9323b50bb455f3cd",
+      "sha256": "1e67c42d693046dcdec5d02cb0d204793c868786f9ae889fe840ec0712cc35e9"
+    }
+  ],
+  "shared_source_regions": [
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "a1999ac174f98ce6e18a6d95644a33fc977ed71794a3cf4f24391dc0bc90bc3b",
+      "source": "RIVER_SHIFT_JOB_RESPONSE_COLUMNS = (\n    \"id,owner_uid,idempotency_key,state,stage,aoi_wkt,start_date,end_date,analysis_mode,\"\n    \"event_date,maturity,frequency,covariance_term,threshold_method,threshold_db,\"\n    \"request_fingerprint,callback_sequence,github_run_id,github_run_url,result_summary,\"\n    \"artifact_manifest,error_code,error_message,created_at,updated_at\"\n)\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "610834986388c3249a25efd15112fdc024c27615bcba987074b50bc93ca242ef",
+      "source": "RIVER_SHIFT_JOB_STATUS_COLUMNS = (\n    \"id,owner_uid,state,stage,github_run_id,github_run_url,error_code,error_message,\"\n    \"callback_sequence,created_at,updated_at\"\n)\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "3cfdc983e74007245f301e2e977453bcc15eaf4d3dd637936c23ac800433dd97",
+      "source": "    def get_river_shift_job_by_idempotency(self, owner_uid: str, idempotency_key: str) -> dict[str, Any] | None: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "84e14d3f3864edbb713f5273ff74c0a96380cbbeaf740afa616748b03d323e26",
+      "source": "    def create_river_shift_job(self, values: dict[str, Any]) -> dict[str, Any]: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "2368be58cd005eee1af03ca7e0249a021a09cc4e25616f654104d390fd994405",
+      "source": "    def list_river_shift_jobs(self, owner_uid: str, limit: int = 20) -> list[dict[str, Any]]: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "32f409211d3a530d1e78dce0f6b30d50bc7c124c7a7432f50da275c770864e7a",
+      "source": "    def list_active_river_shift_jobs(self, owner_uid: str) -> list[dict[str, Any]]: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "bc9a20180ef15208db0a48cf9c6a5233fb76a860dbc3285ed1868d9b9138b5e5",
+      "source": "    def get_river_shift_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "d3b9edeb36fff86b7f3a416f614124c1bdc2072d20e16d1c0c260c0461c73b6b",
+      "source": "    def get_river_shift_job_status(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "91fd7035eb878a9b18b9edc095c51569eb1f0470d28cec6fe089283702264987",
+      "source": "    def get_river_shift_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "97a28a1b5b3953476737c8b13a74852a31dfd7b495c8c56c0d0dd6e7159dad88",
+      "source": "    def update_river_shift_job(self, job_id: UUID, values: dict[str, Any], *, expected_state: str | None = None, expected_sequence: int | None = None) -> dict[str, Any]: ...\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "ee8b92202b31a640585d3c8b0b22f4fa25b0b39761c9cb372a17b23ded1aedc7",
+      "source": "    def get_river_shift_job_by_idempotency(self, owner_uid: str, idempotency_key: str) -> dict[str, Any] | None:\n        try:\n            response = (self.client.table(\"river_shift_jobs\").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)\n                        .eq(\"owner_uid\", owner_uid).eq(\"idempotency_key\", idempotency_key)\n                        .limit(1).execute())\n        except Exception:\n            raise PersistenceError(\"Could not check RiverShift job idempotency.\") from None\n        rows = self._data(response)\n        return rows[0] if rows else None\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "dbaf684b996a18c812d0602c8f52d4d2c32428bccd9165f5a1b177e60f643bc1",
+      "source": "    def create_river_shift_job(self, values: dict[str, Any]) -> dict[str, Any]:\n        existing = self.get_river_shift_job_by_idempotency(values[\"owner_uid\"], values[\"idempotency_key\"])\n        if existing:\n            return existing\n        try:\n            response = self.client.table(\"river_shift_jobs\").insert(values).select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).execute()\n        except Exception:\n            existing = self.get_river_shift_job_by_idempotency(values[\"owner_uid\"], values[\"idempotency_key\"])\n            if existing:\n                return existing\n            active = self.list_active_river_shift_jobs(values[\"owner_uid\"])\n            if active:\n                raise PersistenceConflictError(\"An active RiverShift job already exists for this account.\") from None\n            raise PersistenceError(\"Could not persist the RiverShift job.\") from None\n        rows = self._data(response)\n        if not rows:\n            raise PersistenceError(\"RiverShift job persistence returned no record.\")\n        return rows[0]\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "344b26ecdb37442e33fbd45ede634d72efad58c96b8d7ce75048a9c4e63dbf21",
+      "source": "    def list_river_shift_jobs(self, owner_uid: str, limit: int = 20) -> list[dict[str, Any]]:\n        try:\n            response = (\n                self.client.table(\"river_shift_jobs\")\n                .select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)\n                .eq(\"owner_uid\", owner_uid)\n                .order(\"created_at\", desc=True)\n                .limit(limit)\n                .execute()\n            )\n        except Exception:\n            raise PersistenceError(\"Could not list RiverShift jobs.\") from None\n        return self._data(response)\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "81b8893085c1a6ce394665f26371ca77ca5bed70d49d1bc52710fb4f8c8c9e2b",
+      "source": "    def list_active_river_shift_jobs(self, owner_uid: str) -> list[dict[str, Any]]:\n        try:\n            response = (\n                self.client.table(\"river_shift_jobs\")\n                .select(\"id,state,stage,created_at\")\n                .eq(\"owner_uid\", owner_uid)\n                .in_(\"state\", [\"queued\", \"dispatching\", \"running\"])\n                .order(\"created_at\", desc=True)\n                .limit(2)\n                .execute()\n            )\n        except Exception:\n            raise PersistenceError(\"Could not check active RiverShift jobs.\") from None\n        return self._data(response)\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "1bdf4caace90491c2e662fb4864b8a27c0eda987156008e3015910f1ffa36677",
+      "source": "    def get_river_shift_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None:\n        try:\n            response = (self.client.table(\"river_shift_jobs\").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)\n                        .eq(\"owner_uid\", owner_uid).eq(\"id\", str(job_id)).limit(1).execute())\n        except Exception:\n            raise PersistenceError(\"Could not read the RiverShift job.\") from None\n        rows = self._data(response)\n        return rows[0] if rows else None\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "bc622248a865ba15dd77dd4f9aa5c9206c99f738d9d0bdae07e5203fc06677e9",
+      "source": "    def get_river_shift_job_status(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None:\n        try:\n            response = (\n                self.client.table(\"river_shift_jobs\")\n                .select(RIVER_SHIFT_JOB_STATUS_COLUMNS)\n                .eq(\"owner_uid\", owner_uid)\n                .eq(\"id\", str(job_id))\n                .limit(1)\n                .execute()\n            )\n        except Exception:\n            raise PersistenceError(\"Could not read the RiverShift job status.\") from None\n        rows = self._data(response)\n        return rows[0] if rows else None\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "0ade849ec7dbc28f41e27eba17205872c385bab0be6ca5162260165301d26804",
+      "source": "    def get_river_shift_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None:\n        try:\n            response = self.client.table(\"river_shift_jobs\").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).eq(\"id\", str(job_id)).limit(1).execute()\n        except Exception:\n            raise PersistenceError(\"Could not read the RiverShift worker job.\") from None\n        rows = self._data(response)\n        return rows[0] if rows else None\n"
+    },
+    {
+      "path": "apps/api/app/persistence.py",
+      "sha256": "6fa2bb5ac8da096c70356c6c46d1260354dc3d284c35ce41a2eda8b22970bad8",
+      "source": "    def update_river_shift_job(\n        self, job_id: UUID, values: dict[str, Any], *,\n        expected_state: str | None = None, expected_sequence: int | None = None,\n    ) -> dict[str, Any]:\n        try:\n            query = self.client.table(\"river_shift_jobs\").update(values).eq(\"id\", str(job_id))\n            if expected_state is not None:\n                query = query.eq(\"state\", expected_state)\n            if expected_sequence is not None:\n                query = query.eq(\"callback_sequence\", expected_sequence)\n            response = query.select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).execute()\n        except Exception:\n            raise PersistenceError(\"Could not update the RiverShift job.\") from None\n        rows = self._data(response)\n        if not rows:\n            if expected_state is not None or expected_sequence is not None:\n                raise PersistenceConflictError(\"RiverShift job state changed concurrently; refresh before retrying.\")\n            raise PersistenceError(\"RiverShift job was not found for update.\")\n        return rows[0]\n"
+    }
+  ]
+}

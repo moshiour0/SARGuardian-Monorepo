@@ -25,3 +25,4 @@ describe('RiverShiftResultsPage', () => {
     expect(html).toContain('04 · LOCAL EXPOSURE CONTEXT');
   });
 });
+

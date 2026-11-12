@@ -10,6 +10,7 @@ import {
   listDisplacementJobs,
   listProcessingJobs,
   listRiverShiftJobs,
+  retryRiverShiftJob,
   searchNisarCatalog,
 } from './catalog';
 
@@ -17,6 +18,30 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+});
+
+describe('River Shift retry API', () => {
+  it('retries the owner-authenticated job by ID without substituting setup defaults', async () => {
+    const jobId = '736bd4e6-8963-43be-a916-bc62336c8557';
+    const user = { getIdToken: vi.fn().mockResolvedValue('test-id-token') };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true, headers: { get: () => 'application/json' },
+      json: async () => ({ id: 'new-job', state: 'dispatching' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(retryRiverShiftJob(jobId, user)).resolves.toMatchObject({ state: 'dispatching' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toContain(`/api/river-shift/jobs/${jobId}/retry`);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', headers: { Authorization: 'Bearer test-id-token' } });
+    expect(fetchMock.mock.calls[0][1].body).toBeUndefined();
+  });
+
+  it('rejects invalid IDs before issuing a request', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(retryRiverShiftJob('../wrong', null)).rejects.toThrow('valid RiverShift job ID');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('Authenticated interactive dashboard API contract', () => {

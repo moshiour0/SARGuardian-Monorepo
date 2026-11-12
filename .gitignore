@@ -40,6 +40,11 @@ coverage/
 .tmp/
 .temp/
 .cache/
+.migration-tmp/
+.river-shift-sync/
+.source-monorepo-*/
+.playwright-mcp/
+scratch/
 artifacts/
 outputs/
 data/raw/

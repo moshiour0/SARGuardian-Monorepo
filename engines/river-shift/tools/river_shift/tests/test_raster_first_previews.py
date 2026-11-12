@@ -6,6 +6,7 @@ import pytest
 from rasterio.transform import from_origin
 
 from process_gcov_job import (
+    MAX_SPARSE_PREVIEW_MARKERS,
     MAX_WEB_PREVIEW_BYTES,
     create_web_previews,
     preview_geometry_overlap_metrics,
@@ -286,9 +287,9 @@ def test_sparse_preview_marker_cap_is_explicit_and_does_not_change_source_pixels
     marker_feature = next(feature for feature in preview["features"] if feature["properties"].get("preview_sparse_marker"))
     assert diagnostics["source_candidate_pixels"] == 65_536
     assert diagnostics["preview_sparse_marker_cells"] == 65_536
-    assert diagnostics["preview_sparse_marker_points_rendered"] == 8_000
-    assert diagnostics["preview_sparse_marker_points_omitted"] == 57_536
-    assert len(marker_feature["geometry"]["coordinates"]) == 8_000
+    assert diagnostics["preview_sparse_marker_points_rendered"] == MAX_SPARSE_PREVIEW_MARKERS == 1_500
+    assert diagnostics["preview_sparse_marker_points_omitted"] == 64_036
+    assert len(marker_feature["geometry"]["coordinates"]) == 1_500
     assert sha256_file(source_path) == original_digest
 
 
@@ -335,6 +336,7 @@ def test_downsampled_disjoint_class_masks_share_one_preview_grid_and_do_not_over
         for row in previews
     }
     assert len(grids) == 1
+    assert grids == {(256, 256)}
     assert all(row["river_shift_preview"]["fixed_preview_grid"] is True for row in previews)
 
     combined = json.loads((work_dir / "outputs" / "map" / "river_change_candidates_preview.geojson").read_text())
