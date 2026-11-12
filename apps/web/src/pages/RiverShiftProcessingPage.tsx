@@ -4,7 +4,7 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { createRiverShiftJob, downloadRiverShiftArtifact, getRiverShiftJob, listRiverShiftJobs, type RiverShiftJob } from '../api/catalog';
 import { resolveApiBaseUrl } from '../api/apiOrigin';
 import type { RiverShiftGeoJSON, RiverShiftReport, RiverShiftTimeSeriesFrame } from '../riverShift/manifest';
-import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRiverShiftEventObservationNote, getRiverShiftOverlapAuditAvailability, isRiverShiftGeoJSONApproved, isRiverShiftReportVerified, isRiverShiftTimeSeriesGeoJSONApproved, parseRiverShiftGeoJSON, parseRiverShiftReport } from '../riverShift/manifest';
+import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRiverShiftOverlapAuditAvailability, isRiverShiftGeoJSONApproved, isRiverShiftReportVerified, isRiverShiftTimeSeriesGeoJSONApproved, parseRiverShiftGeoJSON, parseRiverShiftReport } from '../riverShift/manifest';
 import { parseWktPolygon, type Wgs84Point } from '../riverShift/aoi';
 import { deriveGeneralChangeMarkers } from '../riverShift/generalChangeMarkers';
 import { deriveImpactMapPoints, parseImpactExposureGeoJSON, parseOpenStreetMapImpactResponse, summarizeImpactExposure, type ImpactExposurePointCollection } from '../riverShift/impactContext';
@@ -1113,25 +1113,14 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
           <p className="rs-error" role="alert">{riverJobError}</p>
         </section>
       )}
-      {riverJob && <section className="rs-panel rs-job-panel" aria-live="polite">
-        <div className="rs-section-heading"><div><p className="rs-kicker">LIVE SCIENCE JOB</p><h2>{riverJob.state.replace(/_/g, ' ')} · {riverJob.stage.replace(/_/g, ' ')}</h2></div>
-          <span className="rs-chip">{riverJob.maturity} · {riverJob.frequency} / {riverJob.covariance_term}</span></div>
-        <p className="rs-muted">{riverJob.analysis_mode === 'general_scan' ? 'General River Change Scan' : 'Event-Based Analysis'} · Job ID {riverJob.id} · {riverJob.start_date} to {riverJob.end_date}{riverJob.event_date ? ` · Event date ${riverJob.event_date}` : ''}</p>
-        {riverJob.github_run_url && <p><a href={riverJob.github_run_url} target="_blank" rel="noreferrer">Open processing run logs ↗</a></p>}
-        {riverJob.error_message && <p className="rs-error" role="alert">{riverJob.error_message}</p>}
-        {riverJob.state === 'succeeded' && <div className="rs-warning-inline"><strong>Processing complete · PROVISIONAL.</strong> {riverJob.analysis_mode === 'general_scan'
-          ? 'No event date was supplied or inferred. Independent scientific validation is still pending.'
-          : 'The event date was user supplied and has not been independently confirmed; independent scientific validation is still pending.'}
-          {' '}The map below can show a checksum-checked display preview; its measurements are not verified.
-          {riverJob.analysis_mode === 'event_based' && getRiverShiftEventObservationNote(riverJob.result_summary?.event_observation_timing) && (
-            <span> {getRiverShiftEventObservationNote(riverJob.result_summary?.event_observation_timing)}</span>
-          )}</div>}
-        {riverJob.state === 'succeeded' && riverJob.result_summary && (
-          <>
-            <OverlapAuditPanel summary={riverJob.result_summary} />
-            <ScientificReadinessPanel summary={riverJob.result_summary} report={jobPreview?.report || null} jobState={riverJob.state} artifactCount={riverJob.artifact_manifest?.length || 0} />
-          </>
-        )}
+      {riverJob?.state === 'succeeded' && (
+        <section className="rs-panel rs-job-panel" aria-live="polite">
+          {riverJob.result_summary && (
+            <>
+              <OverlapAuditPanel summary={riverJob.result_summary} />
+              <ScientificReadinessPanel summary={riverJob.result_summary} report={jobPreview?.report || null} jobState={riverJob.state} artifactCount={riverJob.artifact_manifest?.length || 0} />
+            </>
+          )}
         {jobPreview?.jobId === riverJob.id && jobPreview.report && jobTimeSeriesFrames.length > 0 && (
           <section className="rs-timeseries" aria-label="Provisional observed acquisition playback">
             <div className="rs-section-heading"><div><p className="rs-kicker">OBSERVED ACQUISITIONS</p><h3>River change playback</h3></div>
@@ -1182,7 +1171,8 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
         {!!riverJob.artifact_manifest?.length && <div className="rs-artifact-list"><strong>Private result files · upload checksum verified</strong><p className="rs-muted">Upload receipts preserve the original size and checksum. In-app downloads and previews are checked again before use.</p>{riverJob.artifact_manifest.map((artifact, index) => artifact.bytes <= 4_000_000
           ? <button className="rs-secondary-button" key={`${artifact.path}-${index}`} type="button" onClick={() => void saveRiverArtifact(index, artifact.name)}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB</button>
           : <span className="rs-muted" key={`${artifact.path}-${index}`}>{artifact.name} · {(artifact.bytes / 1_000_000).toFixed(2)} MB · stored privately; too large for in-app download</span>)}</div>}
-      </section>}
+        </section>
+      )}
 
       <section className="rs-panel rs-results-panel">
         <div className="rs-section-heading">
