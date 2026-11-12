@@ -20,6 +20,7 @@ from app.main import app
 class RiverShiftStore:
     def __init__(self) -> None:
         self.rows: dict[str, dict] = {}
+        self.update_calls = 0
 
     def get_river_shift_job_by_idempotency(self, owner_uid: str, key: str):
         return next((row for row in self.rows.values()
@@ -47,10 +48,21 @@ class RiverShiftStore:
         row = self.rows.get(str(job_id))
         return row if row and row["owner_uid"] == owner_uid else None
 
+    def get_river_shift_job_status(self, owner_uid: str, job_id):
+        row = self.get_river_shift_job(owner_uid, job_id)
+        if row is None:
+            return None
+        fields = (
+            "id", "owner_uid", "state", "stage", "github_run_id", "github_run_url",
+            "error_code", "error_message", "callback_sequence", "created_at", "updated_at",
+        )
+        return {key: row.get(key) for key in fields}
+
     def get_river_shift_job_unscoped(self, job_id):
         return self.rows.get(str(job_id))
 
     def update_river_shift_job(self, job_id, values, *, expected_state=None, expected_sequence=None):
+        self.update_calls += 1
         row = self.rows[str(job_id)]
         if expected_state is not None and row["state"] != expected_state:
             raise river_module.PersistenceConflictError("state conflict")
@@ -132,6 +144,56 @@ def test_create_river_shift_job_is_owner_scoped_and_idempotent(monkeypatch) -> N
     assert hidden.status_code == 404
 
 
+
+
+def test_compact_status_endpoint_is_owner_scoped_and_omits_result_payloads(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    job = api.post("/api/river-shift/jobs", json=payload()).json()
+    job_id = job["id"]
+    store.rows[job_id].update({"state": "succeeded", "stage": "completed"})
+
+    response = api.get(f"/api/river-shift/jobs/{job_id}/status")
+    assert response.status_code == 200, response.text
+    status = response.json()
+    assert status["id"] == job_id
+    assert status["state"] == "succeeded"
+    assert status["stage"] == "completed"
+    assert "aoi_wkt" not in status
+    assert "result_summary" not in status
+    assert "artifact_manifest" not in status
+    assert "manifest_snapshot" not in status
+
+    app.dependency_overrides[get_current_user] = lambda: {"uid": "another-user"}
+    hidden = api.get(f"/api/river-shift/jobs/{job_id}/status")
+    assert hidden.status_code == 404
+
+
+def test_refresh_workflow_state_does_not_patch_identical_run_metadata(monkeypatch) -> None:
+    store = RiverShiftStore()
+    api = configure(monkeypatch, store)
+    job = api.post("/api/river-shift/jobs", json=payload()).json()
+    row = store.rows[job["id"]]
+    row.update({
+        "state": river_module.JobState.RUNNING.value,
+        "stage": "processing",
+        "callback_sequence": 2,
+        "github_run_id": "123456789",
+        "github_run_url": "https://github.com/moshiour0/SARGuardian-backend/actions/runs/123456789",
+        "updated_at": datetime(2026, 1, 1, tzinfo=UTC),
+    })
+    run = {
+        "id": 123456789,
+        "html_url": row["github_run_url"],
+        "status": "in_progress",
+        "conclusion": None,
+    }
+    monkeypatch.setattr(river_module, "_github_get_json", lambda *_args: run)
+
+    refreshed = river_module._refresh_workflow_state(store, row)
+
+    assert refreshed is row
+    assert store.update_calls == 0
 
 
 def test_compact_iso_and_filename_acquisition_times_normalize_to_utc_dates() -> None:
