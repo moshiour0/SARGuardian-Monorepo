@@ -1,85 +1,106 @@
-# SARGuardian — NASA Space Apps 2026 score-sheet evidence matrix
+# SARGuardian — NASA Space Apps 2026 Score-Sheet Evidence Matrix
 
 **Challenge:** Dancing with the SARs  
 **Category:** Earth Science  
-**Product:** SARGuardian — Earth in Sight  
-**Source score sheet:** Project Library file "Score Sheet.md" (local judges' rubric; maximum 118 before the +5% women-participation bonus).
+**Project:** SARGuardian — Earth in Sight  
+**Rubric source:** Project Library file "Score Sheet.md"
 
-This is the submission evidence register, not a promise of marks. Every claim below must be supported by the linked implementation, source record or test/run evidence. A software test proves a software contract; it does not by itself prove geophysical accuracy.
+This matrix is an evidence navigator. It does not assign a guaranteed score. Judges should be able to verify each criterion from the application, feature guide, source record or linked workflow evidence.
 
-## Scoring criteria and evidence
+## Scoring structure
 
-| Criterion | Points | Product evidence to show | Evidence source | Public wording guard |
-|---|---:|---|---|---|
-| Impact | 1–20 | Four entry workflows spanning slope displacement, glacier-terrain displacement screening, focused known-place research and river change; demonstrate a real AOI/date workflow and one traceable regional case. | apps/web/src/data/engineData.ts; RiverShift Judge Brief and Run #36 evidence; source-linked case study documents. | Say the platform can screen different surface-change questions where compatible NISAR products exist. Do not imply equal coverage, accuracy or validated impact for every region. |
-| Creativity | 1–20 | Target-free AOI discovery; two-polygon Measurement/Reference Known Place design; separate GCOV water/change screening; map search, observed-date playback and independent context overlays. | Promoted apps/web and engines; Known Place PR #85 source pin; RiverShift Judge Guide. | Describe what each workflow actually does. Do not call a UI category a separate scientific engine unless it has its own processing path. |
-| Validity | 1–20 | Exact source commits, product provenance, checksums, pixel-support gates, compatibility checks, overlap QA, regression tests, reproducible run reports and explicit independent-reference states. | docs/migration/source-pins.json; docs/scientific-validation/; engine test suites; RiverShift Run #36 replay evidence. | Distinguish code tests, internal QA, reproducibility and independent physical validation. Never turn NO_MATCH_NO_SCORE into a zero score or a passing accuracy claim. |
-| Relevance | 1–20 | NISAR L-band products are measurement sources: GUNW phase, GOFF offsets and GCOV covariance/water screening are handled as distinct measurement families. | science/nisar-core; engines/find-displacements; engines/known-place; engines/river-shift. | Identify the exact product and measured quantity for each workflow. Do not imply the basemap or ancillary layer is a NISAR measurement. |
-| Presentation | 1–20 | A single guided application, global AOI map, clear workflow entry points, source dates, readable change layers, playback on observed dates and judge-facing evidence guide. | apps/web; docs/submission; RiverShift Judge Brief/Guide. | Tell a concise story: Earth changes → NISAR observes → SARGuardian screens → provenance and uncertainty support interpretation. |
-| Teamwork | 1–5 | Actual team roles, contributions, collaboration evidence and team-member attribution. | Official team/project page and approved contributor records. | Do not invent roles, names, contributions or participation. Confirm team details with the team before submission. |
-| User experience | 1–5 | First-use flow: select a workflow, search/draw AOI, choose dates, discover eligible products, process/review results, inspect evidence. Mobile and desktop usability. | apps/web; browser/keyboard/mobile QA records. | Do not award ourselves “anyone can use it” until independent first-time-user tests are recorded. |
-| NASA data usage | 1–5 | NISAR products are central inputs; ASF DAAC/NASA CMR provide discovery/access; other sources are explicitly labelled as context or independent reference. | Product manifests, workflow source, source registry, RiverShift guide. | Name NASA–ISRO NISAR correctly and distinguish NASA/ASF product inputs from Sentinel-1, optical, OSM, gauge and basemap context. |
-| Challenge category identified | 0 or 1 | Earth Science and Dancing with the SARs are named on the submission page. | Project page. | Use the official challenge and category names. |
-| Repository access | 0 or 1 | Public GitHub source link opens without authentication and contains license, setup, data/provenance and reproducible instructions. | Monorepo repository visibility and README. | Current Monorepo is private. Do not claim public/open repository access until the final secret/data/license audit is complete and repository visibility is deliberately changed. |
-| Project page complete | 0 or 1 | Official NASA Space Apps project page is completed, submitted and includes team, challenge, summary, links, sources and media. | Official project page. | Do not mark complete until the official page reports successful submission. |
+| Group | Criterion | Points |
+|---|---|---:|
+| Headline | Impact | 1–20 |
+| Headline | Creativity | 1–20 |
+| Headline | Validity | 1–20 |
+| Headline | Relevance | 1–20 |
+| Headline | Presentation | 1–20 |
+| Additional | Teamwork | 1–5 |
+| Additional | User experience | 1–5 |
+| Additional | NASA data usage | 1–5 |
+| Additional | Challenge category identified | 0 or 1 |
+| Additional | Repository access | 0 or 1 |
+| Additional | Project page complete | 0 or 1 |
 
-## Required scientific distinctions
+The first five criteria total **100 points**. The additional criteria total **18 points**, giving **118 points before the local women-participation bonus**. The supplied local score sheet lists a **+5%** bonus for teams with one or more women members. This is treated here as a rule on that local score sheet; do not represent it as a universal NASA global-judging rule.
+
+## Evidence map
+
+**Revised desk estimate:** 98/118 before bonus (Impact 18, Creativity 18, Validity 16, Relevance 19, Presentation 15; Teamwork 1 provisional, UX 4, NASA data 5, category 1, repository 1, project page 0). Full rationale and caveats are in [the revised Bangla score audit](SCORE_SHEET_AUDIT_BN_2026-11-07.md).
+
+| Criterion | What SARGuardian demonstrates | Where to inspect |
+|---|---|---|
+| **Impact** | Four user-facing workflows, target-free AOI discovery, real processing runs and global applicability wherever compatible NISAR products are available in the public archive. Upstream acquisition/release limits are not application failures. | [Whole-project guide](SARGuardian_JUDGE_GUIDE.md), [Find Displacements](features/landslide-find-displacements.md), [Glacier Movement](features/glacier-movement.md), [Known Place](features/known-place-analysis.md), [RiverShift](features/river-shift.md) |
+| **Creativity** | Connected chain: AOI-first discovery → candidate traceability → user-controlled Measurement/Reference geometry → method-specific result → provenance; plus a separate GCOV RiverShift engine and Public/Explorer/Scientific audience views. | Feature guides; application at https://sar-guardian-dynamic-lilac.vercel.app |
+| **Validity** | Product-specific measurement semantics; product/geometry/valid-pixel gates; provenance/checksums; real NISAR processing; regression tests and retained-data replay; explicit withholding when reference or support is insufficient. Independent physical accuracy remains a separate evidence question. | Linked Actions runs in the [judge index](README.md); docs/scientific-validation/; engine test suites |
+| **Relevance** | GUNW, GOFF and GCOV are central measurement inputs for the workflows, rather than decorative satellite imagery. | Whole-project guide; source repositories; ASF product guides |
+| **Presentation** | One deployed live application, four workflow stories, three audience depths, real catalogue-to-processing walkthrough, actual-date playback, source-linked examples and a 4-minute film + 30-second teaser script. | Application; [judge index](README.md); [video storyboard](VIDEO_STORYBOARD_DRAFT.md) |
+| **Teamwork** | Team roles and collaboration contributions can be shown using actual member records, commits and issue/PR history. | Official team/project page and verified contribution history |
+| **User experience** | Public / Explorer / Scientific views let non-specialist, curious and research users inspect the same evidence at suitable depth; AOI, dates, product eligibility, layers and provenance remain connected. First-time-user testing is the remaining 5/5 proof. | Live application; feature guides; recorded first-time-user demonstration |
+| **NASA data usage** | NISAR is the primary measurement source; NASA Earthdata/CMR and ASF DAAC support discovery/access. Cross-sensor, gauge, OSM and basemap sources are separately attributed by role. | Source manifest, workflow documentation, whole-project guide |
+| **Challenge category** | “Dancing with the SARs” and “Earth Science” are named in the project submission draft. | [Project-page draft](SARGuardian_PROJECT_PAGE_DRAFT.md); official NASA project page |
+| **Repository access** | GitHub repository metadata currently reports this Monorepo as **public**; the original Dynamic and Backend repositories are also public. | https://github.com/moshiour0/SARGuardian-Monorepo ; https://github.com/moshiour0/SARGuardian_Dynamic ; https://github.com/moshiour0/SARGuardian-backend |
+| **Project page complete** | A complete copy-ready project-page draft is prepared. The one-point criterion depends on the official NASA project page being filled, submitted and accessible. | [Project-page draft](SARGuardian_PROJECT_PAGE_DRAFT.md); official NASA project page |
+
+## Workflow-to-measurement map
+
+| User-facing workflow | Engine relationship | NISAR product | Measured / derived quantity |
+|---|---|---|---|
+| Landslide | Find Displacements | GOFF and conditionally GUNW | Pairwise offset-anomaly candidates; relative LOS displacement diagnostics |
+| Glacier Movement | Shared Find Displacements | GOFF and conditionally GUNW | Candidate glacier-terrain motion signals under the same measurement rules |
+| Known Place Analysis | Separate two-polygon workflow | GOFF | Relative horizontal displacement and pairwise interval-average rate |
+| RiverShift | Independent GCOV workflow | GCOV | Observed-date water-screening and persistent land/water transition candidates |
+
+## Reproducible workflow evidence
+
+- **Find Displacements:** [Backend run #42097077601](https://github.com/moshiour0/SARGuardian-backend/actions/runs/42097077601) completed its AOI processing chain, including failed-only recovery for one GUNW product, dashboard assembly and terminal callback.
+- **Known Place:** [Monorepo run #42321054100](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42321054100) completed a generic two-polygon run and retained the result package. That run's scientific metrics status is PARTIAL_SCIENTIFIC_METRICS.
+- **Known Place regression:** [Snapshot Regression #42327901627](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/42327901627) passed the PR #8 promoted API/web, engine, workflow-contract and source-integrity test suites.
+- **RiverShift:** [Backend Run #36](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41803576163) processed six actual GCOV dates. [Retrospective replay #41926490047](https://github.com/moshiour0/SARGuardian-backend/actions/runs/41926490047) checked six retained COG SHA-256 values and reproduced the three candidate-area outputs.
+
+## Product-specific evidence semantics
 
 ### Landslide / Find Displacements
-- Find Displacements is target-free AOI-wide candidate discovery; it does not require the user to name a target point first.
-- GOFF offset diagnostics and GUNW LOS phase diagnostics remain separate measurement families.
-- Pairwise LOS is not cumulative or three-dimensional displacement.
-- Structural/provenance PASS is not independent geophysical validation.
-- An anomaly is a candidate for investigation, not automatically a landslide.
+- Find Displacements is target-free AOI-wide discovery; it does not require a target point.
+- GOFF and GUNW remain separate measurement families.
+- A GOFF offset anomaly is not by itself a velocity or a landslide verdict.
+- A GUNW LOS measurement is not automatically vertical, downslope, cumulative or three-dimensional movement.
 
-### Glacier Movement / collapse context
-- The current promoted category is named **Glacier Movement** and routes through the shared AOI-wide displacement workflow.
-- It is not a separate glacier-collapse physics model or an automatic avalanche detector.
-- Use glacier-collapse/ice–rock-avalanche language only for a specific study where the event context, acquisition geometry, measured quantity and supporting evidence are documented. Keep the UI wording at Glacier Movement unless a separately validated collapse workflow is promoted.
+### Glacier Movement
+- Glacier Movement uses the shared Find Displacements engine; it is not represented as a separate glacier-collapse physics model.
+- A candidate motion signal is not an automatic ice–rock avalanche or glacier-collapse prediction.
+- A glacier-specific physical interpretation requires a real glacier study area, its acquisition geometry and suitable independent context.
 
 ### Known Place Analysis
-- Generic two-polygon analysis and author-exact research reproduction are separate paths.
-- The measurement polygon and reference polygon have distinct roles; the reference polygon is not automatically proven stable.
-- Preserve the exact author-selected NISAR product revision and acquisition configuration for paper reproduction. Do not substitute a different CRID/product revision.
-- A benchmark reproduction is not automatically a universal calibration or independent ground truth.
+- Generic two-polygon analysis and author-exact P05023 benchmark reconstruction are separate paths.
+- The Reference Polygon is a comparison region; its stability is not guaranteed by geometry alone.
+- A pairwise horizontal rate is averaged over the exact acquisition-midpoint interval, not instantaneous or 3-D velocity.
+- The P05023 benchmark's headline numerical agreement is not, by itself, a full replication of every author geometry/null-control method or a hazard detector.
 
-### River Shift
-- NISAR L-band GCOV is the primary measurement input; the selected exact products, acquisition dates, compatibility and valid raster support determine eligibility.
-- The map shows screening candidates, not automatically field-confirmed erosion, deposition, damage, sediment volume or flood causality.
-- Run #36's independent OPERA DSWx-S1 reference review returned **NO_MATCH_NO_SCORE / PROVISIONAL** when no eligible temporally matched reference was found.
-- OPERA DSWx-S1 is a cross-sensor SAR-derived reference, not field truth. RTC-S1 backscatter inventory is not a water mask and cannot generate WTR agreement scores.
-- Playback is across actual acquisition dates, not interpolation or forecast.
+### RiverShift
+- GCOV is the primary measurement source. Catalogue footprint intersection is not the same as valid raster support.
+- Red/green/blue classes are screening candidates; preview geometries are not authoritative measurement masks.
+- Run #36's cross-sensor reference review is NO_MATCH_NO_SCORE / PROVISIONAL; there is no F1/IoU score for that retained example.
+- Actual-date playback is not interpolation or forecasting.
 
-## AI-judge discoverability requirements
+## Judge navigation
 
-The final public root README should make the following obvious without requiring a judge to infer it from code:
+The recommended reading path is:
 
-1. Official challenge and category.
-2. What SARGuardian does, and who can use it.
-3. Four workflow entry points with accurate scope descriptions.
-4. Which NISAR product powers each workflow and what quantity it measures.
-5. A short “try it” path for each workflow.
-6. At least one real, reproducible case with exact acquisition dates, source product IDs and downloadable evidence.
-7. Separate software-test, internal-QA and independent-validation statements.
-8. Known limitations beside the specific result they qualify.
-9. Installation, environment setup, test commands, license, data terms and public source references.
-10. A demo video/screenshots and a concise technical architecture diagram.
+1. [Evidence index](README.md)
+2. [Whole-project judge guide](SARGuardian_JUDGE_GUIDE.md)
+3. Each relevant [feature guide](README.md#read-the-evidence-in-this-order)
+4. [Project-page draft](SARGuardian_PROJECT_PAGE_DRAFT.md)
+5. [Video storyboard](VIDEO_STORYBOARD_DRAFT.md)
+6. Public source repositories and the linked workflow records
 
-A judge should be able to locate the evidence by searching for stable headings such as “Challenge Fit”, “NISAR Data”, “How to Reproduce”, “Validation”, “Known Limitations”, “Workflow Evidence” and “Sources”.
+The curated guides provide the project narrative and evidence links. Engineering and scientific audit documents remain in their respective folders as detailed source records; they are not substitutes for the judge-first guide.
 
-## Submission blockers — do not misreport as complete
+## Submission checks
 
-- Monorepo visibility is currently **private**; repository-access scoring requires public access or another openly accessible source link.
-- Public release requires full secret-history review, removal/retention review of private data/artifacts, license review and confirmation that no credential or personal information is committed.
-- The official project page's final submission state and all team member details must be confirmed by the team.
-- Teamwork and women-participation bonus cannot be inferred from code or repository metadata.
-- Mobile and first-time-user UX must be demonstrated with recorded human testing, not inferred from a successful build.
-- A full independent geophysical validation claim is prohibited unless its own source, date, spatial support, labeling protocol and metrics pass the stated gates.
-
-## Release language
-
-Use capability-first, evidence-bounded language. Prefer:
-
-> “SARGuardian brings several NISAR-powered surface-change workflows into one interactive platform. Users can explore eligible AOIs, review observations and candidate changes, and trace each result to its source products and quality checks.”
-
-Avoid unsupported phrases such as “AI predicts disasters”, “detects every landslide worldwide”, “field-verified damage”, “centimetre-accurate glacier collapse alerts” or “fully validated global accuracy”.
+- [ ] All team members and contributions are accurate.
+- [ ] The final video and screenshots are recorded from the current application and linked publicly.
+- [ ] Repository links open while signed out; no secrets or private user data are exposed.
+- [ ] The official project page has all required fields and its submitted state is confirmed.
+- [ ] Challenge title/category and all attributions are correct.
