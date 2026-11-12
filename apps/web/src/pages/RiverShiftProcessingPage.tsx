@@ -1114,66 +1114,62 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
       <section className="rs-workspace-grid">
         <div className="rs-panel">
           <form onSubmit={(event) => { event.preventDefault(); void startLiveProcessing(); }} className="rs-form">
-            <div className="rs-fields-two">
-              <label className="rs-field rs-field-full"><span>Analysis mode</span>
-                <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as typeof analysisMode); if (event.target.value === 'general_scan') setEventDate(''); }}>
-                  <option value="general_scan">General River Change Scan</option>
-                  <option value="event_based">Event-Based Analysis</option>
-                </select>
-                <small>{analysisMode === 'general_scan'
-                  ? 'No event date is assumed. The earliest compatible observation is the baseline and later real acquisitions are compared in date order.'
-                  : 'Supply an event date from an independent record. RiverShift never estimates or infers this date.'}</small>
-              </label>
-              {analysisMode === 'event_based' && <label className="rs-field"><span>Event date · independent record required</span><input type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} min={startDate} max={endDate} required />
-                <small>Event comparison needs at least one compatible acquisition strictly before this date and three strictly after it. A same-calendar-day acquisition is not assumed to be post-event.</small>
-              </label>}
-              <details className="rs-advanced-settings">
-                <summary>Advanced settings</summary>
-                <div className="rs-fields-two">
-              <label className="rs-field"><span>Processing maturity</span>
-                <select value={maturity} onChange={(event) => setMaturity(event.target.value as typeof maturity)}>
-                  <option value="PROVISIONAL">PROVISIONAL</option><option value="BETA">BETA</option><option value="ALL">ALL (audit only)</option>
-                </select>
-              </label>
-              <label className="rs-field"><span>Main-band polarization</span>
-                <select value={polarization} onChange={(event) => setPolarization(event.target.value as typeof polarization)}>
-                  <option value="">Any</option><option value="VV">VV</option><option value="VV+VH">VV + VH</option>
-                  <option value="HH">HH</option><option value="HH+HV">HH + HV</option>
-                  <option value="HH+HV+VH+VV">Full quad-pol</option><option value="LH+LV">LH + LV</option><option value="RH+RV">RH + RV</option>
-                </select>
-              </label>
-              <label className="rs-field rs-field-full"><span>Orbit direction</span>
-                <select value={direction} onChange={(event) => setDirection(event.target.value as typeof direction)}>
-                  <option value="">Any direction</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option>
-                </select>
-              </label>
-              <label className="rs-field rs-field-full"><span>NISAR frame coverage</span>
-                <select value={frameCoverage} onChange={(event) => setFrameCoverage(event.target.value as typeof frameCoverage)}>
-                  <option value="ALL">All footprints (recommended for discovery)</option>
-                  <option value="FULL">Full frames only</option>
-                  <option value="PARTIAL">Partial frames only</option>
-                </select>
-                <small>FULL/PARTIAL refers to NISAR frame coverage, not the percentage of your AOI covered. That must be checked separately.</small>
-              </label>
-              <label className="rs-field"><span>Science frequency</span>
-                <select value={scienceFrequency} onChange={(event) => setScienceFrequency(event.target.value as typeof scienceFrequency)}>
-                  <option value="frequencyA">Frequency A</option><option value="frequencyB">Frequency B</option>
-                </select>
-              </label>
-              <label className="rs-field"><span>Diagonal covariance term</span>
-                <select value={covarianceTerm} onChange={(event) => setCovarianceTerm(event.target.value)}>
-                  <option>HHHH</option><option>HVHV</option><option>VVVV</option><option>VHVH</option><option>RHRH</option><option>RVRV</option>
-                </select>
-              </label>
-              <label className="rs-field"><span>Common water threshold method</span>
-                <select value={thresholdMethod} onChange={(event) => setThresholdMethod(event.target.value as typeof thresholdMethod)}>
-                  <option value="otsu">Common Otsu · exploratory</option><option value="manual">Manual dB threshold</option>
-                </select>
-              </label>
-              {thresholdMethod === 'manual' && <label className="rs-field"><span>Common threshold (dB)</span><input type="number" min="-60" max="0" step="0.1" required value={thresholdDb} onChange={(event) => setThresholdDb(event.target.value)} /></label>}
-                </div>
-              </details>
-            </div>
+            <details className="rs-advanced-settings">
+              <summary>Advanced settings</summary>
+              <div className="rs-fields-two">
+                <label className="rs-field rs-field-full"><span>Analysis mode</span>
+                  <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as typeof analysisMode); if (event.target.value === 'general_scan') setEventDate(''); }}>
+                    <option value="general_scan">General River Change Scan</option>
+                    <option value="event_based">Event-Based Analysis</option>
+                  </select>
+                  {analysisMode === 'event_based' && <small>Supply an event date from an independent record. RiverShift never estimates or infers this date.</small>}
+                </label>
+                {analysisMode === 'event_based' && <label className="rs-field rs-field-full"><span>Event date · independent record required</span><input type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} min={startDate} max={endDate} required />
+                  <small>Event comparison needs at least one compatible acquisition strictly before this date and three strictly after it. A same-calendar-day acquisition is not assumed to be post-event.</small>
+                </label>}
+                <label className="rs-field"><span>Processing maturity</span>
+                  <select value={maturity} onChange={(event) => setMaturity(event.target.value as typeof maturity)}>
+                    <option value="PROVISIONAL">PROVISIONAL</option><option value="BETA">BETA</option><option value="ALL">ALL (audit only)</option>
+                  </select>
+                </label>
+                <label className="rs-field"><span>Main-band polarization</span>
+                  <select value={polarization} onChange={(event) => setPolarization(event.target.value as typeof polarization)}>
+                    <option value="">Any</option><option value="VV">VV</option><option value="VV+VH">VV + VH</option>
+                    <option value="HH">HH</option><option value="HH+HV">HH + HV</option>
+                    <option value="HH+HV+VH+VV">Full quad-pol</option><option value="LH+LV">LH + LV</option><option value="RH+RV">RH + RV</option>
+                  </select>
+                </label>
+                <label className="rs-field rs-field-full"><span>Orbit direction</span>
+                  <select value={direction} onChange={(event) => setDirection(event.target.value as typeof direction)}>
+                    <option value="">Any direction</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option>
+                  </select>
+                </label>
+                <label className="rs-field rs-field-full"><span>NISAR frame coverage</span>
+                  <select value={frameCoverage} onChange={(event) => setFrameCoverage(event.target.value as typeof frameCoverage)}>
+                    <option value="ALL">All footprints (recommended for discovery)</option>
+                    <option value="FULL">Full frames only</option>
+                    <option value="PARTIAL">Partial frames only</option>
+                  </select>
+                  <small>FULL/PARTIAL refers to NISAR frame coverage, not the percentage of your AOI covered. That must be checked separately.</small>
+                </label>
+                <label className="rs-field"><span>Science frequency</span>
+                  <select value={scienceFrequency} onChange={(event) => setScienceFrequency(event.target.value as typeof scienceFrequency)}>
+                    <option value="frequencyA">Frequency A</option><option value="frequencyB">Frequency B</option>
+                  </select>
+                </label>
+                <label className="rs-field"><span>Diagonal covariance term</span>
+                  <select value={covarianceTerm} onChange={(event) => setCovarianceTerm(event.target.value)}>
+                    <option>HHHH</option><option>HVHV</option><option>VVVV</option><option>VHVH</option><option>RHRH</option><option>RVRV</option>
+                  </select>
+                </label>
+                <label className="rs-field"><span>Common water threshold method</span>
+                  <select value={thresholdMethod} onChange={(event) => setThresholdMethod(event.target.value as typeof thresholdMethod)}>
+                    <option value="otsu">Common Otsu · exploratory</option><option value="manual">Manual dB threshold</option>
+                  </select>
+                </label>
+                {thresholdMethod === 'manual' && <label className="rs-field"><span>Common threshold (dB)</span><input type="number" min="-60" max="0" step="0.1" required value={thresholdDb} onChange={(event) => setThresholdDb(event.target.value)} /></label>}
+              </div>
+            </details>
             <button className="rs-primary-button" type="submit" disabled={riverJobBusy || !user || !aoiWkt.trim() || !startDate || !endDate || maturity === 'ALL' || (analysisMode === 'event_based' && !eventDate)}>
               {riverJobBusy ? 'Discovering, selecting and processing…' : 'Run RiverShift'}
             </button>
