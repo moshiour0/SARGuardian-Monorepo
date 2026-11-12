@@ -204,7 +204,7 @@ The local score sheet supplied for this project totals **118 points before its c
 
 The most score-efficient remaining work is: (1) finish and upload the real demo video, (2) record first-time-user tests on mobile and desktop, (3) verify the official NASA project page is complete/submitted, and (4) obtain a temporally matched independent river reference before claiming geophysical accuracy.
 
-## 12. Current submission checklist
+## 13. Current submission checklist
 
 | Item | Current status | What closes it |
 |---|---|---|
@@ -218,7 +218,7 @@ The most score-efficient remaining work is: (1) finish and upload the real demo 
 | Final demo video | **Not independently verified here** | Record the real application and evidence flow; do not replace actual product results with fabricated scenes. |
 | Team roles | **Reported role map included** | Confirm spelling, affiliation and final approved contribution statements with all members. |
 
-## 13. Primary references
+## 14. Primary references
 
 - [NASA NISAR Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/)
 - [NASA NISAR mission page](https://science.nasa.gov/mission/nisar/)
