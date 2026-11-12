@@ -8,13 +8,11 @@ import { countRiverShiftCandidateLayers, filterRiverShiftCandidateGeoJSON, getRi
 import { formatWktPolygon, parseWktPolygon, type Wgs84Point } from '../riverShift/aoi';
 import { deriveGeneralChangeMarkers } from '../riverShift/generalChangeMarkers';
 import { deriveImpactMapPoints, parseImpactExposureGeoJSON, parseOpenStreetMapImpactResponse, summarizeImpactExposure, type ImpactExposurePointCollection } from '../riverShift/impactContext';
-import { BrandLogo } from '../components/BrandLogo';
+import { Header } from '../components/Header';
 import './river-shift.css';
 
 type Props = {
-  onHome: () => void;
   user: User | null;
-  firebaseConfigured: boolean;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
@@ -363,7 +361,7 @@ function ScientificReadinessPanel({
   );
 }
 
-export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, onSignIn, onSignOut }: Props) {
+export function RiverShiftPage({ user, authState, onSignIn, onSignOut }: Props) {
   const [aoiWkt, setAoiWkt] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -1272,20 +1270,9 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
   const resultType = explorerReport ? explorerReport.analysis_type.replace(/_/g, ' ') : 'No result loaded';
 
   return (
-    <main className="river-shift-page">
-      <header className="rs-header">
-        <button className="rs-back" onClick={onHome} type="button">← SARGuardian</button>
-        <div className="rs-brand">
-          <BrandLogo className="rs-brand-logo" compact />
-          <div><strong>RiverShift</strong><small>GLOBAL NISAR RIVER-CHANGE WORKFLOW</small></div>
-        </div>
-        <div className="rs-header-actions">
-          <span className="rs-challenge-tag">NASA SPACE APPS 2026 · DANCING WITH THE SARS</span>
-          {user
-            ? <button className="rs-secondary-button" type="button" onClick={() => void onSignOut()}>{user.displayName || 'Account'} · Sign out</button>
-            : <button className="rs-secondary-button" type="button" disabled={!firebaseConfigured || authState === 'loading'} onClick={() => void onSignIn()}>{firebaseConfigured ? 'Sign in to process' : 'Sign-in setup required'}</button>}
-        </div>
-      </header>
+    <div className="home-page claude-home river-shift-page">
+      <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
+      <Header user={user} authState={authState} onSignIn={onSignIn} onSignOut={onSignOut} isArchivePage hideProfile />
 
       <section className="rs-hero">
         <div>
@@ -1746,6 +1733,6 @@ export function RiverShiftPage({ onHome, user, firebaseConfigured, authState, on
       <footer className="rs-footer">
         <span>SARGuardian · RiverShift</span><span>Open science · Reproducible processing · Evidence before claims</span>
       </footer>
-    </main>
+    </div>
   );
 }

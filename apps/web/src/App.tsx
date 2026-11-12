@@ -280,9 +280,7 @@ function App() {
       <RiverShiftPage
         key={user.uid}
         user={user}
-        firebaseConfigured={firebaseConfigured}
         authState={authState}
-        onHome={() => navigateTo('/')}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
       />
