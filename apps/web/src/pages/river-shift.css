@@ -22,7 +22,7 @@
 .rs-contour-one { top: 28px; }.rs-contour-two { top: 75px; border-color: rgba(81, 211, 211, .28); }.rs-contour-three { top: 122px; border-color: rgba(81, 211, 211, .16); }
 .rs-river-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #77f1d7; box-shadow: 0 0 20px 8px rgba(94, 230, 204, .22); }
 .rs-dot-one { top: 46px; left: 31%; }.rs-dot-two { top: 138px; right: 28%; }.rs-dot-three { bottom: 34px; left: 55%; }
-.rs-workspace-grid { max-width: 1440px; margin: auto; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .75fr); gap: 18px; align-items: start; }
+.rs-workspace-grid { max-width: 1440px; margin: auto; display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
 .rs-panel { min-width: 0; padding: 22px; border: 1px solid rgba(155, 204, 220, .18); border-radius: 17px; background: linear-gradient(145deg, rgba(13, 43, 59, .94), rgba(8, 30, 46, .94)); box-shadow: 0 18px 42px rgba(0, 0, 0, .12); }
 .rs-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
 .rs-section-heading h2, .rs-section-heading h3, .rs-panel h2 { margin: 0; color: #edf9fc; font: 700 21px 'Manrope', sans-serif; letter-spacing: -.045em; }

@@ -1223,21 +1223,6 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut 
             </div>
           )}
         </div>
-
-        <aside className="rs-panel rs-pipeline-panel">
-          <p className="rs-kicker">02 · SCIENTIFIC WORKFLOW</p>
-          <h2>From radar to evidence</h2>
-          <ol className="rs-pipeline">
-            <li><b>Discover</b><span>Find actual NISAR GCOV products in ASF DAAC.</span></li>
-            <li><b>Prepare</b><span>Inspect HDF5, check maturity, extract the same diagonal term and clip the same AOI.</span></li>
-            <li><b>Detect</b><span>Screen open water on comparable pre-event, flood-period and post-event observations.</span></li>
-            <li><b>Measure</b><span>Quantify water coverage and persistent land/water transitions.</span></li>
-            <li><b>Validate</b><span>Compare against an independent reference and report F1/IoU.</span></li>
-          </ol>
-          <a className="rs-doc-link" href="https://nisar-docs.asf.alaska.edu/gcov/" target="_blank" rel="noreferrer">NISAR GCOV product guide ↗</a>
-          <a className="rs-doc-link" href="https://docs.asf.alaska.edu/api/keywords/" target="_blank" rel="noreferrer">ASF Search API documentation ↗</a>
-          <a className="rs-doc-link" href="https://nisar-docs.asf.alaska.edu/availability-overview/" target="_blank" rel="noreferrer">NISAR data availability & maturity ↗</a>
-        </aside>
       </section>
 
       {riverJobBusy && (
