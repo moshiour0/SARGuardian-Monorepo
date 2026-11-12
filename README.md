@@ -10,7 +10,7 @@ SARGuardian brings NISAR-powered surface-change workflows into one AOI-driven pl
 
 - [Final submission story, scientific boundaries, live evidence and demo script](docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md)
 - [Score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md)
-- [RiverShift judge brief](engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_BRIEF.md)
+- [RiverShift judge brief](docs/submission/RIVERSHIFT_2026_JUDGE_BRIEF.md)
 
 **Latest RiverShift end-to-end evidence:** [Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660) completed on 12 November 2026. Ten exact NISAR L2 GCOV products across ten real acquisition dates passed product download, HDF5/layer checks, AOI extraction and result assembly. The final result manifest validated 72 output entries and private result publication passed. This is evidence for that AOI/date window, not a claim that every location has compatible data or that candidate changes are field-confirmed.
 
