@@ -103,13 +103,14 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/tests/test_river_shift_jobs.py",
       "destination_path": "apps/api/tests/test_river_shift_jobs.py",
       "source_blob_sha": "fe9916362b343d14b9add6cb480c23496c10924c",
-      "destination_blob_sha": "a825f65b20dab7f4ee3a184bbf1a7658a7b925e2",
+      "destination_blob_sha": "07d1df0c021158e705b62288775145f58edd7d6e",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add regression tests proving failed or missing GitHub workflow runs reach failed terminal status while a verified signed success cannot be overwritten by later polling.",
+      "reason": "Add regression coverage for compact owner-scoped RiverShift status, omitted scientific result payloads and no-op GitHub metadata refreshes.",
       "implementation_commits": [
         "a2708d73cf8fe765676b003fe1c363c8764b9914",
-        "70c780d2bee11dc2a821040b4d10209ac519affa"
+        "70c780d2bee11dc2a821040b4d10209ac519affa",
+        "65b5960dc024d91fb30739b864ee32156a0aaff0"
       ],
       "verification_paths": [
         "apps/api/tests/test_river_shift_jobs.py"
@@ -275,19 +276,23 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/persistence.py",
       "destination_path": "apps/api/app/persistence.py",
       "source_blob_sha": "a5828d031927e4ae7d7d998c3dddea1a99c87098",
-      "destination_blob_sha": "fc7615ba7e7d1896f21a74ce2a8647407c043206",
+      "destination_blob_sha": "a7f5eaaaf9029167bb6993a76189eda09cd4c059",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add Supabase owner mapping, compact metadata projections, a smaller geometry-free status projection, and owner-scoped status updates; active checks select only id or id/state.",
+      "reason": "Add compact RiverShift response/status projections. User-facing status reads omit AOI, result summary and artifact manifest; active-job queries select only lifecycle fields. Full result manifests remain available through owner-scoped terminal reads.",
       "implementation_commits": [
         "7b6e6be2d5d00f88146f966610f0bf07b97b5eae",
         "16df626f939e123c4e4fa9fabee50731ebc179da",
         "085f525761eec92c0a1e8c5f1554ef1da359ffc3",
-        "f3cfb75ae3a40589feb824b43233d4c7f2a02c36"
+        "f3cfb75ae3a40589feb824b43233d4c7f2a02c36",
+        "6fe3436757effd0330575fd4a86e9301ef85b4ca",
+        "780b286f0316dfb01b3cb943fe66f0c6f6342154",
+        "09b0eb62f2e127d6d2e7ceac173a518a9197bb5f"
       ],
       "verification_paths": [
         "apps/api/tests/test_main.py",
-        "apps/api/tests/test_persistence_headers.py"
+        "apps/api/tests/test_persistence_headers.py",
+        "apps/api/tests/test_river_shift_jobs.py"
       ],
       "promotion_scope": "Dynamic active API promotion"
     },
@@ -402,15 +407,16 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.ts",
       "destination_path": "apps/web/src/api/catalog.ts",
       "source_blob_sha": "ff0652aa42e67a6d7b4ad2c4f74112d07d980df2",
-      "destination_blob_sha": "3d789ab01e23c5717b788d9fe723ff3828fb0b86",
+      "destination_blob_sha": "34711ee32bdb010d07d4fd9507e47f45990a06b5",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add Firebase-authenticated compact job status/list and boolean active-job clients plus an adaptive poll cadence; status type excludes AOI geometry and result payloads.",
+      "reason": "Add a Firebase-authenticated compact RiverShift job-status client. Full result details are loaded only after the lifecycle endpoint reports a terminal state.",
       "implementation_commits": [
         "84d3b8fa21ee0128ddc3287dc51375332493f1ab",
         "c41384f82d1a511156e5b08439ef7037ce276d97",
         "6dc310193278a0a7caf35c6a5c5df94687e7488e",
-        "fbaa3f054e06343477dc3be09797c869f3f3ea51"
+        "fbaa3f054e06343477dc3be09797c869f3f3ea51",
+        "ca0a10e70d7c9cdd18aa97e0148b6d48963c8e6b"
       ],
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
@@ -421,13 +427,15 @@
       "source_path": "migration/source-snapshots/dynamic/Frontend/src/api/catalog.test.ts",
       "destination_path": "apps/web/src/api/catalog.test.ts",
       "source_blob_sha": "c6290e0ebb585213ffab4b58f74a9f5d4850808c",
-      "destination_blob_sha": "30bdf237d8e3e1403a7dc9f4b193c1c15404bd2c",
+      "destination_blob_sha": "3a72a957f96dcdf1dc2a7b4d6a5d98316848fc0c",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Test that the repeated status endpoint returns compact geometry-free metadata and that list/active clients and ten/thirty/sixty-second backoff use the correct authenticated routes.",
+      "reason": "Test the compact authenticated RiverShift status client, endpoint URL, no-store behaviour and Firebase bearer-token forwarding.",
       "implementation_commits": [
         "c8a22b4517103b49cb31ea13928cec0c3e573c76",
-        "e2644dcbc233cbd6dde493157f5e4954e932c369"
+        "e2644dcbc233cbd6dde493157f5e4954e932c369",
+        "1a35d27a1d5af20560161cd48d36336be2798f12",
+        "ca0a10e70d7c9cdd18aa97e0148b6d48963c8e6b"
       ],
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
@@ -483,6 +491,97 @@
       "verification_paths": [
         "apps/web/src/api/catalog.test.ts"
       ]
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Backend/app/river_shift_jobs.py",
+      "destination_path": "apps/api/app/river_shift_jobs.py",
+      "source_blob_sha": "e3c702c854e8381d84d09a0db8b85fcaaa89328a",
+      "destination_blob_sha": "da350ed750446606c938d314b2642863990c32c9",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Add an authenticated owner-scoped RiverShift status endpoint with a compact lifecycle-only response, throttle redundant GitHub fallback checks and skip unchanged database updates.",
+      "implementation_commits": [
+        "89482ebee4eaa34f7ff86cd5359f789397e69483",
+        "6fe3436757effd0330575fd4a86e9301ef85b4ca",
+        "65b5960dc024d91fb30739b864ee32156a0aaff0",
+        "780b286f0316dfb01b3cb943fe66f0c6f6342154",
+        "09b0eb62f2e127d6d2e7ceac173a518a9197bb5f"
+      ],
+      "verification_paths": [
+        "apps/api/tests/test_river_shift_jobs.py"
+      ],
+      "promotion_scope": "Dynamic active API promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/dynamic/Frontend/src/pages/RiverShiftPage.tsx",
+      "destination_path": "apps/web/src/pages/RiverShiftPage.tsx",
+      "source_blob_sha": "7ea0a96a6798ada7d348c227bece1b6557f13303",
+      "destination_blob_sha": "b5ba57ad5acb3ca87a25218f6fadcac7f09a9eeb",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Restore one recent job only and poll compact status at an adaptive 15/30/60-second cadence; retrieve the full result and private artifact manifest once, only after a terminal state.",
+      "implementation_commits": [
+        "b1c7d99375a169983e7386222e080fcc0f73b070",
+        "ca0a10e70d7c9cdd18aa97e0148b6d48963c8e6b",
+        "1a35d27a1d5af20560161cd48d36336be2798f12"
+      ],
+      "verification_paths": [
+        "apps/web/src/api/catalog.test.ts"
+      ],
+      "promotion_scope": "Dynamic frontend promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/backend-main/tools/river_shift/process_gcov_job.py",
+      "destination_path": "engines/river-shift/tools/river_shift/process_gcov_job.py",
+      "source_blob_sha": "7e57dc2cb053128aa70833c98af036031b923ff0",
+      "destination_blob_sha": "62e547e0bd4864e1b8d622b8add5b5086632a304",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Compress retained full-resolution GeoJSON copies losslessly as deterministic gzip while leaving original science outputs, raster masks, checksums and browser preview files unchanged; reduce display-only preview grid and marker budgets.",
+      "implementation_commits": [
+        "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7",
+        "d9f2a742aa06b1599baaed5caf2b709051fabcaf",
+        "22591a12daea228ef5409c5fc6314cb64f8f4b44"
+      ],
+      "verification_paths": [
+        "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
+        "engines/river-shift/tools/river_shift/tests/test_raster_first_previews.py"
+      ],
+      "promotion_scope": "RiverShift GCOV engine promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/backend-main/tools/river_shift/tests/test_raster_first_previews.py",
+      "destination_path": "engines/river-shift/tools/river_shift/tests/test_raster_first_previews.py",
+      "source_blob_sha": "e5b19cd43cfc96b29359a6169903f9ed2ce9e7f7",
+      "destination_blob_sha": "9a61e41b47afff23d67f8a468bbef12f6e01a8d8",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Assert the 256-by-256 shared display grid and deterministic 1,500-point sparse-marker budget without altering full-resolution source masks or class-overlap semantics.",
+      "implementation_commits": [
+        "d9f2a742aa06b1599baaed5caf2b709051fabcaf",
+        "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7"
+      ],
+      "verification_paths": [
+        "engines/river-shift/tools/river_shift/tests/test_raster_first_previews.py"
+      ],
+      "promotion_scope": "RiverShift GCOV engine promotion"
+    },
+    {
+      "source_path": "migration/source-snapshots/backend-main/tools/river_shift/tests/test_process_gcov_job.py",
+      "destination_path": "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py",
+      "source_blob_sha": "fb9de2cb775733caad99294276d9311377f27456",
+      "destination_blob_sha": "f6ee81db0a71243617c17e24112431f19c18d00e",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Verify lossless gzip retention of full GeoJSON, preserve plain display previews and reports, and check source/destination checksum metadata.",
+      "implementation_commits": [
+        "22591a12daea228ef5409c5fc6314cb64f8f4b44",
+        "ff7bd0c7bbcbb35ca268d54e4ac06b66532cdea7"
+      ],
+      "verification_paths": [
+        "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py"
+      ],
+      "promotion_scope": "RiverShift GCOV engine promotion"
     }
   ]
 }
