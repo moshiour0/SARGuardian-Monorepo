@@ -692,24 +692,26 @@ def download_product(product: dict, output_dir: Path) -> dict:
                 "NASA CMR exact result could not be resolved to an earthaccess DataGranule."
             ) from None
 
+        resolved_exact_matches = [
+            row for row in (candidates or [])
+            if _earthaccess_granule_name(row) == expected_name
+            and isinstance(row.get("umm"), dict)
+            and isinstance(row.get("meta"), dict)
+            and callable(getattr(row, "data_links", None))
+            and hasattr(row, "cloud_hosted")
+        ]
         print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
             "stage": "cmr_concept_id_resolution",
-            "status": "PASS",
+            "status": "PASS" if len(resolved_exact_matches) == 1 else "FAIL",
             "candidate_count": len(candidates or []),
+            "exact_downloadable_granule_count": len(resolved_exact_matches),
         }), flush=True)
+        candidates = resolved_exact_matches
 
     exact_matches = [
         row for row in (candidates or [])
         if _earthaccess_granule_name(row) == expected_name
     ]
-    if fallback_used:
-        exact_matches = [
-            row for row in exact_matches
-            if isinstance(row.get("umm"), dict)
-            and isinstance(row.get("meta"), dict)
-            and callable(getattr(row, "data_links", None))
-            and hasattr(row, "cloud_hosted")
-        ]
     if len(exact_matches) != 1:
         print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
             "stage": "exact_cmr_granule_lookup",
