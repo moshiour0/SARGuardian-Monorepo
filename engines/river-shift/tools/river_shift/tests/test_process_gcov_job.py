@@ -490,7 +490,15 @@ def test_retained_full_geojson_is_lossless_gzip_while_preview_and_other_outputs_
         + b']}'
     )
     preview_payload = b'{"type":"FeatureCollection","features":[],"river_shift_preview":{"status":"DISPLAY_ONLY"}}'
-    report_payload = b'{"schema_version":1,"engine":"RiverShift"}'
+    source_geojson_sha256 = __import__("hashlib").sha256(full_payload).hexdigest()
+    report_payload = json.dumps({
+        "schema_version": 1,
+        "engine": "RiverShift",
+        "outputs": {
+            "erosion_geojson": "erosion_candidates.geojson",
+            "erosion_geojson_sha256": source_geojson_sha256,
+        },
+    }).encode("utf-8")
     mask_payload = b"validated raster bytes"
 
     (source_dir / "erosion_candidates.geojson").write_bytes(full_payload)
@@ -507,7 +515,18 @@ def test_retained_full_geojson_is_lossless_gzip_while_preview_and_other_outputs_
     assert not (output_root / "morphology" / "erosion_candidates.geojson").exists()
 
     assert (output_root / "morphology" / "erosion_candidates_preview.geojson").read_bytes() == preview_payload
-    assert (output_root / "morphology" / "river_shift_result.json").read_bytes() == report_payload
+    retained_report_path = output_root / "morphology" / "river_shift_result.json"
+    retained_report = json.loads(retained_report_path.read_text(encoding="utf-8"))
+    erosion_ref = retained_report["outputs"]
+    assert erosion_ref["erosion_geojson"] == "erosion_candidates.geojson.gz"
+    assert erosion_ref["erosion_geojson_compression"] == "gzip"
+    assert erosion_ref["erosion_geojson_source_sha256"] == source_geojson_sha256
+    assert erosion_ref["erosion_geojson_sha256"] == __import__("hashlib").sha256(compressed_path.read_bytes()).hexdigest()
+    assert erosion_ref["erosion_geojson_source_bytes"] == len(full_payload)
+    assert erosion_ref["erosion_geojson_retained_bytes"] == compressed_path.stat().st_size
+    assert sha256_file(retained_report_path) == next(
+        item["sha256"] for item in inventory if item["path"].endswith("river_shift_result.json")
+    )
     assert (output_root / "morphology" / "erosion_candidate_mask.tif").read_bytes() == mask_payload
 
     compressed_receipt = next(
