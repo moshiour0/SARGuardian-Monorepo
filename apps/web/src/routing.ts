@@ -3,6 +3,7 @@ export const HOW_IT_WORKS_PATH = '/how-it-works';
 export const DASHBOARD_PATH = '/dashboard';
 export const RIVER_SHIFT_PATH = '/river-shift';
 export const RIVER_SHIFT_PROCESSING_PATH = '/river-shift/processing';
+export const RIVER_SHIFT_RESULTS_PATH = '/river-shift/results';
 export const FIND_DISPLACEMENT_PATH = '/find-displacement';
 export const FIND_DISPLACEMENT_RESULTS_PATH = '/find-displacement/results';
 export const FIND_DISPLACEMENT_OUTPUTS_PATH = '/find-displacement/view-results';
@@ -17,11 +18,15 @@ export function isDashboardRoute(pathname: string): boolean {
 
 export function isRiverShiftRoute(pathname: string): boolean {
   const normalizedPath = normalizePathname(pathname);
-  return normalizedPath === RIVER_SHIFT_PATH || normalizedPath === RIVER_SHIFT_PROCESSING_PATH;
+  return normalizedPath === RIVER_SHIFT_PATH || normalizedPath === RIVER_SHIFT_PROCESSING_PATH || normalizedPath === RIVER_SHIFT_RESULTS_PATH;
 }
 
 export function isRiverShiftProcessingRoute(pathname: string): boolean {
   return normalizePathname(pathname) === RIVER_SHIFT_PROCESSING_PATH;
+}
+
+export function isRiverShiftResultsRoute(pathname: string): boolean {
+  return normalizePathname(pathname) === RIVER_SHIFT_RESULTS_PATH;
 }
 
 export function isArchiveRoute(pathname: string): boolean {
