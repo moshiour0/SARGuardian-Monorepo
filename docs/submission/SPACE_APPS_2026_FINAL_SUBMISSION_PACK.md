@@ -181,6 +181,29 @@ Open the historical independent-reference report. Explain that no eligible refer
 
 SARGuardian makes NISAR evidence more accessible by bringing several surface-change workflows into one AOI-driven platform. Its value is not only the map that appears at the end; it is the traceable chain behind that map—real observation dates, exact source products, compatibility checks, processing records, uncertainty and explicit validation limits. That is how a candidate becomes something a researcher or local decision-maker can investigate responsibly.
 
+## 12. Indicative score against the supplied local judge rubric
+
+The local score sheet supplied for this project totals **118 points before its conditional +5% women-participation bonus**. The following is an evidence-based preparation estimate, not a mark awarded by a judge and not a published NASA global score.
+
+| Criterion | Maximum | Current estimate | Why this estimate is not higher |
+|---|---:|---:|---|
+| Impact | 20 | **17** | Strong cross-workflow relevance and a 10-date live river case; no measured downstream user/community outcome is documented here. |
+| Creativity | 20 | **18** | User-defined AOIs, target-free displacement discovery, a distinct two-polygon workflow and GCOV time-series screening are a strong combination. |
+| Validity | 20 | **16** | Exact granule provenance, HDF5/layer gates, shared-grid alignment and live end-to-end success are demonstrated; independent physical validation remains incomplete for the retained Jamuna reference window. |
+| Relevance | 20 | **19** | NISAR is the primary measurement source across the product's central workflows; the application is directly aligned to Dancing with the SARs. |
+| Presentation | 20 | **15** | A coherent narrative and evidence pack are prepared, but a finished demo video and recorded first-time-user tests are not verified in this pack. |
+| Teamwork | 5 | **4** | Named roles and responsibilities are documented; the official project page and collaboration evidence still need final confirmation. |
+| User experience | 5 | **3** | The user journey and map-first workflow are defined; independent first-use and mobile/keyboard test records are not included here. |
+| NASA data usage | 5 | **5** | NISAR products drive the analysis and provenance; the data role is explicit and separated from basemaps/context. |
+| Challenge category identified | 1 | **1** | “Dancing with the SARs” and “Earth Science” are explicit. |
+| Repository access | 1 | **1** | The Monorepo is public and its repository page is accessible. |
+| Project page complete | 1 | **0** | Successful completion/submission of the official NASA project page has not been independently verified. |
+| **Total** | **118** | **99** | **83.9% of the pre-bonus maximum.** |
+
+**Conditional bonus:** the supplied local rubric describes a +5% women-participation bonus. It is excluded from the 99-point estimate because eligibility and roster confirmation have not been independently established in this repository evidence. If the local organiser confirms eligibility, +5% of 99 is 4.95 points, giving an indicative **103.95 / 118**. This is local-rubric arithmetic, not a claim that NASA Global Judging awards this bonus.
+
+The most score-efficient remaining work is: (1) finish and upload the real demo video, (2) record first-time-user tests on mobile and desktop, (3) verify the official NASA project page is complete/submitted, and (4) obtain a temporally matched independent river reference before claiming geophysical accuracy.
+
 ## 12. Current submission checklist
 
 | Item | Current status | What closes it |
