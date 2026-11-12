@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { createRiverShiftJob, getRiverShiftJob, listRiverShiftJobs, type RiverShiftJob } from '../api/catalog';
+import { createRiverShiftJob, getRiverShiftJob, listRiverShiftJobs, retryRiverShiftJob, type RiverShiftJob } from '../api/catalog';
 import { Header } from '../components/Header';
 import { RIVER_SHIFT_SETUP_STORAGE_KEY, type RiverShiftSetup } from './RiverShiftPage';
 import './river-shift.css';
 import '../../landslide/ui/displacementPreparation.css';
 import { ELAPSED_TICK_MS, formatElapsed } from '../../landslide/ui/processingStatus';
+import { ProcessingPageSkeleton } from '../../landslide/ui/DisplacementPreparation';
 
 type Props = {
   user: User | null;
@@ -45,10 +46,12 @@ function riverShiftStageIndex(job: RiverShiftJob): number {
   return 0;
 }
 
-function RiverShiftJobStatus({ job, clock, onViewResults }: {
+export function RiverShiftJobStatus({ job, clock, onViewResults, onRetry, retrying }: {
   job: RiverShiftJob;
   clock: number;
   onViewResults: () => void;
+  onRetry: () => void;
+  retrying: boolean;
 }) {
   const active = activeRiverShiftStates.has(job.state);
   const stageIndex = riverShiftStageIndex(job);
@@ -96,7 +99,11 @@ function RiverShiftJobStatus({ job, clock, onViewResults }: {
       </section>
 
       {job.state === 'succeeded' && <div className="processing-page-actions"><button type="button" className="processing-primary-button" onClick={onViewResults}>Show result</button></div>}
-      {job.state === 'failed' && <p className="processing-error" role="alert">{job.error_message || 'River Shift processing failed. Try the run again from the setup page.'}</p>}
+      {job.state === 'failed' && <div className="processing-page-actions">
+        <button type="button" className="processing-primary-button" disabled={retrying} onClick={onRetry}>{retrying ? 'Retrying…' : 'Retry'}</button>
+      </div>}
+      {job.state === 'failed' && <p className="processing-safe-note">Retry starts a new attempt with this job’s saved settings.</p>}
+      {job.state === 'failed' && <p className="processing-error" role="alert">{job.error_message || 'River Shift processing failed.'}</p>}
     </main>
   );
 }
@@ -117,23 +124,31 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
   const [thresholdMethod, setThresholdMethod] = useState<'otsu' | 'manual'>('otsu');
   const [thresholdDb, setThresholdDb] = useState('');
   const [riverJob, setRiverJob] = useState<RiverShiftJob | null>(null);
+  const [riverJobLoading, setRiverJobLoading] = useState(true);
   const [riverJobBusy, setRiverJobBusy] = useState(false);
   const [riverJobError, setRiverJobError] = useState('');
+  const retryPending = useRef(false);
   const [clock, setClock] = useState(() => Date.now());
 
   useEffect(() => {
     if (!user) {
       setRiverJob(null);
+      setRiverJobLoading(false);
       return undefined;
     }
     let cancelled = false;
+    setRiverJobLoading(true);
     void listRiverShiftJobs(user, 10).then((jobs) => {
-      if (!cancelled && jobs.length) {
-        setRiverJob((current) => current ?? jobs[0]);
+      if (!cancelled) {
+        if (jobs.length) {
+          setRiverJob((current) => current ?? jobs[0]);
+        }
+        setRiverJobLoading(false);
       }
     }).catch((error: unknown) => {
       if (!cancelled) {
         setRiverJobError(error instanceof Error ? error.message : 'Could not restore the last River Shift job.');
+        setRiverJobLoading(false);
       }
     });
     return () => { cancelled = true; };
@@ -220,6 +235,23 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     }
   };
 
+  const retryRiverShift = async () => {
+    if (!user || !riverJob || riverJob.state !== 'failed' || retryPending.current) return;
+    retryPending.current = true;
+    setRiverJobBusy(true);
+    setRiverJobError('');
+    try {
+      const job = await retryRiverShiftJob(riverJob.id, user);
+      setRiverJob(job);
+      window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', job.id);
+    } catch (error) {
+      setRiverJobError(error instanceof Error ? error.message : 'Could not retry River Shift processing.');
+    } finally {
+      retryPending.current = false;
+      setRiverJobBusy(false);
+    }
+  };
+
   return (
     <div className="home-page claude-home river-shift-page">
       <div className="claude-background" aria-hidden="true"><i /><i /><i /></div>
@@ -234,78 +266,95 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
         pageTitle="River Shift"
       />
 
-      {!riverJob && <section className="rs-workspace-grid">
-        <div className="rs-panel">
-          <form onSubmit={(event) => { event.preventDefault(); void startLiveProcessing(); }} className="rs-form">
-            <details className="rs-advanced-settings">
-              <summary>Advanced settings</summary>
-              <div className="rs-fields-two">
-                <label className="rs-field rs-field-full"><span>Analysis mode</span>
-                  <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as typeof analysisMode); if (event.target.value === 'general_scan') setEventDate(''); }}>
-                    <option value="general_scan">General River Change Scan</option>
-                    <option value="event_based">Event-Based Analysis</option>
-                  </select>
-                  {analysisMode === 'event_based' && <small>Supply an event date from an independent record. RiverShift never estimates or infers this date.</small>}
-                </label>
-                {analysisMode === 'event_based' && <label className="rs-field rs-field-full"><span>Event date · independent record required</span><input type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} min={startDate} max={endDate} required />
-                  <small>Event comparison needs at least one compatible acquisition strictly before this date and three strictly after it. A same-calendar-day acquisition is not assumed to be post-event.</small>
-                </label>}
-                <label className="rs-field"><span>Processing maturity</span>
-                  <select value={maturity} onChange={(event) => setMaturity(event.target.value as typeof maturity)}>
-                    <option value="PROVISIONAL">PROVISIONAL</option><option value="BETA">BETA</option><option value="ALL">ALL (audit only)</option>
-                  </select>
-                </label>
-                <label className="rs-field"><span>Main-band polarization</span>
-                  <select value={polarization} onChange={(event) => setPolarization(event.target.value as typeof polarization)}>
-                    <option value="">Any</option><option value="VV">VV</option><option value="VV+VH">VV + VH</option>
-                    <option value="HH">HH</option><option value="HH+HV">HH + HV</option>
-                    <option value="HH+HV+VH+VV">Full quad-pol</option><option value="LH+LV">LH + LV</option><option value="RH+RV">RH + RV</option>
-                  </select>
-                </label>
-                <label className="rs-field rs-field-full"><span>Orbit direction</span>
-                  <select value={direction} onChange={(event) => setDirection(event.target.value as typeof direction)}>
-                    <option value="">Any direction</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option>
-                  </select>
-                </label>
-                <label className="rs-field rs-field-full"><span>NISAR frame coverage</span>
-                  <select value={frameCoverage} onChange={(event) => setFrameCoverage(event.target.value as typeof frameCoverage)}>
-                    <option value="ALL">All footprints (recommended for discovery)</option>
-                    <option value="FULL">Full frames only</option>
-                    <option value="PARTIAL">Partial frames only</option>
-                  </select>
-                  <small>FULL/PARTIAL refers to NISAR frame coverage, not the percentage of your AOI covered. That must be checked separately.</small>
-                </label>
-                <label className="rs-field"><span>Science frequency</span>
-                  <select value={scienceFrequency} onChange={(event) => setScienceFrequency(event.target.value as typeof scienceFrequency)}>
-                    <option value="frequencyA">Frequency A</option><option value="frequencyB">Frequency B</option>
-                  </select>
-                </label>
-                <label className="rs-field"><span>Diagonal covariance term</span>
-                  <select value={covarianceTerm} onChange={(event) => setCovarianceTerm(event.target.value)}>
-                    <option>HHHH</option><option>HVHV</option><option>VVVV</option><option>VHVH</option><option>RHRH</option><option>RVRV</option>
-                  </select>
-                </label>
-                <label className="rs-field"><span>Common water threshold method</span>
-                  <select value={thresholdMethod} onChange={(event) => setThresholdMethod(event.target.value as typeof thresholdMethod)}>
-                    <option value="otsu">Common Otsu · exploratory</option><option value="manual">Manual dB threshold</option>
-                  </select>
-                </label>
-                {thresholdMethod === 'manual' && <label className="rs-field"><span>Common threshold (dB)</span><input type="number" min="-60" max="0" step="0.1" required value={thresholdDb} onChange={(event) => setThresholdDb(event.target.value)} /></label>}
-              </div>
-            </details>
-            <button className="rs-primary-button" type="submit" disabled={riverJobBusy || !user || !aoiWkt.trim() || !startDate || !endDate || maturity === 'ALL' || (analysisMode === 'event_based' && !eventDate)}>
-              {riverJobBusy ? 'Discovering, selecting and processing…' : 'Run RiverShift'}
-            </button>
-            {!user && <p className="rs-muted">Sign in before running. Job status and private results remain owner-protected.</p>}
-            {analysisMode === 'event_based' && eventDate && <p className="rs-warning-inline">Event date supplied by the user; it is not independently confirmed. Results remain provisional.</p>}
-          </form>
-        </div>
-      </section>}
+      {riverJobLoading ? (
+        <ProcessingPageSkeleton />
+      ) : (
+        <>
+          {riverJob && (
+            <RiverShiftJobStatus
+              job={riverJob}
+              clock={clock}
+              retrying={riverJobBusy}
+              onRetry={() => void retryRiverShift()}
+              onViewResults={() => {
+                window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id);
+                onViewResults?.();
+              }}
+            />
+          )}
 
-      {riverJob && <RiverShiftJobStatus job={riverJob} clock={clock} onViewResults={() => { window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id); onViewResults?.(); }} />}
+          <section className="rs-workspace-grid" style={{ width: 'min(720px, calc(100% - 32px))', margin: riverJob ? '24px auto 0' : '0 auto' }}>
+            <div className="rs-panel">
+              <form onSubmit={(event) => { event.preventDefault(); void startLiveProcessing(); }} className="rs-form">
+                <details className="rs-advanced-settings">
+                  <summary>Advanced settings</summary>
+                  <div className="rs-fields-two">
+                    <label className="rs-field rs-field-full"><span>Analysis mode</span>
+                      <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as typeof analysisMode); if (event.target.value === 'general_scan') setEventDate(''); }}>
+                        <option value="general_scan">General River Change Scan</option>
+                        <option value="event_based">Event-Based Analysis</option>
+                      </select>
+                      {analysisMode === 'event_based' && <small>Supply an event date from an independent record. RiverShift never estimates or infers this date.</small>}
+                    </label>
+                    {analysisMode === 'event_based' && <label className="rs-field rs-field-full"><span>Event date · independent record required</span><input type="date" value={eventDate} onChange={(event) => setEventDate(event.target.value)} min={startDate} max={endDate} required />
+                      <small>Event comparison needs at least one compatible acquisition strictly before this date and three strictly after it. A same-calendar-day acquisition is not assumed to be post-event.</small>
+                    </label>}
+                    <label className="rs-field"><span>Processing maturity</span>
+                      <select value={maturity} onChange={(event) => setMaturity(event.target.value as typeof maturity)}>
+                        <option value="PROVISIONAL">PROVISIONAL</option><option value="BETA">BETA</option><option value="ALL">ALL (audit only)</option>
+                      </select>
+                    </label>
+                    <label className="rs-field"><span>Main-band polarization</span>
+                      <select value={polarization} onChange={(event) => setPolarization(event.target.value as typeof polarization)}>
+                        <option value="">Any</option><option value="VV">VV</option><option value="VV+VH">VV + VH</option>
+                        <option value="HH">HH</option><option value="HH+HV">HH + HV</option>
+                        <option value="HH+HV+VH+VV">Full quad-pol</option><option value="LH+LV">LH + LV</option><option value="RH+RV">RH + RV</option>
+                      </select>
+                    </label>
+                    <label className="rs-field rs-field-full"><span>Orbit direction</span>
+                      <select value={direction} onChange={(event) => setDirection(event.target.value as typeof direction)}>
+                        <option value="">Any direction</option><option value="ASCENDING">Ascending</option><option value="DESCENDING">Descending</option>
+                      </select>
+                    </label>
+                    <label className="rs-field rs-field-full"><span>NISAR frame coverage</span>
+                      <select value={frameCoverage} onChange={(event) => setFrameCoverage(event.target.value as typeof frameCoverage)}>
+                        <option value="ALL">All footprints (recommended for discovery)</option>
+                        <option value="FULL">Full frames only</option>
+                        <option value="PARTIAL">Partial frames only</option>
+                      </select>
+                      <small>FULL/PARTIAL refers to NISAR frame coverage, not the percentage of your AOI covered. That must be checked separately.</small>
+                    </label>
+                    <label className="rs-field"><span>Science frequency</span>
+                      <select value={scienceFrequency} onChange={(event) => setScienceFrequency(event.target.value as typeof scienceFrequency)}>
+                        <option value="frequencyA">Frequency A</option><option value="frequencyB">Frequency B</option>
+                      </select>
+                    </label>
+                    <label className="rs-field"><span>Diagonal covariance term</span>
+                      <select value={covarianceTerm} onChange={(event) => setCovarianceTerm(event.target.value)}>
+                        <option>HHHH</option><option>HVHV</option><option>VVVV</option><option>VHVH</option><option>RHRH</option><option>RVRV</option>
+                      </select>
+                    </label>
+                    <label className="rs-field"><span>Common water threshold method</span>
+                      <select value={thresholdMethod} onChange={(event) => setThresholdMethod(event.target.value as typeof thresholdMethod)}>
+                        <option value="otsu">Common Otsu · exploratory</option><option value="manual">Manual dB threshold</option>
+                      </select>
+                    </label>
+                    {thresholdMethod === 'manual' && <label className="rs-field"><span>Common threshold (dB)</span><input type="number" min="-60" max="0" step="0.1" required value={thresholdDb} onChange={(event) => setThresholdDb(event.target.value)} /></label>}
+                  </div>
+                </details>
+                <button className="rs-primary-button" type="submit" disabled={riverJobBusy || !user || !aoiWkt.trim() || !startDate || !endDate || maturity === 'ALL' || (analysisMode === 'event_based' && !eventDate)}>
+                  {riverJobBusy ? 'Discovering, selecting and processing…' : 'Run RiverShift'}
+                </button>
+                {!user && <p className="rs-muted">Sign in before running. Job status and private results remain owner-protected.</p>}
+                {analysisMode === 'event_based' && eventDate && <p className="rs-warning-inline">Event date supplied by the user; it is not independently confirmed. Results remain provisional.</p>}
+              </form>
+            </div>
+          </section>
+        </>
+      )}
 
-      {!riverJob && riverJobBusy && (
-        <section className="rs-panel rs-job-feedback" role="status" aria-live="polite">
+      {riverJobBusy && (
+        <section className="rs-panel rs-job-feedback" role="status" aria-live="polite" style={{ width: 'min(720px, calc(100% - 32px))', margin: '16px auto 0' }}>
           <div className="rs-info-banner">
             <strong>Submitting RiverShift job…</strong>{' '}
             The API is validating the AOI and confirming the NASA CMR acquisition manifest before dispatch.
@@ -315,7 +364,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
       )}
 
       {riverJobError && (
-        <section className="rs-panel rs-job-feedback" aria-live="assertive">
+        <section className="rs-panel rs-job-feedback" aria-live="assertive" style={{ width: 'min(720px, calc(100% - 32px))', margin: '16px auto 0' }}>
           <p className="rs-error" role="alert">{riverJobError}</p>
         </section>
       )}

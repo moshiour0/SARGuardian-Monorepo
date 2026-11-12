@@ -77,7 +77,7 @@ function displayStageName(stage: string | null | undefined, state: DisplacementJ
   return stage ? `${stage.charAt(0).toUpperCase()}${stage.slice(1)}` : 'Processing';
 }
 
-function ProcessingPageSkeleton() {
+export function ProcessingPageSkeleton() {
   return (
     <main className="displacement-preparation processing-page-skeleton" aria-busy="true" aria-label="Loading processing status">
       <section className="processing-card processing-hero">
