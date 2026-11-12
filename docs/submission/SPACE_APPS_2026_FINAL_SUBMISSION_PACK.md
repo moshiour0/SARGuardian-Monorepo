@@ -145,17 +145,60 @@ Avoid: “everywhere, every day”, “all data are already available everywhere
 - A missing or date-mismatched independent reference remains **NO_MATCH_NO_SCORE**, not a fabricated zero score or a passing accuracy claim.
 - Glacier Movement is not an independent collapse/avalanche detector.
 
-## 9. Team roles
+## 9. Team roles, contributions and collaboration
 
-The following is the team's reported responsibility map. The final official NASA project page should use the team's approved wording and confirm the member list before submission.
+The team divided work across scientific processing, application experience, river-change development and communication. The clearest integration hand-off was in River Shift: **MD Fahim developed the module and its initial prototype; the Team Lead then integrated the Scientific Core Engine into the River Shift workflow.** Scientific implementation and UI/UX refinement, project storytelling and video production supported the same end-to-end submission.
 
-| Team member | Reported responsibilities | Education / affiliation supplied by the team |
-|---|---|---|
-| **Moshiur Rahman Sarker** | Team Lead; Scientific Core Engine and Processing Development; overall project development and integration; project coordination; video editing. | Department of Mathematics, Ananda Mohan College, Mymensingh. |
-| **Shagor Chandra Modak** | Scientific Core Engine implementation in GitHub Actions; UI/UX design; final project polishing and refinement. | CSE, SUST. |
-| **MD Fahim** | River Shift development; video editing. | CSE, Islamic University, Kushtia. |
-| **Tasmia Binte Hasan** | Storytelling and presentation. | Add only the education/affiliation approved for the official project page. |
+The names, education details and contribution statements below are supplied by the team. They should be copied to the official NASA project page only after each member confirms the spelling and wording.
 
+### 1. Moshiur Rahman Sarker — Team Lead
+
+**Education:** Department of Mathematics, Ananda Mohan College, Mymensingh, Bangladesh.
+
+**Responsibilities**
+- Scientific Core Engine and processing development.
+- Overall project development and integration.
+- Project coordination.
+- Video editing.
+
+**Contribution:** Led overall project development and coordinated the team's work. Developed and integrated the core scientific processing capabilities across the project, including integrating the Scientific Core Engine into the River Shift workflow after the River Shift prototype was developed. Also contributed to video editing and visual presentation.
+
+### 2. Sagor Chandra Modak — Scientific Core Engine Implementation, UI/UX Design and Final Project Preparation
+
+**Education:** Department of Computer Science & Engineering, Shahjalal University of Science and Technology (SUST), Sylhet, Bangladesh.
+
+**Responsibilities**
+- Scientific Core Engine implementation in GitHub Actions.
+- UI/UX design.
+- Final project polishing and refinement.
+
+**Contribution:** Contributed to implementing the Scientific Core Engine within the GitHub Actions workflow and designing the project's user interface and user experience. Led final polishing and refinement of the overall project.
+
+### 3. MD Fahim — River Shift Development and Video Editing
+
+**Education:** Department of Computer Science and Engineering, Islamic University, Kushtia, Bangladesh.
+
+**Responsibilities**
+- River Shift module development.
+- River Shift prototype development.
+- Video editing.
+
+**Contribution:** Developed the River Shift module and its initial prototype, establishing the foundation for the feature. The Team Lead subsequently integrated the Scientific Core Engine into the River Shift workflow. Also contributed to video editing.
+
+### 4. Tasmia Binte Hasan — Storytelling and Presentation
+
+**Education:** Department of Computer Science and Engineering, Islamic University, Kushtia, Bangladesh.
+
+**Responsibilities**
+- Project storytelling.
+- Presentation development.
+- Communicating the project's scientific impact.
+
+**Contribution:** Shaped the project's narrative and communicated its scientific objectives, technical contributions and real-world relevance in a clear, engaging presentation.
+
+### How the work fits together
+
+The contribution structure shows complementary ownership rather than four disconnected tasks: River Shift module/prototype development was followed by scientific-core integration; the core implementation and UI/UX work supported the user-facing product; storytelling and presentation translated the technical work for judges; and video editing helped communicate the product and evidence. This is the team's reported collaboration model, not an independently audited measure of each member's effort. Preserve repository authorship and official project-page records as supporting evidence where available.
 ## 10. Suggested 2-minute judge demo
 
 **0:00–0:15 — The problem**  
