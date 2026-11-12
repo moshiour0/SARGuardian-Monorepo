@@ -62,8 +62,8 @@ The system distinguishes a successful software or provenance check from independ
 ## 6. Latest live River Shift evidence — Run #25
 
 **Run:** [RiverShift Run #25 — GitHub Actions](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660)  
-**Repository / branch:** \`shourov-04/SARGuardian\`, \`main\`  
-**Checked-out commit:** \`8f9272adafc43ac080227083f12d122a8a271be8\`  
+**Repository / branch:** `shourov-04/SARGuardian`, `main`  
+**Checked-out commit:** `8f9272adafc43ac080227083f12d122a8a271be8`  
 **Run date:** 12 November 2026  
 **AOI case:** Jamuna–Chowhali demonstration request  
 **Collection:** NISAR L2 GCOV PROVISIONAL, CRID P05023  
@@ -94,8 +94,8 @@ All 10 first-attempt product worker jobs passed. The run completed with 24 succe
 - Signed API callbacks and final assembly completion passed.
 
 **Traceability values from the run:** source-granule provenance manifest SHA-256  
-\`7c515d538024aaea176de2ac34e3d30360ce267bb56d46d6e1c8bce9e72de995\`; final result-manifest SHA-256  
-\`ca8c77d68f42041e74d4cf97735aac10636fa9eead5ce7133bece165ce93b47a\`.
+`7c515d538024aaea176de2ac34e3d30360ce267bb56d46d6e1c8bce9e72de995`; final result-manifest SHA-256  
+`ca8c77d68f42041e74d4cf97735aac10636fa9eead5ce7133bece165ce93b47a`.
 
 ### How to interpret this result
 
