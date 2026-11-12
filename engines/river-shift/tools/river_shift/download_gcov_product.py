@@ -97,7 +97,7 @@ def _reauthenticate_with_username_password(earthaccess) -> bool:
     token = os.environ.get("EARTHDATA_TOKEN", "").strip()
     username = os.environ.get("EARTHDATA_USERNAME", "").strip()
     password = os.environ.get("EARTHDATA_PASSWORD", "")
-    if not token or not username or not password:
+    if not username or not password:
         return False
 
     old_auth = getattr(earthaccess, "_auth", None)
@@ -117,7 +117,8 @@ def _reauthenticate_with_username_password(earthaccess) -> bool:
             earthaccess._store = old_store
         raise
     finally:
-        os.environ["EARTHDATA_TOKEN"] = token
+        if token:
+            os.environ["EARTHDATA_TOKEN"] = token
 
 
 def _transient_network_error(error: BaseException) -> bool:
@@ -616,20 +617,48 @@ def download_product(product: dict, output_dir: Path) -> dict:
             count=2,
         )
     except Exception as exc:
-        print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
-            "stage": "exact_cmr_granule_lookup",
-            "status": "FALLBACK",
-            "error_type": type(exc).__name__,
-            "error_message": _safe_error_message(exc),
-            "fallback": "accepted_manifest_download_url",
-        }), flush=True)
-        manifest_url = product.get("download_url")
-        if not _is_trusted_nisar_url(manifest_url, expected_name):
-            raise RuntimeError(
-                "NASA CMR exact-granule lookup failed and the accepted manifest has no trusted exact ASF download URL."
-            ) from None
-        candidates = [product]
-        cmr_lookup_fallback = True
+        refreshed_with_password = False
+        if os.environ.get("EARTHDATA_USERNAME", "").strip() and os.environ.get("EARTHDATA_PASSWORD", ""):
+            print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                "stage": "earthdata_reauthentication",
+                "status": "START",
+                "reason": "CMR rejected the cached authentication session",
+            }), flush=True)
+            try:
+                refreshed_with_password = _reauthenticate_with_username_password(earthaccess)
+                if refreshed_with_password:
+                    candidates = earthaccess.search_data(
+                        short_name=collection,
+                        granule_name=expected_name,
+                        downloadable=True,
+                        count=2,
+                    )
+                    print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                        "stage": "earthdata_reauthentication",
+                        "status": "PASS",
+                    }), flush=True)
+            except Exception as refresh_error:
+                print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                    "stage": "earthdata_reauthentication",
+                    "status": "FAIL",
+                    "error_type": type(refresh_error).__name__,
+                    "error_message": _safe_error_message(refresh_error),
+                }), flush=True)
+        if not refreshed_with_password:
+            print("RIVERSHIFT_DOWNLOAD_STAGE " + json.dumps({
+                "stage": "exact_cmr_granule_lookup",
+                "status": "FALLBACK",
+                "error_type": type(exc).__name__,
+                "error_message": _safe_error_message(exc),
+                "fallback": "accepted_manifest_download_url",
+            }), flush=True)
+            manifest_url = product.get("download_url")
+            if not _is_trusted_nisar_url(manifest_url, expected_name):
+                raise RuntimeError(
+                    "NASA CMR exact-granule lookup failed and the accepted manifest has no trusted exact ASF download URL."
+                ) from None
+            candidates = [product]
+            cmr_lookup_fallback = True
 
     exact_matches = [
         row for row in (candidates or [])
