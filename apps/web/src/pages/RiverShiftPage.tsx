@@ -36,6 +36,7 @@ export function RiverShiftPage({ user, authState, onSignIn, onSignOut, onStart }
       isResultsPage={false}
       isDisplacementPage={false}
       isKnownPlaceAnalysisPage={false}
+      sessionScope="river-shift"
       continueLabel="Continue"
       onContinue={onStart}
     />

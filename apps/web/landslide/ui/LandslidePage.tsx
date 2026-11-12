@@ -13,7 +13,7 @@ import { validatePolygonPair } from './KnownPlacePolygonEditor';
 import { countCatalogGranules, type GranuleCounts } from './processingStatus';
 import { scheduleErrorToastDismissal } from './errorToast';
 import { createAoiOverlayController } from './mapOverlays';
-import { loadLandslideSessionState, persistLandslideSessionState } from './sessionState';
+import { loadLandslideSessionState, persistLandslideSessionState, type LandslideSessionScope } from './sessionState';
 import { BrandLogo } from '../../src/components/BrandLogo';
 import { Header } from '../../src/components/Header';
 import type { Coordinate, InvestigationResult, LocationSelection } from '../engine/types';
@@ -1183,7 +1183,7 @@ function loadSubmittedHarmonyJobs(): SubmittedHarmonyLayerJob[] {
   }
 }
 
-export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onShowKnownPlaceResults, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut, continueLabel, onContinue }: {
+export function LandslidePage({ user, authState, onHome, onSignIn, onResults, onDisplacements, onViewResults = () => {}, resultJobId = null, onKnownPlaceAnalysis, onShowKnownPlaceResults, onBackToMap, onDisplacementTaskActivityChange, isResultsPage, isDisplacementPage, isResultViewsPage = false, isKnownPlaceAnalysisPage, isKnownPlaceSetupPage = false, onSignOut, continueLabel, onContinue, sessionScope: requestedSessionScope }: {
   user: User;
   authState: 'idle' | 'loading' | 'ready' | 'error';
   onHome: () => void;
@@ -1204,8 +1204,9 @@ export function LandslidePage({ user, authState, onHome, onSignIn, onResults, on
   onSignOut: () => void;
   continueLabel?: string;
   onContinue?: (setup: { aoiWkt: string; startDate: string; endDate: string }) => void;
+  sessionScope?: LandslideSessionScope;
 }) {
-  const sessionScope = isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement';
+  const sessionScope = requestedSessionScope || (isKnownPlaceSetupPage || isKnownPlaceAnalysisPage ? 'known-place' : 'find-displacement');
   const [initialSessionState] = useState(() => {
     const saved = loadLandslideSessionState(user.uid, sessionScope);
     return saved;

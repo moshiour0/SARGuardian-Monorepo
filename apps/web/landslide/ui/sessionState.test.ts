@@ -103,7 +103,7 @@ describe('validated Landslide session state', () => {
     expect([...storage.values()][0]).not.toContain('must-not-be-stored');
   });
 
-  it('keeps Find Displacement and Known Place AOI state isolated', () => {
+  it('keeps Find Displacement, River Shift, and Known Place AOI state isolated', () => {
     const sessionStore = new Map<string, string>();
     const localStore = new Map<string, string>();
     vi.stubGlobal('window', {
@@ -128,9 +128,16 @@ describe('validated Landslide session state', () => {
     expect(knownState.areaClosed).toBe(false);
     expect(knownState.windowStart).toBe('');
 
+    const riverState = loadLandslideSessionState('user-1', 'river-shift');
+    expect(riverState.coordinates).toEqual([]);
+    expect(riverState.areaClosed).toBe(false);
+    riverState.searchText = 'River Shift only';
+    persistLandslideSessionState('user-1', riverState, 'river-shift');
+
     knownState.searchText = 'Known place only';
     persistLandslideSessionState('user-1', knownState, 'known-place');
     expect(loadLandslideSessionState('user-1', 'find-displacement').searchText).toBe('');
+    expect(loadLandslideSessionState('user-1', 'river-shift').searchText).toBe('River Shift only');
     expect(loadLandslideSessionState('user-1', 'known-place').searchText).toBe('Known place only');
   });
 

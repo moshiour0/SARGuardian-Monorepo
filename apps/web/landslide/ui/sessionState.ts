@@ -3,7 +3,7 @@ import type { Coordinate, LocationSelection } from '../engine/types';
 
 const STORAGE_KEY_PREFIX = 'sarguardian.landslide.session.v1';
 
-export type LandslideSessionScope = 'find-displacement' | 'known-place';
+export type LandslideSessionScope = 'find-displacement' | 'river-shift' | 'known-place';
 
 export type LandslideSessionState = {
   searchText: string;
