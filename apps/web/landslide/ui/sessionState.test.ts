@@ -104,11 +104,18 @@ describe('validated Landslide session state', () => {
   });
 
   it('keeps Find Displacement and Known Place AOI state isolated', () => {
-    const storage = new Map<string, string>();
-    vi.stubGlobal('window', { sessionStorage: {
-      getItem: (key: string) => storage.get(key) ?? null,
-      setItem: (key: string, value: string) => { storage.set(key, value); },
-    } });
+    const sessionStore = new Map<string, string>();
+    const localStore = new Map<string, string>();
+    vi.stubGlobal('window', {
+      sessionStorage: {
+        getItem: (key: string) => sessionStore.get(key) ?? null,
+        setItem: (key: string, value: string) => { sessionStore.set(key, value); },
+      },
+      localStorage: {
+        getItem: (key: string) => localStore.get(key) ?? null,
+        setItem: (key: string, value: string) => { localStore.set(key, value); },
+      },
+    });
 
     const findState = loadLandslideSessionState('user-1', 'find-displacement');
     findState.coordinates = [[85.3, 27.7], [85.301, 27.7], [85.301, 27.701]];

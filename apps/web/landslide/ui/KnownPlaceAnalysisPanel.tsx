@@ -21,6 +21,29 @@ type StoredRun = KnownPlaceAnalysisRun & { execute_downloads: boolean; request_f
 type VariantOption = { key: string; releaseId: string; processing: string; granules: string[]; latest?: boolean };
 type CatalogSummary = { products: number; releases: number; series: number };
 
+type StoredCatalogState = {
+  requestFingerprint: string;
+  preflightRun: StoredRun | null;
+  releaseIds: string[];
+  variantOptions: VariantOption[];
+  summary: CatalogSummary | null;
+  allowedReleaseIds: string;
+  preferredGranules: string;
+  selectedVariantKey: string;
+};
+
+type StoredAnalysisUiState = {
+  schemaVersion: 1;
+  hazardMode: KnownPlaceHazardMode;
+  analysisMode: KnownPlaceAnalysisMode;
+  polarization: 'HH' | 'HV' | 'VV' | 'VH';
+  track: string;
+  direction: 'ANY' | 'A' | 'D';
+  coherenceNeighbours: '1' | '5' | '10' | '15' | '20' | '25';
+  geometryHeight: string;
+  catalog: StoredCatalogState | null;
+};
+
 type CandidateTransfer = {
   schemaVersion: 'sarguardian-known-place-candidate/1.0';
   measurementWkt: string;
@@ -70,6 +93,10 @@ const analysisModes: { value: KnownPlaceAnalysisMode; label: string }[] = [
 
 function storageKey(uid: string): string {
   return `sarguardian.knownPlaceAnalysis.v1:${uid}`;
+}
+
+function uiStorageKey(uid: string): string {
+  return `sarguardian.knownPlaceAnalysisUi.v1:${uid}`;
 }
 
 function geometryDraftKey(uid: string): string {
@@ -127,6 +154,20 @@ export function loadStoredRun(uid: string): StoredRun | null {
 export function loadKnownPlaceRunRequestId(uid: string): string | null {
   const run = loadStoredRun(uid);
   return run?.execute_downloads === true && run.conclusion === 'success' ? run.request_id : null;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function loadKnownPlaceAnalysisUiState(uid: string): StoredAnalysisUiState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(uiStorageKey(uid));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredAnalysisUiState>;
+    if (parsed.schemaVersion !== 1) return null;
+    return parsed as StoredAnalysisUiState;
+  } catch {
+    return null;
+  }
 }
 
 function resultLabel(run: StoredRun): string {
@@ -189,26 +230,29 @@ function getAnalysisProgress(pendingAction: 'dry-run' | 'analysis' | 'cancel' | 
 }
 
 export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBack, onShowResults }: Props) {
-  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>('mixed');
-  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>('exploratory');
-  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>('HH');
-  const [track, setTrack] = useState('ANY');
-  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>('ANY');
-  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>('1');
-  const [allowedReleaseIds, setAllowedReleaseIds] = useState('');
-  const [preferredGranules, setPreferredGranules] = useState('');
-  const [selectedVariantKey, setSelectedVariantKey] = useState('');
+  const [storedUiState] = useState<StoredAnalysisUiState | null>(() => loadKnownPlaceAnalysisUiState(user.uid));
+  const [hazardMode, setHazardMode] = useState<KnownPlaceHazardMode>(storedUiState?.hazardMode ?? 'mixed');
+  const [analysisMode, setAnalysisMode] = useState<KnownPlaceAnalysisMode>(storedUiState?.analysisMode ?? 'exploratory');
+  const [polarization, setPolarization] = useState<'HH' | 'HV' | 'VV' | 'VH'>(storedUiState?.polarization ?? 'HH');
+  const [track, setTrack] = useState(storedUiState?.track ?? 'ANY');
+  const [direction, setDirection] = useState<'ANY' | 'A' | 'D'>(storedUiState?.direction ?? 'ANY');
+  const [coherenceNeighbours, setCoherenceNeighbours] = useState<'1' | '5' | '10' | '15' | '20' | '25'>(storedUiState?.coherenceNeighbours ?? '1');
+  const [allowedReleaseIds, setAllowedReleaseIds] = useState(storedUiState?.catalog?.allowedReleaseIds ?? '');
+  const [preferredGranules, setPreferredGranules] = useState(storedUiState?.catalog?.preferredGranules ?? '');
+  const [selectedVariantKey, setSelectedVariantKey] = useState(storedUiState?.catalog?.selectedVariantKey ?? '');
   const [candidateTransfer] = useState<CandidateTransfer | null>(() => consumeCandidateTransfer());
   const [geometryDraft] = useState<GeometryDraft>(() => loadGeometryDraft(user.uid));
   const measurementWkt = candidateTransfer?.measurementWkt || geometryDraft.measurementWkt || '';
   const referenceWkt = geometryDraft.referenceWkt;
   const [polygonValidation, setPolygonValidation] = useState({ valid: false, message: 'Draw and close the Measurement and Reference Polygons. The Reference may enclose the Measurement; partial overlap is invalid.' });
-  const [geometryHeight, setGeometryHeight] = useState('');
+  const [geometryHeight, setGeometryHeight] = useState(storedUiState?.geometryHeight ?? '');
   const [pendingAction, setPendingAction] = useState<'dry-run' | 'analysis' | 'cancel' | null>(null);
   const [run, setRun] = useState<StoredRun | null>(() => loadStoredRun(user.uid));
-  const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>([]);
-  const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>([]);
-  const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(null);
+  const [catalogFingerprint, setCatalogFingerprint] = useState(storedUiState?.catalog?.requestFingerprint ?? '');
+  const [catalogPreflightRun, setCatalogPreflightRun] = useState<StoredRun | null>(storedUiState?.catalog?.preflightRun ?? null);
+  const [catalogReleaseIds, setCatalogReleaseIds] = useState<string[]>(storedUiState?.catalog?.releaseIds ?? []);
+  const [catalogVariantOptions, setCatalogVariantOptions] = useState<VariantOption[]>(storedUiState?.catalog?.variantOptions ?? []);
+  const [catalogSummary, setCatalogSummary] = useState<CatalogSummary | null>(storedUiState?.catalog?.summary ?? null);
   const [catalogReleaseError, setCatalogReleaseError] = useState('');
   const [error, setError] = useState('');
   const [pollError, setPollError] = useState('');
@@ -268,7 +312,10 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   // Persisted runs belong to the exact geometry/date/settings fingerprint that
   // created them. A changed setup must not resurrect an older completed run.
   const activeRun = run?.request_fingerprint === currentRequestFingerprint ? run : null;
-  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(activeRun, currentRequestFingerprint);
+  const catalogMatchesCurrentRequest = catalogFingerprint === currentRequestFingerprint;
+  const currentDryRun = activeRun?.execute_downloads === false ? activeRun : null;
+  const catalogEvidenceRun = currentDryRun ?? (catalogMatchesCurrentRequest ? catalogPreflightRun : null);
+  const catalogPreflightReady = hasMatchingKnownPlaceCatalogPreflight(catalogEvidenceRun, currentRequestFingerprint);
   const canSubmitGeometry = Boolean(measurementWkt && referenceWkt && polygonValidation.valid);
 
   useEffect(() => {
@@ -297,6 +344,31 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
     if (!run) return;
     try { localStorage.setItem(storageKey(user.uid), JSON.stringify(run)); } catch { /* local storage is optional */ }
   }, [run, user.uid]);
+
+  useEffect(() => {
+    const catalog: StoredCatalogState | null = catalogFingerprint ? {
+      requestFingerprint: catalogFingerprint,
+      preflightRun: catalogPreflightRun,
+      releaseIds: catalogReleaseIds,
+      variantOptions: catalogVariantOptions,
+      summary: catalogSummary,
+      allowedReleaseIds,
+      preferredGranules,
+      selectedVariantKey,
+    } : null;
+    const uiState: StoredAnalysisUiState = {
+      schemaVersion: 1,
+      hazardMode,
+      analysisMode,
+      polarization,
+      track,
+      direction,
+      coherenceNeighbours,
+      geometryHeight,
+      catalog,
+    };
+    try { localStorage.setItem(uiStorageKey(user.uid), JSON.stringify(uiState)); } catch { /* optional browser storage */ }
+  }, [allowedReleaseIds, analysisMode, catalogFingerprint, catalogPreflightRun, catalogReleaseIds, catalogSummary, catalogVariantOptions, coherenceNeighbours, direction, geometryHeight, hazardMode, polarization, preferredGranules, selectedVariantKey, track, user.uid]);
 
   const runRequestId = activeRun?.request_id ?? null;
   const runStatus = activeRun?.status ?? null;
@@ -329,18 +401,14 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   }, [runRequestId, runStatus, user]);
 
   useEffect(() => {
-    if (!activeRun) {
-      setCatalogReleaseIds([]);
-      setCatalogVariantOptions([]);
-      setCatalogSummary(null);
-      setCatalogReleaseError('');
-      return undefined;
-    }
+    if (!activeRun) return undefined;
     // Keep the verified release options visible while the subsequent raw
     // analysis run is processing.
     if (activeRun.execute_downloads !== false) return undefined;
     if (activeRun.status !== 'completed' || activeRun.conclusion !== 'success') return undefined;
     let active = true;
+    setCatalogFingerprint(currentRequestFingerprint);
+    setCatalogPreflightRun(activeRun);
     setCatalogReleaseIds([]);
     setCatalogVariantOptions([]);
     setCatalogSummary(null);
@@ -416,7 +484,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         if (active) setCatalogReleaseError(reason instanceof Error ? reason.message : 'Release IDs are available in the result bundle.');
       });
     return () => { active = false; };
-  }, [activeRun, user]);
+  }, [activeRun, currentRequestFingerprint, user]);
 
   const submit = async (executeDownloads: boolean) => {
     if (!startDate || !endDate) {
@@ -476,6 +544,11 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
         request_fingerprint: requestFingerprint,
       });
       if (!executeDownloads) {
+        setCatalogFingerprint(requestFingerprint);
+        setCatalogPreflightRun(null);
+        setCatalogReleaseIds([]);
+        setCatalogVariantOptions([]);
+        setCatalogSummary(null);
         setAllowedReleaseIds('');
         setPreferredGranules('');
         setSelectedVariantKey('');
@@ -506,7 +579,7 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const runCancelled = runTerminal && activeRun?.conclusion === 'cancelled';
   const releaseLookupProgress = useMemo(() => getReleaseLookupProgress(pendingAction, activeRun), [pendingAction, activeRun]);
   const analysisProgress = useMemo(() => getAnalysisProgress(pendingAction, activeRun), [pendingAction, activeRun]);
-  const catalogSelectionAvailable = Boolean(catalogSummary || catalogReleaseIds.length > 0);
+  const catalogSelectionAvailable = catalogMatchesCurrentRequest && Boolean(catalogSummary || catalogReleaseIds.length > 0);
   const releaseDisplayProgress = useMemo(() => analysisProgress
     ? (catalogSelectionAvailable ? { percent: 100, stage: 'Release ready', detail: '', tone: 'complete' as const } : null)
     : releaseLookupProgress, [analysisProgress, catalogSelectionAvailable, releaseLookupProgress]);

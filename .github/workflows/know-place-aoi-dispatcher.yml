@@ -120,8 +120,9 @@ permissions:
   contents: read
 
 concurrency:
-  # Keep Known Place dispatches on a single runner lane. A burst of requests
-  # is processed one at a time instead of consuming every hosted-runner slot.
+  # Serialize raw/catalog runs so a burst of requests cannot exhaust the
+  # hosted-runner pool. Cancellation remains explicit; queued runs are not
+  # cancelled automatically.
   group: known-place-analysis-serial
   cancel-in-progress: false
 
