@@ -67,6 +67,8 @@ The system distinguishes a successful software or provenance check from independ
 **Run date:** 12 November 2026  
 **AOI case:** Jamuna–Chowhali demonstration request  
 **Collection:** NISAR L2 GCOV PROVISIONAL, CRID P05023  
+**Request window:** 12 November 2025–12 November 2026 (general scan)  
+**Catalogue qualification:** NASA CMR returned 68 catalogue candidates; the compatibility and support audit selected 10 exact granules across 10 actual acquisition dates (one granule per selected date)  
 **Selected products:** 10 exact granules across 10 actual acquisition dates
 
 ### Acquisition dates
