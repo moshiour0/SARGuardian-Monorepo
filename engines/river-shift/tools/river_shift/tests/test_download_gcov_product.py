@@ -139,7 +139,34 @@ def _cmr_result(name=GRANULE):
 
 
 def _cmr_json_result(name=GRANULE):
-    return {"producer_granule_id": name, "title": name}
+    return {
+        "id": "G1234567890-ASF",
+        "producer_granule_id": name,
+        "title": name,
+    }
+
+
+class FakeDownloadableGranule(dict):
+    cloud_hosted = False
+
+    def data_links(self, access=None, in_region=False):
+        return ["https://nisar.asf.earthdatacloud.nasa.gov/example.h5"]
+
+
+def _earthaccess_downloadable_granule(name=GRANULE):
+    return FakeDownloadableGranule({
+        "meta": {
+            "concept-id": "G1234567890-ASF",
+            "provider-id": "ASF",
+        },
+        "umm": {
+            "GranuleUR": name,
+            "RelatedUrls": [{
+                "URL": "https://nisar.asf.earthdatacloud.nasa.gov/example.h5",
+                "Type": "GET DATA",
+            }],
+        },
+    })
 
 
 def _cmr_json_response(entries):
@@ -211,9 +238,20 @@ def test_download_resolves_and_downloads_only_the_exact_maturity_granule(monkeyp
 
 
 class EarthaccessSearchUnavailable(FakeEarthaccess):
+    def __init__(self, resolved_results=None):
+        super().__init__(results=[])
+        self.resolved_results = (
+            [_earthaccess_downloadable_granule()]
+            if resolved_results is None else list(resolved_results)
+        )
+
     def search_data(self, **kwargs):
         self.search_calls.append(kwargs)
-        raise RuntimeError("earthaccess rejected granule_name query serialization")
+        if "granule_name" in kwargs:
+            raise RuntimeError("earthaccess rejected granule_name query serialization")
+        if "concept_id" in kwargs:
+            return self.resolved_results
+        raise AssertionError(f"Unexpected earthaccess search arguments: {kwargs}")
 
 
 def test_download_uses_exact_raw_cmr_json_fallback_after_earthaccess_search_error(monkeypatch, tmp_path):
@@ -233,7 +271,19 @@ def test_download_uses_exact_raw_cmr_json_fallback_after_earthaccess_search_erro
 
     assert result["downloaded"] is True
     assert fake.login_calls == [{"strategy": "environment"}]
-    assert len(fake.search_calls) == 1
+    assert fake.search_calls == [
+        {
+            "short_name": "NISAR_L2_GCOV_PROVISIONAL_V1",
+            "granule_name": GRANULE,
+            "downloadable": True,
+            "count": 2,
+        },
+        {
+            "concept_id": "G1234567890-ASF",
+            "downloadable": True,
+            "count": 2,
+        },
+    ]
     assert calls[0][0] == download_module.CMR_GRANULE_SEARCH_URL
     assert calls[0][1]["params"] == {
         "short_name": "NISAR_L2_GCOV_PROVISIONAL_V1",
@@ -241,7 +291,10 @@ def test_download_uses_exact_raw_cmr_json_fallback_after_earthaccess_search_erro
         "page_size": 2,
     }
     assert calls[0][1]["headers"] == {"Accept": "application/json"}
-    assert fake.download_calls[0]["granules"] == [raw_entry]
+    resolved_granule = fake.resolved_results[0]
+    assert fake.download_calls[0]["granules"] == [resolved_granule]
+    assert callable(getattr(fake.download_calls[0]["granules"][0], "data_links", None))
+    assert "meta" in fake.download_calls[0]["granules"][0]
     assert (tmp_path / f"{GRANULE}.h5").read_bytes() == fake.payload
 
 
@@ -262,6 +315,35 @@ def test_download_rejects_ambiguous_raw_cmr_json_fallback_results(monkeypatch, t
     fake = EarthaccessSearchUnavailable()
     raw_entry = _cmr_json_result()
     response = _cmr_json_response([raw_entry, raw_entry])
+    monkeypatch.setattr(download_module.requests, "get", lambda *_args, **_kwargs: response)
+    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
+
+    with pytest.raises(RuntimeError, match="did not return exactly one"):
+        download_product(_catalogue_row(), tmp_path)
+
+    assert fake.download_calls == []
+    assert not (tmp_path / f"{GRANULE}.h5").exists()
+
+
+def test_download_refuses_unresolved_cmr_concept_id_result(monkeypatch, tmp_path):
+    fake = EarthaccessSearchUnavailable(resolved_results=[])
+    response = _cmr_json_response([_cmr_json_result()])
+    monkeypatch.setattr(download_module.requests, "get", lambda *_args, **_kwargs: response)
+    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
+
+    with pytest.raises(RuntimeError, match="did not return exactly one"):
+        download_product(_catalogue_row(), tmp_path)
+
+    assert len(fake.search_calls) == 2
+    assert fake.download_calls == []
+    assert not (tmp_path / f"{GRANULE}.h5").exists()
+
+
+def test_download_refuses_raw_cmr_dict_without_data_granule_interface(monkeypatch, tmp_path):
+    fake = EarthaccessSearchUnavailable(
+        resolved_results=[{"meta": {"concept-id": "G1234567890-ASF"}, "umm": {"GranuleUR": GRANULE}}],
+    )
+    response = _cmr_json_response([_cmr_json_result()])
     monkeypatch.setattr(download_module.requests, "get", lambda *_args, **_kwargs: response)
     monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
 
