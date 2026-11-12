@@ -1280,7 +1280,7 @@ export function RiverShiftResultsPage({ user, authState, onSignIn, onSignOut, on
       </main>
 
       <footer className="rs-footer" style={{ marginTop: '40px' }}>
-        <span>SARGuardian · RiverShift</span><span>Open science · Reproducible processing · Evidence before claims</span>
+        <span>SARGuardian · RiverShift</span>
       </footer>
     </div>
   );

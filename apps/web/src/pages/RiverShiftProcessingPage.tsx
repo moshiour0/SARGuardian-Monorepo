@@ -60,24 +60,24 @@ function riverShiftStageName(stage: string, state: RiverShiftJob['state']): stri
   const normalized = stage.trim().toLowerCase();
   if (state === 'succeeded') return 'Complete';
   if (state === 'failed' || state === 'cancelled') return 'Needs attention';
-  if (normalized.includes('screen') || normalized.includes('result') || normalized.includes('assemble')) return 'Screening';
-  if (normalized.includes('product') || normalized.includes('process') || normalized.includes('download')) return 'Processing';
+  if (normalized.includes('screen') || normalized.includes('result') || normalized.includes('assemble') || normalized.includes('assembly')) return 'Screening';
+  if (normalized.includes('product') || normalized.includes('process') || normalized.includes('download') || normalized.includes('granule') || normalized.includes('batch') || normalized.includes('hdf5') || normalized.includes('inspection')) return 'Processing';
   return state === 'queued' || state === 'dispatching' ? 'Preparing task' : 'Initializing';
 }
 
 function riverShiftStageIndex(job: RiverShiftJob): number {
   const stage = job.stage.trim().toLowerCase();
   if (job.state === 'succeeded') return 3;
-  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble')) return 2;
-  if (stage.includes('product') || stage.includes('process') || stage.includes('download')) return 1;
+  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble') || stage.includes('assembly')) return 2;
+  if (stage.includes('product') || stage.includes('process') || stage.includes('download') || stage.includes('granule') || stage.includes('batch') || stage.includes('hdf5') || stage.includes('inspection')) return 1;
   return 0;
 }
 
 function riverShiftFailedStageIndex(job: RiverShiftJob): number {
   if (job.state !== 'failed') return -1;
   const stage = job.stage.trim().toLowerCase();
-  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble')) return 2;
-  if (stage.includes('product') || stage.includes('process') || stage.includes('download') || stage.includes('granule')) return 1;
+  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble') || stage.includes('assembly')) return 2;
+  if (stage.includes('product') || stage.includes('process') || stage.includes('download') || stage.includes('granule') || stage.includes('batch') || stage.includes('hdf5') || stage.includes('inspection')) return 1;
   return 0;
 }
 

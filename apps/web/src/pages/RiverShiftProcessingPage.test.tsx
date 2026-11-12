@@ -25,6 +25,28 @@ describe('River Shift retry controls', () => {
     expect(pending).toContain('saved settings');
   });
 
+  it('marks the server-reported failed stage in the stepper', () => {
+    const html = render();
+    expect(html).toContain('processing-stepper');
+    expect(html).toContain('is-failed');
+    expect(html).toContain('processing-page--failed');
+  });
+
+  it('renders completed processing as a successful state', () => {
+    const html = renderToStaticMarkup(
+      <RiverShiftJobStatus job={{ ...job, state: 'succeeded', stage: 'completed' }} clock={0} onViewResults={vi.fn()} onRetry={vi.fn()} retrying={false} />,
+    );
+    expect(html).toContain('processing-page--succeeded');
+    expect(html).toContain('Complete');
+    expect(html).not.toContain('is-failed');
+  });
+
+  it('does not render the removed footer tagline', () => {
+    expect(renderToStaticMarkup(
+      <RiverShiftProcessingPage user={null} authState="idle" onSignIn={vi.fn()} onSignOut={vi.fn()} />,
+    )).not.toContain('Open science');
+  });
+
   it.each(['queued', 'dispatching', 'running', 'succeeded', 'cancelled'] as const)(
     'does not offer Retry for %s jobs', (state) => expect(render(state)).not.toContain('>Retry</button>'),
   );
