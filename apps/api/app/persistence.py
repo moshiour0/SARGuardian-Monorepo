@@ -35,6 +35,18 @@ DISPLACEMENT_JOB_STATUS_COLUMNS = (
     "error_code,error_message,created_at,updated_at"
 )
 
+RIVER_SHIFT_JOB_RESPONSE_COLUMNS = (
+    "id,owner_uid,idempotency_key,state,stage,aoi_wkt,start_date,end_date,analysis_mode,"
+    "event_date,maturity,frequency,covariance_term,threshold_method,threshold_db,"
+    "request_fingerprint,callback_sequence,github_run_id,github_run_url,result_summary,"
+    "artifact_manifest,error_code,error_message,created_at,updated_at"
+)
+
+RIVER_SHIFT_JOB_STATUS_COLUMNS = (
+    "id,owner_uid,state,stage,github_run_id,github_run_url,error_code,error_message,"
+    "callback_sequence,created_at,updated_at"
+)
+
 
 class PersistenceError(RuntimeError):
     pass
@@ -137,6 +149,7 @@ class JobStore(Protocol):
     def list_river_shift_jobs(self, owner_uid: str, limit: int = 20) -> list[dict[str, Any]]: ...
     def list_active_river_shift_jobs(self, owner_uid: str) -> list[dict[str, Any]]: ...
     def get_river_shift_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...
+    def get_river_shift_job_status(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None: ...
     def get_river_shift_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None: ...
     def update_river_shift_job(self, job_id: UUID, values: dict[str, Any], *, expected_state: str | None = None, expected_sequence: int | None = None) -> dict[str, Any]: ...
 
@@ -448,7 +461,7 @@ class SupabaseJobStore:
 
     def get_river_shift_job_by_idempotency(self, owner_uid: str, idempotency_key: str) -> dict[str, Any] | None:
         try:
-            response = (self.client.table("river_shift_jobs").select("*")
+            response = (self.client.table("river_shift_jobs").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)
                         .eq("owner_uid", owner_uid).eq("idempotency_key", idempotency_key)
                         .limit(1).execute())
         except Exception:
@@ -461,7 +474,7 @@ class SupabaseJobStore:
         if existing:
             return existing
         try:
-            response = self.client.table("river_shift_jobs").insert(values).select("*").execute()
+            response = self.client.table("river_shift_jobs").insert(values).select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).execute()
         except Exception:
             existing = self.get_river_shift_job_by_idempotency(values["owner_uid"], values["idempotency_key"])
             if existing:
@@ -479,7 +492,7 @@ class SupabaseJobStore:
         try:
             response = (
                 self.client.table("river_shift_jobs")
-                .select("*")
+                .select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)
                 .eq("owner_uid", owner_uid)
                 .order("created_at", desc=True)
                 .limit(limit)
@@ -493,7 +506,7 @@ class SupabaseJobStore:
         try:
             response = (
                 self.client.table("river_shift_jobs")
-                .select("*")
+                .select("id,state,stage,created_at")
                 .eq("owner_uid", owner_uid)
                 .in_("state", ["queued", "dispatching", "running"])
                 .order("created_at", desc=True)
@@ -506,16 +519,31 @@ class SupabaseJobStore:
 
     def get_river_shift_job(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None:
         try:
-            response = (self.client.table("river_shift_jobs").select("*")
+            response = (self.client.table("river_shift_jobs").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS)
                         .eq("owner_uid", owner_uid).eq("id", str(job_id)).limit(1).execute())
         except Exception:
             raise PersistenceError("Could not read the RiverShift job.") from None
         rows = self._data(response)
         return rows[0] if rows else None
 
+    def get_river_shift_job_status(self, owner_uid: str, job_id: UUID) -> dict[str, Any] | None:
+        try:
+            response = (
+                self.client.table("river_shift_jobs")
+                .select(RIVER_SHIFT_JOB_STATUS_COLUMNS)
+                .eq("owner_uid", owner_uid)
+                .eq("id", str(job_id))
+                .limit(1)
+                .execute()
+            )
+        except Exception:
+            raise PersistenceError("Could not read the RiverShift job status.") from None
+        rows = self._data(response)
+        return rows[0] if rows else None
+
     def get_river_shift_job_unscoped(self, job_id: UUID) -> dict[str, Any] | None:
         try:
-            response = self.client.table("river_shift_jobs").select("*").eq("id", str(job_id)).limit(1).execute()
+            response = self.client.table("river_shift_jobs").select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).eq("id", str(job_id)).limit(1).execute()
         except Exception:
             raise PersistenceError("Could not read the RiverShift worker job.") from None
         rows = self._data(response)
@@ -531,7 +559,7 @@ class SupabaseJobStore:
                 query = query.eq("state", expected_state)
             if expected_sequence is not None:
                 query = query.eq("callback_sequence", expected_sequence)
-            response = query.select("*").execute()
+            response = query.select(RIVER_SHIFT_JOB_RESPONSE_COLUMNS).execute()
         except Exception:
             raise PersistenceError("Could not update the RiverShift job.") from None
         rows = self._data(response)
