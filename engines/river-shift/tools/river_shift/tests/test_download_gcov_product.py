@@ -272,11 +272,13 @@ class FakePublicGranuleQuery:
 
     def get(self, limit):
         self.owner.public_query_limits.append(limit)
+        if self.owner.public_query_errors:
+            raise self.owner.public_query_errors.pop(0)
         return self.owner.resolved_results
 
 
 class EarthaccessSearchUnavailable(FakeEarthaccess):
-    def __init__(self, resolved_results=None):
+    def __init__(self, resolved_results=None, public_query_errors=None):
         super().__init__(results=[])
         self.resolved_results = (
             [_downloadable_granule()]
@@ -285,6 +287,7 @@ class EarthaccessSearchUnavailable(FakeEarthaccess):
         self.public_query_parameters = []
         self.public_query_limits = []
         self.public_query_factory_calls = 0
+        self.public_query_errors = list(public_query_errors or [])
 
     def search_data(self, **kwargs):
         self.search_calls.append(kwargs)
@@ -341,6 +344,33 @@ def test_download_resolves_exact_raw_cmr_hit_to_data_granule_before_download(mon
         [_cmr_json_result(), _cmr_json_result()],
     ],
 )
+def test_download_retries_transient_public_cmr_umm_resolution_with_fresh_sessions(monkeypatch, tmp_path):
+    raw_entry = _cmr_json_result()
+    response = _cmr_json_response([raw_entry])
+    fake = EarthaccessSearchUnavailable(
+        public_query_errors=[
+            requests.exceptions.ConnectionError("temporary CMR connection reset"),
+            requests.exceptions.Timeout("temporary CMR timeout"),
+        ],
+    )
+    monkeypatch.setattr(download_module.requests, "get", lambda *_args, **_kwargs: response)
+    monkeypatch.setattr("download_gcov_product._load_earthaccess", lambda: fake)
+    monkeypatch.setattr(download_module.time, "sleep", lambda _seconds: None)
+
+    result = download_product(_catalogue_row(), tmp_path)
+
+    assert result["downloaded"] is True
+    assert fake.public_query_factory_calls == 3
+    assert fake.public_query_limits == [2, 2, 2]
+    assert fake.public_query_parameters == [
+        {
+            "concept_id": ["G1234567890-ASF"],
+            "downloadable": True,
+        },
+    ] * 3
+    assert fake.download_calls[0]["granules"] == [fake.resolved_results[0]]
+
+
 def test_download_rejects_missing_or_ambiguous_raw_cmr_exact_match(monkeypatch, tmp_path, raw_entries):
     fake = EarthaccessSearchUnavailable()
     response = _cmr_json_response(raw_entries)
