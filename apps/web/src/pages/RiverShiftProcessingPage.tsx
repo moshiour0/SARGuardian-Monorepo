@@ -9,6 +9,7 @@ import { formatWktPolygon, parseWktPolygon, type Wgs84Point } from '../riverShif
 import { deriveGeneralChangeMarkers } from '../riverShift/generalChangeMarkers';
 import { deriveImpactMapPoints, parseImpactExposureGeoJSON, parseOpenStreetMapImpactResponse, summarizeImpactExposure, type ImpactExposurePointCollection } from '../riverShift/impactContext';
 import { Header } from '../components/Header';
+import { RIVER_SHIFT_SETUP_STORAGE_KEY, type RiverShiftSetup } from './RiverShiftPage';
 import './river-shift.css';
 
 type Props = {
@@ -60,6 +61,17 @@ const API_BASE = resolveApiBaseUrl(
 );
 const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) || '';
 let mapsConfigured = false;
+
+function loadRiverShiftSetup(): RiverShiftSetup | null {
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem(RIVER_SHIFT_SETUP_STORAGE_KEY) || 'null') as Partial<RiverShiftSetup> | null;
+    return parsed && typeof parsed.aoiWkt === 'string' && typeof parsed.startDate === 'string' && typeof parsed.endDate === 'string'
+      ? parsed as RiverShiftSetup
+      : null;
+  } catch {
+    return null;
+  }
+}
 
 function formatDate(value?: string | null): string {
   if (!value) return 'Not supplied';
@@ -362,9 +374,9 @@ function ScientificReadinessPanel({
 }
 
 export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut }: Props) {
-  const [aoiWkt, setAoiWkt] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [aoiWkt, setAoiWkt] = useState(() => loadRiverShiftSetup()?.aoiWkt || '');
+  const [startDate, setStartDate] = useState(() => loadRiverShiftSetup()?.startDate || '');
+  const [endDate, setEndDate] = useState(() => loadRiverShiftSetup()?.endDate || '');
   const [maturity, setMaturity] = useState<'BETA' | 'PROVISIONAL' | 'ALL'>('PROVISIONAL');
   const [polarization, setPolarization] = useState<'' | 'HH' | 'HH+HV' | 'HH+HV+VH+VV' | 'VV' | 'VV+VH' | 'LH+LV' | 'RH+RV'>('');
   const [direction, setDirection] = useState<'' | 'ASCENDING' | 'DESCENDING'>('');
