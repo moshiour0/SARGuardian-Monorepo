@@ -214,6 +214,20 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
   const [pollError, setPollError] = useState('');
   const [lookupStartedAt, setLookupStartedAt] = useState<number | null>(null);
   const [clock, setClock] = useState(() => Date.now());
+  const invalidateCatalogSelection = () => {
+    setCatalogFingerprint('');
+    setCatalogPreflightRun(null);
+    setCatalogReleaseIds([]);
+    setCatalogVariantOptions([]);
+    setCatalogSummary(null);
+    setCatalogReleaseError('');
+    setAllowedReleaseIds('');
+    setPreferredGranules('');
+    setSelectedVariantKey('');
+    setError('');
+    setPollError('');
+    setLookupStartedAt(null);
+  };
   const createAnalysisInput = (executeDownloads: boolean): KnownPlaceAnalysisInput => ({
     aoi_wkt: measurementWkt,
     scope_aoi_wkt: aoiWkt || '',
@@ -520,29 +534,29 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           <div className="known-place-form-grid">
           <label className="aoi-job-label">
             <span>Hazard context</span>
-            <select value={hazardMode} onChange={(event) => setHazardMode(event.target.value as KnownPlaceHazardMode)}>
+            <select value={hazardMode} onChange={(event) => { setHazardMode(event.target.value as KnownPlaceHazardMode); invalidateCatalogSelection(); }}>
               {hazardModes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <label className="aoi-job-label">
             <span>Analysis mode</span>
-            <select value={analysisMode} onChange={(event) => setAnalysisMode(event.target.value as KnownPlaceAnalysisMode)}>
+            <select value={analysisMode} onChange={(event) => { setAnalysisMode(event.target.value as KnownPlaceAnalysisMode); invalidateCatalogSelection(); }}>
               {analysisModes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
           <label className="aoi-job-label">
             <span>Polarization</span>
-            <select value={polarization} onChange={(event) => setPolarization(event.target.value as 'HH' | 'HV' | 'VV' | 'VH')}>
+            <select value={polarization} onChange={(event) => { setPolarization(event.target.value as 'HH' | 'HV' | 'VV' | 'VH'); invalidateCatalogSelection(); }}>
               {(['HH', 'HV', 'VV', 'VH'] as const).map((value) => <option key={value}>{value}</option>)}
             </select>
           </label>
           <label className="aoi-job-label">
             <span>Track</span>
-            <input value={track} onChange={(event) => setTrack(event.target.value)} maxLength={3} placeholder="ANY or 098" autoComplete="off" />
+            <input value={track} onChange={(event) => { setTrack(event.target.value); invalidateCatalogSelection(); }} maxLength={3} placeholder="ANY or 098" autoComplete="off" />
           </label>
           <label className="aoi-job-label">
             <span>Flight direction</span>
-            <select value={direction} onChange={(event) => setDirection(event.target.value as 'ANY' | 'A' | 'D')}>
+            <select value={direction} onChange={(event) => { setDirection(event.target.value as 'ANY' | 'A' | 'D'); invalidateCatalogSelection(); }}>
               <option value="ANY">Any — keep orbit chains separate</option>
               <option value="A">Ascending</option>
               <option value="D">Descending</option>
@@ -550,13 +564,13 @@ export function KnownPlaceAnalysisPanel({ user, aoiWkt, startDate, endDate, onBa
           </label>
           <label className="aoi-job-label">
             <span>Minimum valid coherence neighbours</span>
-            <select value={coherenceNeighbours} onChange={(event) => setCoherenceNeighbours(event.target.value as typeof coherenceNeighbours)}>
+            <select value={coherenceNeighbours} onChange={(event) => { setCoherenceNeighbours(event.target.value as typeof coherenceNeighbours); invalidateCatalogSelection(); }}>
               {(['1', '5', '10', '15', '20', '25'] as const).map((value) => <option key={value} value={value}>{value}</option>)}
             </select>
           </label>
           <label className="aoi-job-label known-place-setting-wide">
             <span>Constant ellipsoidal height in metres (optional sensitivity only)</span>
-            <input type="number" value={geometryHeight} onChange={(event) => setGeometryHeight(event.target.value)} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
+            <input type="number" value={geometryHeight} onChange={(event) => { setGeometryHeight(event.target.value); invalidateCatalogSelection(); }} min={-500} max={100000} step="any" placeholder="Blank = documented approximation" />
           </label>
           </div>
         </details>
