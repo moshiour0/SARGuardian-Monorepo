@@ -587,6 +587,41 @@
         "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py"
       ],
       "promotion_scope": "RiverShift GCOV engine promotion"
+    },
+    {
+      "mode": "100644",
+      "object_type": "blob",
+      "promotion_scope": "RiverShift GCOV engine promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/river_shift/download_gcov_product.py",
+      "destination_path": "engines/river-shift/tools/river_shift/download_gcov_product.py",
+      "source_blob_sha": "80d21e13a5cd90b3f4f20d5095e6c27a79bef980",
+      "destination_blob_sha": "cab886f38d19f186f69936b6330492daa2dba2bb",
+      "reason": "Add a bounded exact CMR producer_granule_id fallback when the earthaccess granule_name query fails, then re-resolve the unique CMR concept ID into a downloadable UMM DataGranule. Preserve strict exact-one matching and reject raw dictionaries before download.",
+      "implementation_commits": [
+        "84e37f14509665c96e35d9a1054e9cb0435c0307",
+        "2cba9ac789bf9327a061dad538b0aba7b7a5ccf4",
+        "b2fb3ba1b780b7e8060844a2f4cdefcfd3f892c9"
+      ],
+      "verification_paths": [
+        "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py"
+      ]
+    },
+    {
+      "mode": "100644",
+      "object_type": "blob",
+      "promotion_scope": "RiverShift GCOV engine promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/river_shift/tests/test_download_gcov_product.py",
+      "destination_path": "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py",
+      "source_blob_sha": "41fbcf781c54027900e2577db37a52f29793e843",
+      "destination_blob_sha": "06c1c1e2b07bbac628f31719527b8b627c2b9e4f",
+      "reason": "Cover the raw application/json CMR response schema, UMM/raw identity parsing, exact and ambiguous matches, concept-ID re-resolution, DataGranule interface validation, and bounded transient retry in the active Monorepo RiverShift worker.",
+      "implementation_commits": [
+        "61331fcb06aa1265f2d51306bac21f2240825ce2",
+        "3c521cca30f1af1939c87b8376c864b9ddf03b4d"
+      ],
+      "verification_paths": [
+        "engines/river-shift/tools/river_shift/tests/test_download_gcov_product.py"
+      ]
     }
   ]
 }
