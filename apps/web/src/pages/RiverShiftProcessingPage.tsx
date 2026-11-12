@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { createRiverShiftJob, getRiverShiftJob, listRiverShiftJobs, type RiverShiftJob } from '../api/catalog';
-import { resolveApiBaseUrl } from '../api/apiOrigin';
 import { Header } from '../components/Header';
 import { RIVER_SHIFT_SETUP_STORAGE_KEY, type RiverShiftSetup } from './RiverShiftPage';
 import './river-shift.css';
+import '../../landslide/ui/displacementPreparation.css';
+import { ELAPSED_TICK_MS, formatElapsed } from '../../landslide/ui/processingStatus';
 
 type Props = {
   user: User | null;
@@ -13,11 +14,6 @@ type Props = {
   onSignOut: () => Promise<void>;
   onViewResults?: () => void;
 };
-
-const API_BASE = resolveApiBaseUrl(
-  import.meta.env.VITE_SARGUARDIAN_API_URL as string | undefined,
-  import.meta.env.DEV,
-);
 
 function loadRiverShiftSetup(): RiverShiftSetup | null {
   try {
@@ -28,6 +24,81 @@ function loadRiverShiftSetup(): RiverShiftSetup | null {
   } catch {
     return null;
   }
+}
+
+const activeRiverShiftStates = new Set(['queued', 'dispatching', 'running']);
+
+function riverShiftStageName(stage: string, state: RiverShiftJob['state']): string {
+  const normalized = stage.trim().toLowerCase();
+  if (state === 'succeeded' || normalized.includes('complete')) return 'Complete';
+  if (state === 'failed' || state === 'cancelled') return 'Needs attention';
+  if (normalized.includes('screen') || normalized.includes('result') || normalized.includes('assemble')) return 'Screening';
+  if (normalized.includes('product') || normalized.includes('process') || normalized.includes('download')) return 'Processing';
+  return state === 'queued' || state === 'dispatching' ? 'Preparing task' : 'Initializing';
+}
+
+function riverShiftStageIndex(job: RiverShiftJob): number {
+  const stage = job.stage.trim().toLowerCase();
+  if (job.state === 'succeeded' || stage.includes('complete')) return 3;
+  if (stage.includes('screen') || stage.includes('result') || stage.includes('assemble')) return 2;
+  if (stage.includes('product') || stage.includes('process') || stage.includes('download')) return 1;
+  return 0;
+}
+
+function RiverShiftJobStatus({ job, clock, onViewResults }: {
+  job: RiverShiftJob;
+  clock: number;
+  onViewResults: () => void;
+}) {
+  const active = activeRiverShiftStates.has(job.state);
+  const stageIndex = riverShiftStageIndex(job);
+  const stageName = riverShiftStageName(job.stage, job.state);
+  const elapsed = formatElapsed(job.created_at, job.updated_at, job.state, clock);
+  const summary = job.result_summary && typeof job.result_summary === 'object' ? job.result_summary : {};
+  const expectedProducts = typeof summary.expected_product_count === 'number' ? summary.expected_product_count : null;
+  const verifiedProducts = typeof summary.verified_product_count === 'number' ? summary.verified_product_count : null;
+  const observations = typeof summary.observation_count === 'number' ? summary.observation_count : null;
+  const shortJobId = job.id.length > 15 ? `${job.id.slice(0, 8)}…${job.id.slice(-4)}` : job.id;
+  const dateWindow = `${new Date(`${job.start_date}T00:00:00`).toLocaleDateString()} – ${new Date(`${job.end_date}T00:00:00`).toLocaleDateString()}`;
+
+  return (
+    <main className="displacement-preparation processing-page" aria-live="polite">
+      <section className={`processing-card processing-hero processing-page--${job.state}`}>
+        <span className={`processing-status-chip ${active ? 'is-running' : ''}`}>
+          <i aria-hidden="true" />
+          {job.state === 'succeeded' ? 'Complete' : job.state === 'failed' ? 'Needs attention' : job.state === 'cancelled' ? 'Cancelled' : 'Running'}
+        </span>
+        <div className={`processing-orbit ${active ? 'is-active' : ''}`} aria-label={`${stageName}, elapsed ${elapsed}`}>
+          <div className="processing-orbit-inner">
+            {job.state === 'succeeded' ? <span className="processing-orbit-symbol processing-orbit-label" aria-hidden="true">Success</span> : job.state === 'failed' ? <span className="processing-orbit-symbol processing-orbit-label" aria-hidden="true">Failed</span> : job.state === 'cancelled' ? <span className="processing-orbit-symbol" aria-hidden="true">!</span> : <><strong>{stageName}</strong><time>{elapsed}</time></>}
+          </div>
+        </div>
+        <ol className="processing-stepper" aria-label="Processing stages">
+          {['Initializing', 'Processing', 'Screening', 'Complete'].map((step, index) => <li key={step} className={index < stageIndex ? 'is-complete' : index === stageIndex ? 'is-current' : ''}><i aria-hidden="true" /><span>{step}</span></li>)}
+        </ol>
+        <p className="processing-safe-note">{active ? 'Safe to close this page. Your task keeps running.' : job.state === 'succeeded' ? 'The processing job has ended. Review the River Shift outputs.' : 'The processing workflow stopped before successful completion.'}</p>
+        <p className="processing-duration-note">It may take up to 5 to 20 minutes depending on AOI and time window.</p>
+      </section>
+
+      <section className="processing-card processing-products-card" aria-label="River Shift processing counters">
+        <div><span>GCOV</span><strong className={expectedProducts === null ? 'processing-count-pending' : ''}>{expectedProducts ?? (active ? 'Searching…' : '—')}</strong></div>
+        <div><span>Verified</span><strong className={verifiedProducts === null ? 'processing-count-pending' : ''}>{verifiedProducts ?? (active ? 'Searching…' : '—')}</strong></div>
+        <div><span>Dates</span><strong className={observations === null ? 'processing-count-pending' : ''}>{observations ?? (active ? 'Searching…' : '—')}</strong></div>
+      </section>
+
+      <section className="processing-card processing-details-card" aria-label="River Shift task details">
+        <dl>
+          <div><dt>Area</dt><dd>Submitted AOI</dd></div>
+          <div><dt>Dates</dt><dd>{dateWindow}</dd></div>
+          <div><dt>Scope</dt><dd>River-wide GCOV screening</dd></div>
+          <div><dt>Job</dt><dd><code title={job.id}>{shortJobId}</code><button type="button" className="processing-copy-button" onClick={() => void navigator.clipboard?.writeText(job.id)}>Copy</button></dd></div>
+        </dl>
+      </section>
+
+      {job.state === 'succeeded' && <div className="processing-page-actions"><button type="button" className="processing-primary-button" onClick={onViewResults}>Show result</button></div>}
+      {job.state === 'failed' && <p className="processing-error" role="alert">{job.error_message || 'River Shift processing failed. Try the run again from the setup page.'}</p>}
+    </main>
+  );
 }
 
 export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut, onViewResults }: Props) {
@@ -48,6 +119,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
   const [riverJob, setRiverJob] = useState<RiverShiftJob | null>(null);
   const [riverJobBusy, setRiverJobBusy] = useState(false);
   const [riverJobError, setRiverJobError] = useState('');
+  const [clock, setClock] = useState(() => Date.now());
 
   useEffect(() => {
     if (!user) {
@@ -76,6 +148,13 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
     }, 5000);
     return () => window.clearInterval(timer);
   }, [riverJob, user]);
+
+  useEffect(() => {
+    if (!riverJob || !activeRiverShiftStates.has(riverJob.state)) return undefined;
+    setClock(Date.now());
+    const timer = window.setInterval(() => setClock(Date.now()), ELAPSED_TICK_MS);
+    return () => window.clearInterval(timer);
+  }, [riverJob]);
 
   const startLiveProcessing = async () => {
     setRiverJobError('');
@@ -155,7 +234,7 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
         pageTitle="River Shift"
       />
 
-      <section className="rs-workspace-grid">
+      {!riverJob && <section className="rs-workspace-grid">
         <div className="rs-panel">
           <form onSubmit={(event) => { event.preventDefault(); void startLiveProcessing(); }} className="rs-form">
             <details className="rs-advanced-settings">
@@ -221,9 +300,11 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
             {analysisMode === 'event_based' && eventDate && <p className="rs-warning-inline">Event date supplied by the user; it is not independently confirmed. Results remain provisional.</p>}
           </form>
         </div>
-      </section>
+      </section>}
 
-      {riverJobBusy && (
+      {riverJob && <RiverShiftJobStatus job={riverJob} clock={clock} onViewResults={() => { window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id); onViewResults?.(); }} />}
+
+      {!riverJob && riverJobBusy && (
         <section className="rs-panel rs-job-feedback" role="status" aria-live="polite">
           <div className="rs-info-banner">
             <strong>Submitting RiverShift job…</strong>{' '}
@@ -233,40 +314,9 @@ export function RiverShiftProcessingPage({ user, authState, onSignIn, onSignOut,
         </section>
       )}
 
-      {riverJob && ['queued', 'dispatching', 'running'].includes(riverJob.state) && (
-        <section className="rs-panel rs-job-feedback" role="status" aria-live="polite">
-          <div className="rs-info-banner">
-            <strong>Processing job {riverJob.id.slice(0, 8)}… ({riverJob.state})</strong>{' '}
-            The scientific processing engine is actively running on the compute worker. Status refreshes automatically.
-          </div>
-        </section>
-      )}
-
       {riverJobError && (
         <section className="rs-panel rs-job-feedback" aria-live="assertive">
           <p className="rs-error" role="alert">{riverJobError}</p>
-        </section>
-      )}
-
-      {riverJob?.state === 'succeeded' && (
-        <section className="rs-panel rs-job-panel" aria-live="polite">
-          <div className="rs-info-banner">
-            <strong>Processing complete · PROVISIONAL.</strong>{' '}
-            Your River Shift analysis run has finished successfully.
-          </div>
-          <div style={{ marginTop: '18px', textAlign: 'center' }}>
-            <button
-              type="button"
-              className="rs-primary-button rs-show-result-button"
-              style={{ fontSize: '15px', padding: '12px 32px', cursor: 'pointer' }}
-              onClick={() => {
-                window.sessionStorage.setItem('sarguardian.riverShiftActiveJobId', riverJob.id);
-                onViewResults?.();
-              }}
-            >
-              Show result
-            </button>
-          </div>
         </section>
       )}
 
