@@ -2,7 +2,19 @@
 
 A controlled consolidation of SARGuardian's web application, active API, independent processing engines, NISAR science source, and GitHub Actions workflows.
 
-> **Migration status: source import and first code promotion are complete on an isolated migration branch.** The original repositories remain authoritative and unchanged. No production deployment, secret transfer, live processing, or workflow cutover has been performed.
+## NASA Space Apps 2026 — Judge-facing overview
+
+**Challenge:** Dancing with the SARs · **Category:** Earth Science
+
+SARGuardian brings NISAR-powered surface-change workflows into one AOI-driven platform. Users select a place and observation window, inspect eligible radar observations, and review displacement or river-change candidates with source provenance and quality checks. The four user-facing categories are Landslide / Find Displacements, Glacier Movement, Known Place Analysis and River Shift; Glacier Movement uses the shared displacement engine rather than a separate collapse model.
+
+- [Final submission story, scientific boundaries, live evidence and demo script](docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md)
+- [Score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md)
+- [RiverShift judge brief](engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_BRIEF.md)
+
+**Latest RiverShift end-to-end evidence:** [Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660) completed on 12 November 2026. Ten exact NISAR L2 GCOV products across ten real acquisition dates passed product download, HDF5/layer checks, AOI extraction and result assembly. The final result manifest validated 72 output entries and private result publication passed. This is evidence for that AOI/date window, not a claim that every location has compatible data or that candidate changes are field-confirmed.
+
+> **Repository note:** this Monorepo is currently public. The migration and deployment notes below retain historical checkpoints and must be read with their stated dates; use the final submission pack above for the current judge-facing project story and Run #25 evidence.
 
 ## Source systems
 
