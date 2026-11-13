@@ -2,7 +2,25 @@
 
 A controlled consolidation of SARGuardian's web application, active API, independent processing engines, NISAR science source, and GitHub Actions workflows.
 
-> **Migration status: source import and first code promotion are complete on an isolated migration branch.** The original repositories remain authoritative and unchanged. No production deployment, secret transfer, live processing, or workflow cutover has been performed.
+## NASA Space Apps 2026 — Judge-facing overview
+
+**Challenge:** Dancing with the SARs · **Category:** Earth Science
+
+SARGuardian brings NISAR-powered surface-change workflows into one AOI-driven platform. Users select a place and observation window, inspect eligible radar observations, and review displacement or river-change candidates with source provenance and quality checks. The four user-facing categories are Landslide / Find Displacements, Glacier Movement, Known Place Analysis and River Shift; Glacier Movement uses the shared displacement engine rather than a separate collapse model.
+
+- [Final submission story, scientific boundaries, live evidence and team contributions](docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md)
+- [Score-sheet evidence matrix](docs/submission/score-sheet-evidence-matrix.md)
+- [RiverShift judge brief](docs/submission/RIVERSHIFT_2026_JUDGE_BRIEF.md)
+- [Demonstration video brief — 4:05 Full HD](docs/submission/VIDEO_PRESENTATION_BRIEF.md)
+- [Application experience and UI/UX brief](docs/submission/APPLICATION_UX_BRIEF.md)
+
+**Current application experience:** the public [shourov-04/SARGuardian fork](https://github.com/shourov-04/SARGuardian) contains the reviewed UI/UX implementation: guided workflow orientation, staged processing, candidate-to-Known-Place hand-off, and RiverShift map, observed-summary, provenance and QA panels. The current source walkthrough is in the [Application Experience and UI/UX Brief](docs/submission/APPLICATION_UX_BRIEF.md).
+
+**Demonstration video:** the team video is approximately 4:05 in 1920×1080 Full HD and presents the NISAR mission, team, AOI-wide displacement screening, Bhote Koshi P05023 benchmark and Jamuna RiverShift example. See the [Video Presentation Brief](docs/submission/VIDEO_PRESENTATION_BRIEF.md).
+
+**Latest RiverShift end-to-end evidence:** [Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660) completed on 12 November 2026. Ten exact NISAR L2 GCOV products across ten real acquisition dates passed product download, HDF5/layer checks, AOI extraction and result assembly. The final result manifest validated 72 output entries and private result publication passed. This is evidence for that AOI/date window, not a claim that every location has compatible data or that candidate changes are field-confirmed.
+
+> **Repository note:** this Monorepo is currently public. The migration and deployment notes below retain historical checkpoints and must be read with their stated dates; use the final submission pack above for the current judge-facing project story and Run #25 evidence.
 
 ## Source systems
 
@@ -22,6 +40,8 @@ The exact source trees have been imported under `migration/source-snapshots/` wi
 - **Glacier Movement:** currently a product/category route into the shared Find Displacements engine, not a separately proven processing engine.
 
 ## Active runtime scope (evidence-based)
+
+> **Historical migration snapshot:** the runtime-gate notes in this section were last audited on 6 November 2026. RiverShift Run #25 on 12 November was executed in the public `shourov-04/SARGuardian` fork; it demonstrates that fork's 10-product path and does not, by itself, prove that a separately gated Monorepo API dispatcher has been enabled or cut over. Use the dated run links above and the [final submission pack](docs/submission/SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for current judge-facing evidence.
 
 The migration preserves all **82 historical source workflow instances** without activating them indiscriminately. The current API application graph contains two primary processing paths—**Find Displacements** and the generic two-polygon **Known Place Analysis** workflow—and two separately gated paths: **RiverShift GCOV** and author-exact **P05023** reproduction.
 
