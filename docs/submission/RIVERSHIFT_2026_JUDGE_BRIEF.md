@@ -1,31 +1,39 @@
 # RiverShift — NASA Space Apps 2026 Judge Brief
 
-**Recommended first read for human and AI-assisted review.** This brief states the product proposition, shows how to verify it in the public repositories, and separates demonstrated evidence from scientific interpretation.
+**Recommended first read for the RiverShift workstream.** This brief presents the global AOI-driven proposition, current application experience, processing evidence and the source records that support the Jamuna–Chowhali demonstration.
 
 ## The central proposition
 
-**RiverShift is a location-independent, AOI-driven river-change screening workflow powered by NASA–ISRO NISAR L-band GCOV observations.** A user selects a river reach within the mission's global land-observation footprint and a date window. RiverShift discovers the compatible GCOV acquisitions available for that exact AOI, processes the real observations, and displays candidate changes with source provenance.
+**RiverShift is a location-independent, AOI-driven river-change screening workflow powered by NASA–ISRO NISAR L-band GCOV observations.** A user selects a river reach within the global NISAR observation programme and a date window. RiverShift discovers compatible GCOV acquisitions for that request, processes the real observations and displays candidate changes with source provenance.
 
-The Jamuna–Chowhali run is the concrete demonstration case. It is not a country restriction, fixed target polygon, or the only place the workflow is designed to accept.
+The Jamuna–Chowhali run is the concrete demonstration case. It is an example of the workflow, not a fixed target polygon or a country restriction.
 
 ## Why global applicability is technically grounded
 
-- NASA lists NISAR coverage as **Global** and L-band data acquisitions as global, with a nominal 12-day exact repeat cycle: [NASA Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/).
-- ASF's current availability guide records PROVISIONAL L-band products (P05023) for acquisitions beginning 17 June 2026 through part of 23 October 2026, and VALIDATED L-band Level 0–2 products for acquisitions beginning 21 October 2026, released on 6 November 2026: [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/). The selected Run #25 series uses the earlier PROVISIONAL period.
-- RiverShift submits the user's WGS84 polygon and date range to NASA CMR; it does not use a Bangladesh-only catalogue query or substitute a built-in Jamuna AOI: [catalogue discovery implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/engines/river-shift/tools/river_shift/discover_gcov_products.py).
-- The request is geospatially parameterised; AOI and date window are supplied per job: [Dynamic AOI/catalogue implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift.py) and [RiverShift job implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift_jobs.py).
+- NASA lists NISAR coverage as global and L-band data acquisitions as global, with a nominal 12-day exact repeat cycle: [NASA Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/).
+- ASF publishes product availability by maturity and acquisition period: [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/).
+- RiverShift submits the user's WGS84 polygon and date range to NASA CMR; the catalogue request is not restricted to a Bangladesh-only query: [catalogue discovery implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/engines/river-shift/tools/river_shift/discover_gcov_products.py).
+- AOI and date window are supplied per job: [RiverShift API](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift.py) and [job implementation](https://github.com/moshiour0/SARGuardian-Monorepo/blob/main/apps/api/app/river_shift_jobs.py).
 
-**Inspect the mission footprint directly:** [ASF/NISAR Reference Observation Plan — interactive global acquisition map](https://experience.arcgis.com/experience/6052a864cd01459393884a7f751558e3) · [ASF Data Search — NISAR PROVISIONAL L-band products](https://search.asf.alaska.edu/) · [ASF data availability and global footprint explanation](https://nisar-docs.asf.alaska.edu/availability-overview/).
+The mission observation plan and public catalogue help users explore the global observation programme. RiverShift then qualifies the actual released products and spatial support for the selected AOI and period.
 
-The map documents the mission's observation plan/collection footprint. The ASF search catalogue shows products that have actually been released. Neither map alone guarantees a four-date, compatible GCOV series or valid raster support for a particular AOI; RiverShift checks those separately.
+## Current application experience
 
-## Current operating envelope
+The public [shourov-04/SARGuardian application](https://github.com/shourov-04/SARGuardian) has a dedicated RiverShift setup, processing and result journey.
 
-These are processing gates, not country restrictions:
+- **Setup:** the user draws/selects an AOI and date window, then chooses general-scan or event-based analysis and the relevant processing settings.
+- **Processing:** the job view displays processing stages, AOI/job details, GCOV product counts and processed-product counts, with task controls and result navigation.
+- **Results:** the user explores the mapped layers, observed summary, report, real acquisition dates, granule provenance, SHA-256 hashes, spatial QA and uncertainty/sensitivity information.
 
-| Gate | Current rule |
+The application also brings the RiverShift evidence views into a consistent review experience. See the [Application Experience and UI/UX Brief](APPLICATION_UX_BRIEF.md) and [Demonstration Video Brief](VIDEO_PRESENTATION_BRIEF.md).
+
+## Current processing envelope
+
+These are product and quality gates applied to each request:
+
+| Gate | Processing rule |
 |---|---|
-| AOI geometry | One valid, single-ring WGS84 Polygon |
+| AOI geometry | Valid, single-ring WGS84 Polygon |
 | AOI size | Maximum 1,000 km² |
 | Date window | Maximum 366 days |
 | Catalogue support | At least four distinct acquisition dates |
@@ -34,17 +42,17 @@ These are processing gates, not country restrictions:
 | Worker verification | Native HDF5 layer, source provenance and valid raster support checked before analysis |
 | Series | Up to 12 real acquisition dates; up to four same-date granules per date |
 
-A broad region or whole country is not submitted as one request. The user selects a manageable river reach. If the selected place/date window does not have adequate compatible observations, RiverShift reports that condition rather than inventing an output.
+A user selects a manageable river reach. The workflow discovers eligible observations for that place and time window, then processes the compatible acquisition series.
 
 ## What the application does
 
 1. **Select:** draw a WGS84 AOI and choose a date window.
-2. **Discover:** query the actual NASA/ASF NISAR GCOV catalogue for that AOI and period.
-3. **Qualify:** count distinct dates and check footprint, orbit/frame, maturity, frequency/covariance term and layer compatibility.
-4. **Process:** download exact GCOV granules, validate provenance and native layers, align valid rasters and calculate the documented screening classes.
-5. **Explore:** review actual acquisition dates, checksum-linked reports, separate change layers, preview QA and optional mapped exposure context.
+2. **Discover:** query the NASA/ASF NISAR GCOV catalogue for that AOI and period.
+3. **Qualify:** check distinct dates, footprint, orbit/frame, maturity, frequency/covariance term and layer compatibility.
+4. **Process:** retrieve exact GCOV granules, validate provenance and native layers, align valid rasters and calculate screening classes.
+5. **Explore:** review actual acquisition dates, checksum-linked reports, separate change layers, preview QA and mapped context.
 
-There is no daily interpolation. The map preview is not the source of area measurements; full-resolution outputs and their provenance remain authoritative.
+There is no daily interpolation. Map previews support exploration; full-resolution outputs and their provenance provide the measurement record.
 
 ## What the change classes mean
 
@@ -52,7 +60,7 @@ There is no daily interpolation. The map preview is not the source of area measu
 - **Red:** persistent land-to-water transition candidate.
 - **Green:** persistent water-to-land transition candidate.
 
-These are explainable screening indicators. They are not automatically field-confirmed erosion, deposition, damage, sediment volume, flood causality, or a signed bank-migration rate.
+These are explainable screening indicators connected to the source observations.
 
 ## Demonstrated evidence
 
@@ -61,63 +69,55 @@ These are explainable screening indicators. They are not automatically field-con
 [Open the successful RiverShift Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660).
 
 - AOI case: Jamuna–Chowhali demonstration request.
-- Request window: 12 November 2025–12 November 2026 (general scan). NASA CMR returned 68 catalogue candidates; the compatibility/support audit selected 10 exact granules across 10 actual acquisition dates (one per selected date).
-- Ten exact NISAR L2 GCOV PROVISIONAL P05023 granules were processed at ten actual acquisition dates: 18 June, 30 June, 12 July, 24 July, 17 August, 29 August, 10 September, 22 September, 4 October and 16 October 2026.
+- Request window: 12 November 2025–12 November 2026. NASA CMR returned 68 catalogue candidates; the compatibility/support audit selected 10 exact granules across 10 actual acquisition dates.
+- Ten exact NISAR L2 GCOV PROVISIONAL P05023 granules were processed on 18 June, 30 June, 12 July, 24 July, 17 August, 29 August, 10 September, 22 September, 4 October and 16 October 2026.
 - All **10/10 first-attempt product worker jobs passed**; the whole workflow completed with 24 successful jobs and 6 intentionally skipped jobs, with no failed jobs.
 - Detailed worker logs show authenticated product retrieval, HTTP 206 range support, native HDF5 inspection, requested-layer validation, AOI raster extraction and product-artifact preparation.
 - Ten date rasters passed assembly and shared-grid alignment; the 10-product source-provenance manifest passed validation.
 - The result manifest validated **72 output entries**. Private result publication passed with 73 publication receipts, followed by successful final assembly and signed callback.
-- This proves the selected AOI/date request completed. It does not prove universal coverage, field-confirmed erosion/deposition, flood causality or an independent accuracy score.
 
-The selected series has a real observation gap between 24 July and 17 August. ASF documents an instrument data gap from 27 July to 10 August 2026; RiverShift does not interpolate missing dates.
+This is an end-to-end processing demonstration for the selected AOI and date window. The live record connects catalogue discovery, authenticated retrieval, native data checks, processing, provenance and result publication.
 
 ### Historical retained Jamuna reproducibility case — Run #36
 
-[Open the historical Run #36 processing evidence](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660).
-
-- Six actual NISAR GCOV acquisition dates: 30 June–10 September 2026.
-- Historical provisional screening areas: 17.6721 km² newly water-covered candidate; 1,244.230 ha persistent erosion candidate; 5,078.140 ha persistent deposition candidate.
-- Six retained source-COG SHA-256 values matched their sidecars in the retrospective replay; all three reported areas were reproduced.
-- The historical independent OPERA DSWx-S1 reference review returned **NO_MATCH_NO_SCORE / PROVISIONAL**. No F1/IoU or field-accuracy claim is made for that run.
+The retained Jamuna case provides an additional reproducibility example. Six actual NISAR GCOV acquisition dates were retained from 30 June to 10 September 2026; source-COG SHA-256 values matched their sidecars in the retrospective replay, and the reported change-area outputs were reproduced. Comparison metrics are published only when the independent source, temporal alignment, data definition and common spatial support meet the matching requirements.
 
 ### Code and regression evidence
 
-- [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo) — promoted application, API and RiverShift engine source.
+- [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo) — application, API, RiverShift engine and NISAR science source.
 - [Monorepo Snapshot Regression run 43243267939](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/43243267939) — **20/20 jobs passed**, including the promoted RiverShift engine tests (276 passed), archived OPERA reference tests (20 passed) and RiverShift worker tests (259 passed).
-- [Full SARGuardian submission pack](SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) — project story, workflow boundaries, run evidence, score projection and demo storyboard.
-
-Regression tests verify software contracts, processing gates and reproducibility. They are not a substitute for independent geophysical validation.
+- [Full SARGuardian submission pack](SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) — project story, workflows, run evidence, team contributions and demonstration-video guide.
 
 ## Where the rubric evidence lives
 
 | Judging dimension | Evidence to inspect |
 |---|---|
-| Impact | Global AOI applicability + Jamuna public-impact case study + optional mapped exposure context |
-| Creativity | Target-free discovery within a user-selected AOI; real multi-date radar workflow |
-| Validity | Source granule manifests, SHA-256 provenance, compatibility/coverage gates, full-resolution overlap QA and independent-reference scoring gate |
-| Relevance | NISAR Level-2 GCOV is the primary measurement input for Dancing with the SARs |
-| Presentation | World-centred AOI map, distinct result layers, real-date playback, readable judge guide and demonstration sequence |
-| User experience | WGS84 drawing/paste workflow, visible four-date catalogue preflight, clear processing readiness and separate map controls |
-| NASA data usage | NISAR GCOV measurement source and NASA/ASF catalogue access; basemap identified as context only |
-| Reproducibility | Public source code, automated tests, retained example run and checksummed retrospective replay |
+| Impact | Global AOI applicability, Jamuna regional example and mapped river-change screening |
+| Creativity | User-defined AOI, multi-date radar workflow and separate new-water/erosion/deposition layers |
+| Validity | Product manifests, SHA-256 provenance, compatibility/coverage gates, native HDF5 checks and spatial QA |
+| Relevance | NISAR L2 GCOV is the primary measurement input for the river-change workflow |
+| Presentation | Full HD demonstration video, map-first experience, observed-date exploration and source-aware result panels |
+| User experience | AOI drawing, setup controls, processing stages, product counters and dedicated results navigation |
+| NASA data usage | NISAR GCOV measurement source and NASA/ASF catalogue discovery |
+| Reproducibility | Public source code, automated tests, retained example run and checksummed result records |
 
-## Scientific interpretation discipline
+## Scientific interpretation
 
-RiverShift distinguishes:
-- a catalogue hit from an acquisition that passes spatial, geometry and raster checks;
-- source-mask measurements from simplified display previews;
-- processing/provenance PASS from independent geophysical validation;
-- a missing independent reference from a zero accuracy score.
+RiverShift keeps the relationship between observation, map class and interpretation explicit:
 
-An independent score is published only when the reference source, temporal match and common valid support pass the defined gates. A per-region validation state is attached to the evidence; a score from one AOI must not be transferred to another region.
+- Catalogue discovery is followed by spatial, geometry and native-raster qualification.
+- Source-mask measurements and simplified display previews have distinct roles.
+- Processing and provenance checks are traceable in the result record.
+- Independent comparison metrics use matched source, date, data definition and common valid support.
+- Playback follows actual acquisition records and does not synthesize daily observations.
 
 ## Suggested review path
 
-1. Read this brief for the global product proposition and operating envelope.
-2. Open the [live RiverShift application](https://sar-guardian-dynamic-lilac.vercel.app) and inspect the world-centred AOI workflow (the current production alias may require the latest Vercel deployment before these UI changes are visible).
-3. Read the [final SARGuardian submission pack](SPACE_APPS_2026_FINAL_SUBMISSION_PACK.md) for the public story, latest 10-product live run and demo sequence.
-4. Read the [full judge guide](../../engines/river-shift/tools/river_shift/NASA_SPACE_APPS_2026_JUDGE_GUIDE.md) for methods, data roles, QA, validation protocol and Run #36 evidence.
-5. Inspect the [Monorepo RiverShift engine](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/engines/river-shift/tools/river_shift) and [application source](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/apps/web) for implementation details.
+1. Read this brief for the global AOI-driven proposition and the NISAR GCOV workflow.
+2. Review the [4:05 demonstration-video brief](VIDEO_PRESENTATION_BRIEF.md).
+3. Follow the [application experience and UI/UX brief](APPLICATION_UX_BRIEF.md) to inspect RiverShift setup, processing and result panels.
+4. Open [RiverShift Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660) for the 10-product processing record.
+5. Inspect the [Monorepo RiverShift engine](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/engines/river-shift/tools/river_shift) and [application API](https://github.com/moshiour0/SARGuardian-Monorepo/tree/main/apps/api).
 
 ## Core references
 
