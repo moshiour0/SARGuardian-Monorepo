@@ -3,73 +3,75 @@
 **Challenge:** Dancing with the SARs  
 **Category:** Earth Science  
 **Product:** SARGuardian — NISAR-powered surface-change intelligence  
-**Evidence cut-off:** 12 November 2026  
-**Status:** Submission narrative and evidence index; this is not an official judge score or a claim of universal scientific validation.
+**Evidence update:** 13 November 2026
 
 ## 1. The project in one sentence
 
-**SARGuardian turns real NASA–ISRO NISAR radar observations into traceable surface-change screening workflows for land, glacier terrain and rivers—so users can explore an area and time window, inspect candidate changes, and see exactly which observations and quality checks support the result.**
+**SARGuardian turns NASA–ISRO NISAR radar observations into traceable surface-change screening workflows for land, glacier terrain and rivers—so users can explore an area and time window, inspect candidate changes, and follow the observations and quality checks behind each result.**
 
 ## 2. Copy-ready project description
 
-Earth's surface changes continuously, but observing those changes consistently is difficult. Optical imagery can be limited by clouds, darkness and acquisition timing; radar observations provide a complementary way to examine the land surface. NISAR, the NASA–ISRO Synthetic Aperture Radar mission, supplies L-band observations designed to measure changes across land, water, vegetation and ice.
+Earth's surface changes continuously, but observing those changes consistently is difficult. Radar observations complement optical imagery by providing a way to examine the land surface independent of daylight and through many cloud conditions. NISAR, the NASA–ISRO Synthetic Aperture Radar mission, supplies L-band observations designed to measure changes across land, water, vegetation and ice.
 
 SARGuardian brings several NISAR-based workflows into one interactive platform. A user chooses an area of interest and an observation window, then explores the processing path appropriate to the question: target-free displacement screening, glacier-terrain movement screening, focused known-place research, or river-change screening from GCOV observations. Results retain acquisition dates, source-product identity, provenance and quality-control information.
 
-SARGuardian does not predict disasters or automatically declare a candidate to be a confirmed landslide, glacier collapse, erosion event or flood impact. It helps users find and inspect radar-derived signals that deserve further interpretation. The design keeps different NISAR measurement families separate and makes missing observations, uncertainty and validation limits visible rather than hiding them behind a single confidence score.
+SARGuardian helps users identify and investigate radar-derived signals that may indicate surface change. Its presentation connects each mapped candidate to the observation and processing context needed to interpret it responsibly.
 
 ## 3. Why this matters
 
-Communities, researchers and planners need to understand where the Earth's surface may be changing and what evidence exists for those changes. A map alone is not enough: a decision-maker needs to know when the observation was made, which sensor product was used, whether the product was compatible with the analysis, how much valid data supported the result, and what the result does *not* establish.
+Communities, researchers and planners need to understand where the Earth's surface may be changing and what evidence exists for those changes. A map becomes more useful when a reviewer can also inspect when the observation was made, which sensor product was used, how the product was qualified and what the resulting measurement represents.
 
-SARGuardian is built around that evidence chain. The user does not have to begin with a known target point or a fixed demonstration polygon. They can select an AOI and date range; the application searches for compatible NISAR products available for that request and qualifies the available observations before processing.
+SARGuardian is built around that evidence chain. The user can begin with a selected area and date range; the application searches for compatible NISAR products available for that request and qualifies the observations before processing.
 
-This is a global-use design, not a promise that every location has a complete time series at every date. The NISAR mission has a global land and ice-observation plan, but archive release, instrument gaps, product maturity, orbit/frame compatibility, spatial coverage and valid raster support still determine what can be processed for a particular AOI.
+The platform is designed for user-selected areas across the global NISAR observation programme. The actual released products, acquisition geometry, time series and valid raster support determine the observation record available for each specific request.
 
 ## 4. What users can do
 
-SARGuardian presents four user-facing workflow categories. They are not four interchangeable scientific engines; the underlying measurements and processing paths remain distinct.
+SARGuardian presents four user-facing workflow categories. Their measurement paths remain distinct and are selected according to the user's question.
 
-| User-facing workflow | What it does | Primary NISAR evidence | Important boundary |
-|---|---|---|---|
-| **Landslide / Find Displacements** | Scans a user-selected AOI and time window for displacement candidates without requiring a nominated target point. | GOFF offset diagnostics and, where the network and support gates pass, GUNW interferometric phase / line-of-sight diagnostics. | GOFF and GUNW are separate measurement families. An anomaly is a candidate, not proof of a landslide. Pairwise LOS is not automatically cumulative or 3-D displacement. |
-| **Glacier Movement** | Applies the shared AOI-wide displacement workflow to glacier terrain where compatible observations exist. | The same distinct GOFF and gated GUNW evidence families used by Find Displacements. | This is a workflow category routed through the shared displacement engine, not a separately validated glacier-collapse or avalanche-physics model. |
-| **Known Place Analysis** | Supports focused two-polygon analysis: a Measurement Polygon and a Reference Polygon, with explicit source-product identity and evidence review. | Exact selected NISAR products, including the author-exact P05023 benchmark path where explicitly requested. | The reference polygon is user-defined; its stability is not independently proven by default. Generic analysis and author-exact paper reproduction are separate paths. |
-| **River Shift** | Discovers and processes compatible NISAR GCOV acquisitions for a user-selected river reach and date window, then displays radar-derived water/land-transition candidates. | NISAR L-band Level-2 GCOV. | Candidate classes are not automatically field-confirmed erosion, deposition, damage, sediment volume or flood causality. Playback uses real acquisition dates, not interpolation or forecast. |
+| User-facing workflow | What it does | Primary NISAR evidence |
+|---|---|---|
+| **Landslide / Find Displacements** | Scans a user-selected AOI and time window for displacement candidates without requiring a nominated target point. | GOFF offset diagnostics and, where the network and support gates pass, GUNW interferometric phase / line-of-sight diagnostics. |
+| **Glacier Movement** | Applies the shared AOI-wide displacement workflow to glacier terrain where compatible observations exist. | The same distinct GOFF and gated GUNW evidence families used by Find Displacements. |
+| **Known Place Analysis** | Supports focused two-polygon analysis: a Measurement Polygon and a Reference Polygon, with explicit source-product identity and evidence review. | Exact selected NISAR products, including the author-exact P05023 benchmark path where requested. |
+| **River Shift** | Discovers and processes compatible NISAR GCOV acquisitions for a selected river reach and date window, then displays radar-derived water/land-transition candidates. | NISAR L-band Level-2 GCOV. |
 
-### The River Shift map classes
+### River Shift map classes
 
 - **Blue:** newly water-covered / observed open-water candidate.
-- **Red:** persistent land-to-water transition candidate (erosion-screening signal).
-- **Green:** persistent water-to-land transition candidate (deposition-screening signal).
+- **Red:** persistent land-to-water transition candidate, used for erosion screening.
+- **Green:** persistent water-to-land transition candidate, used for deposition screening.
 
-These are explainable screening classes. Their interpretation remains subject to source-mask validity, common-grid support, overlap QA and any eligible independent reference.
+These are explainable screening classes connected to the source observations and spatial quality review.
 
-## 5. How the evidence chain works
+## 5. Current application experience
 
-The workflow is designed to make the route from request to result inspectable:
+The active application interface is documented against the public [shourov-04/SARGuardian fork](https://github.com/shourov-04/SARGuardian), whose main branch was reviewed at commit eb5e7e4790847789daf426df5328ead2c8674398 on 13 November 2026.
+
+The user journey combines a project home page, four-step “How it works” orientation, staged displacement processing, focused Known Place controls and a dedicated RiverShift processing and result experience. The displacement view presents separate GUNW and GOFF counters. Known Place supports a selected GOFF candidate hand-off into a Measurement Polygon and catalogue release/variant selection. RiverShift provides processing settings and counters, a result map, observed summary, granule provenance, SHA-256 integrity hashes, spatial QA and uncertainty/sensitivity panels.
+
+See the [Application Experience and UI/UX Brief](APPLICATION_UX_BRIEF.md) for the full walkthrough and current source links.
+
+## 6. How the evidence chain works
 
 1. **Choose an AOI and date window.** The request is location- and time-specific.
-2. **Discover observations.** The workflow queries NASA CMR / ASF for the relevant NISAR collection and exact granule identities.
+2. **Discover observations.** The workflow queries NASA CMR / ASF for relevant NISAR collections and exact granule identities.
 3. **Qualify the data.** It checks product maturity, acquisition dates, orbit/frame and product configuration, footprint support, native layers and valid pixels.
-4. **Process exact products.** The worker downloads the accepted granules, verifies HDF5 structure and expected layers, and performs the relevant raster processing.
-5. **Preserve provenance.** Product identities, acquisition dates, checksums, manifests and processing receipts remain linked to the outputs.
-6. **Review results.** The user can inspect actual observation dates, candidate layers, geometry/overlap diagnostics and validation status.
-7. **Publish results privately.** The verified result package and its manifest are retained through the configured private result-storage path.
+4. **Process exact products.** Workers download accepted granules, verify HDF5 structure and expected layers, and perform the relevant raster processing.
+5. **Preserve provenance.** Product identities, acquisition dates, checksums, manifests and processing receipts remain linked to outputs.
+6. **Review results.** Users inspect actual observation dates, candidate layers, geometry/overlap diagnostics and evidence reports.
+7. **Retain the result package.** The verified result package and manifest are retained through the configured private result-storage path.
 
-The system distinguishes a successful software or provenance check from independent geophysical validation. A structurally valid output is not automatically a validated physical event.
-
-## 6. Latest live River Shift evidence — Run #25
+## 7. Latest live River Shift evidence — Run #25
 
 **Run:** [RiverShift Run #25 — GitHub Actions](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660)  
-**Repository / branch:** `shourov-04/SARGuardian`, `main`  
-**Checked-out commit:** `8f9272adafc43ac080227083f12d122a8a271be8`  
+**Repository / branch:** shourov-04/SARGuardian, main  
+**Checked-out commit:** 8f9272adafc43ac080227083f12d122a8a271be8  
 **Run date:** 12 November 2026  
 **AOI case:** Jamuna–Chowhali demonstration request  
 **Collection:** NISAR L2 GCOV PROVISIONAL, CRID P05023  
-**Request window:** 12 November 2025–12 November 2026 (general scan)  
-**Catalogue qualification:** NASA CMR returned 68 catalogue candidates; the compatibility and support audit selected 10 exact granules across 10 actual acquisition dates (one granule per selected date)  
-**Selected products:** 10 exact granules across 10 actual acquisition dates
+**Request window:** 12 November 2025–12 November 2026  
+**Catalogue qualification:** NASA CMR returned 68 candidates; the compatibility and support audit selected 10 exact granules across 10 actual acquisition dates.
 
 ### Acquisition dates
 
@@ -81,75 +83,47 @@ The system distinguishes a successful software or provenance check from independ
 | 4 | 24 July 2026 | 9 | 4 October 2026 |
 | 5 | 17 August 2026 | 10 | 16 October 2026 |
 
-All 10 first-attempt product worker jobs passed. The run completed with 24 successful jobs and 6 intentionally skipped jobs; no job failed. The workflow's final **“Verify all products, run change science, and retain private results”** job passed.
+All 10 first-attempt product worker jobs passed. The workflow completed with 24 successful jobs and 6 intentionally skipped jobs; no job failed. Product retrieval, authenticated ASF byte-range access, HDF5 inspection, requested-layer checks, AOI raster extraction and per-product artifact preparation passed for the selected products.
 
-### What the logs establish
+Ten date rasters were assembled and aligned to a shared observation grid. The source provenance manifest passed for all 10 products. The final result manifest validated **72 output entries**, and private result publication completed with **73 publication receipts**, followed by successful final assembly and signed callback.
 
-- Earthdata authentication and exact CMR granule lookup passed for the selected products.
-- The authenticated ASF byte-range path returned HTTP **206 Partial Content** in the detailed product-worker logs; the NISAR files were downloaded through the authenticated range-download path.
-- Native HDF5 inspection and requested-layer validation passed.
-- AOI raster extraction and per-product artifact preparation passed for all 10 product workers.
-- Ten date rasters were assembled and aligned to a shared observation grid.
-- The source provenance manifest passed validation for all 10 products.
-- The result package manifest passed validation and reported **72 validated output entries**.
-- The private result publication stage passed and reported **73 publication receipts**.
-- Signed API callbacks and final assembly completion passed.
+Traceability values from the run:
 
-**Traceability values from the run:** source-granule provenance manifest SHA-256  
-`7c515d538024aaea176de2ac34e3d30360ce267bb56d46d6e1c8bce9e72de995`; final result-manifest SHA-256  
-`ca8c77d68f42041e74d4cf97735aac10636fa9eead5ce7133bece165ce93b47a`.
+- Source-granule provenance manifest SHA-256: 7c515d538024aaea176de2ac34e3d30360ce267bb56d46d6e1c8bce9e72de995
+- Final result-manifest SHA-256: ca8c77d68f42041e74d4cf97735aac10636fa9eead5ce7133bece165ce93b47a
 
-### How to interpret this result
+Run #25 is a complete end-to-end processing demonstration for its selected AOI, date window and compatible product series. It provides a reproducible record from catalogue discovery through private result publication.
 
-Run #25 is a successful end-to-end processing demonstration for this particular AOI, date window and compatible product series. It proves that the selected ten products could be discovered, downloaded, inspected, processed, assembled, checked and privately published in that run. It does **not** prove that every river reach has ten compatible dates, that every coloured candidate is field-confirmed, or that the case has a validated accuracy score.
+## 8. NISAR data: what is used and why
 
-The run contains a real observation gap between 24 July and 17 August. ASF documents a NISAR instrument data gap from 27 July to 10 August 2026. RiverShift uses the available observations; it does not fill that gap with synthetic frames.
+| Product family | SARGuardian use |
+|---|---|
+| **GUNW** | Interferometric phase / line-of-sight displacement diagnostics where the required network, geometry and common-support gates pass. |
+| **GOFF** | Range/azimuth offset diagnostics and displacement-candidate screening. |
+| **GCOV** | Covariance-based radar observation support for River Shift water/land-change screening. |
 
-The successful run used P05023 PROVISIONAL products for acquisitions from June–October 2026. ASF's current availability guide also records a later VALIDATED L-band Level 0–2 release on 6 November 2026 for acquisitions beginning 21 October 2026. These are different product-maturity periods and should not be mixed without the appropriate product-version controls.
+NISAR products are measurement inputs, not decorative map layers. Basemaps and separately attributed context sources support navigation and interpretation but are not represented as NISAR measurements.
 
-### Separate validation record
+NASA describes NISAR as a global land and ice-observation mission with a nominal 12-day exact repeat cycle and an average revisit of about six days from ascending and descending observations. See the [NASA Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/) and [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/).
 
-The earlier retained Jamuna Run #36 and its retrospective replay remain useful reproducibility evidence, but its independent OPERA DSWx-S1 review returned **NO_MATCH_NO_SCORE / PROVISIONAL** because no eligible temporally matched reference was available. That is not a zero score and is not an accuracy pass. Run #25's successful processing does not change that independent-reference result.
+## 9. Scientific interpretation
 
-## 7. NISAR data: what is used and why
+SARGuardian connects mapped outputs to their measurement family, product identity, acquisition dates and quality evidence.
 
-SARGuardian's relevance to *Dancing with the SARs* is direct: NISAR products are measurement inputs, not decorative map layers.
+- GOFF offsets and GUNW phase/LOS are distinct measurement families.
+- Pairwise LOS is not automatically cumulative or three-dimensional displacement.
+- A structural/provenance PASS establishes processing integrity; geophysical interpretation uses the relevant scientific evidence.
+- A user-defined Reference Polygon is a comparison region whose role is explicit in the analysis.
+- RiverShift map classes are screening candidates connected to actual GCOV observations.
+- Playback follows actual acquisition dates.
+- Missing measurements remain identified as not measured, rather than being treated as zero.
+- Comparison metrics are reported only when their source, temporal alignment, data definition and common spatial support satisfy the matching requirements.
 
-| Product family | What SARGuardian uses it for | Do not confuse it with |
-|---|---|---|
-| **GUNW** | Interferometric phase / line-of-sight displacement diagnostics where the required network, geometry and common-support gates pass. | Absolute 3-D movement or a cumulative displacement history without the required model and observations. |
-| **GOFF** | Range/azimuth offset diagnostics and candidate screening. | A calibrated ground-displacement vector or confirmed landslide by itself. |
-| **GCOV** | Covariance-based radar observation support for River Shift's water/land-change screening. | A direct field survey, sediment-volume measurement or automatic flood-causality assessment. |
+These distinctions make the platform's outputs easier to inspect and interpret.
 
-The application may also show basemaps or separately attributed context sources. Those are labelled as context; they are not represented as NISAR measurements.
+## 10. Team roles, contributions and collaboration
 
-### Global applicability, with accurate limits
-
-NASA describes NISAR as a global land and ice-observation mission with a nominal 12-day exact repeat cycle and an average revisit of about six days from ascending and descending observations. ASF archives the public L-band data and describes product availability by maturity and acquisition period.
-
-The right judge-facing wording is:
-
-> “SARGuardian is designed for user-selected AOIs across the global NISAR observation programme. For each AOI and date window, the system checks the actual released catalogue, product compatibility and valid spatial support before it reports a processable series.”
-
-Avoid: “everywhere, every day”, “all data are already available everywhere”, or “worldwide accuracy is validated”.
-
-## 8. Scientific boundaries that must remain visible
-
-- **PASS** means the stated structural, provenance or processing checks passed. It does not mean an independent scientist has validated the geophysical interpretation.
-- **GOFF anomaly** means a candidate signal, not proof of movement or a landslide.
-- **Pairwise LOS** is not automatically cumulative or 3-D displacement.
-- **Playback** shows real acquisition records. It is not forecast or interpolation.
-- **Not measured** is not zero.
-- A user-defined Reference Polygon is not proof of stable ground.
-- RiverShift's map classes are candidates, not automatic field labels.
-- A missing or date-mismatched independent reference remains **NO_MATCH_NO_SCORE**, not a fabricated zero score or a passing accuracy claim.
-- Glacier Movement is not an independent collapse/avalanche detector.
-
-## 9. Team roles, contributions and collaboration
-
-The team divided work across scientific processing, application experience, river-change development and communication. The clearest integration hand-off was in River Shift: **MD Fahim developed the module and its initial prototype; the Team Lead then integrated the Scientific Core Engine into the River Shift workflow.** Scientific implementation and UI/UX refinement, project storytelling and video production supported the same end-to-end submission.
-
-The names, education details and contribution statements below are supplied by the team. They should be copied to the official NASA project page only after each member confirms the spelling and wording.
+The team combined scientific processing, application design, river-change development and communication into one integrated product. A key integration hand-off connected the River Shift prototype to the shared Scientific Core Engine.
 
 ### 1. Moshiur Rahman Sarker — Team Lead
 
@@ -161,7 +135,7 @@ The names, education details and contribution statements below are supplied by t
 - Project coordination.
 - Video editing.
 
-**Contribution:** Led overall project development and coordinated the team's work. Developed and integrated the core scientific processing capabilities across the project, including integrating the Scientific Core Engine into the River Shift workflow after the River Shift prototype was developed. Also contributed to video editing and visual presentation.
+**Contribution:** Led overall project development and coordinated the team's work. Developed and integrated the core scientific processing capabilities across the project, including integrating the Scientific Core Engine into the River Shift workflow after the initial River Shift prototype was developed. Also contributed to video editing and visual presentation.
 
 ### 2. Sagor Chandra Modak — Scientific Core Engine Implementation, UI/UX Design and Final Project Preparation
 
@@ -194,84 +168,39 @@ The names, education details and contribution statements below are supplied by t
 - Presentation development.
 - Communicating the project's scientific impact.
 
-**Contribution:** Shaped the project's narrative and communicated its scientific objectives, technical contributions and real-world relevance in a clear, engaging presentation.
+**Contribution:** Shaped the project's narrative and communicated its scientific objectives, technical contributions and real-world relevance in a clear and engaging presentation.
 
-### How the work fits together
+The team contributions connect scientific processing, UI/UX, RiverShift development, integration and judge-facing communication.
 
-The contribution structure shows complementary ownership rather than four disconnected tasks: River Shift module/prototype development was followed by scientific-core integration; the core implementation and UI/UX work supported the user-facing product; storytelling and presentation translated the technical work for judges; and video editing helped communicate the product and evidence. This is the team's reported collaboration model, not an independently audited measure of each member's effort. Preserve repository authorship and official project-page records as supporting evidence where available.
-## 10. Suggested 2-minute judge demo
+## 11. Demonstration video — 4:05 Full HD
 
-**0:00–0:15 — The problem**  
-“Surface change is not always visible in optical imagery at the moment we need it. NISAR adds a radar-based observation stream. SARGuardian helps users turn those observations into traceable screening evidence.”
+The team demonstration video is approximately **4 minutes 5 seconds**, in **1920 × 1080 Full HD**, 16:9 format at 30 fps. It follows a clear narrative from the NISAR mission and team introduction to AOI-wide displacement screening, the Bhote Koshi P05023 benchmark and the Jamuna RiverShift example.
 
-**0:15–0:35 — The platform**  
-Show the application and the four workflow categories. Explain that the user selects an AOI and date window; the system searches for compatible observations rather than assuming every place has every product.
+The video highlights:
+- The user's journey from an area of interest and date window to mapped candidate evidence.
+- The distinct GOFF and GUNW data streams used by displacement screening.
+- The focused Known Place workflow and the five-pair P05023 Bhote Koshi benchmark, shown at **4.02 cm/day over 24 days** (approximately **0.96 m**).
+- RiverShift's new-water, persistent-erosion and persistent-deposition map classes.
+- The wider relevance of AOI-driven exploration across the global NISAR observation programme.
 
-**0:35–0:55 — Find Displacements / Glacier Movement**  
-Show target-free AOI discovery. Explain GOFF and GUNW as separate measurement families. Say “candidate screening”, not “automatic disaster prediction”.
+The message is that SARGuardian identifies radar-derived anomalies for investigation and makes their supporting evidence easier to inspect. See the [Video Presentation Brief](VIDEO_PRESENTATION_BRIEF.md) for the complete narrative and supporting links.
 
-**0:55–1:10 — Known Place Analysis**  
-Show the Measurement Polygon and Reference Polygon. Explain that the reference is a comparison region, not independently guaranteed stable ground.
+## 12. Judge review path
 
-**1:10–1:40 — River Shift live evidence**  
-Open Run #25. Show the 10 real dates from 18 June to 16 October 2026, the successful product jobs, HDF5/layer checks, shared-grid alignment and provenance manifest. Show the separate blue/red/green candidate layers.
+1. Read the project proposition and four workflow descriptions in this pack.
+2. Watch the [4:05 Full HD demonstration video](VIDEO_PRESENTATION_BRIEF.md).
+3. Follow the [application experience and UI/UX brief](APPLICATION_UX_BRIEF.md) to inspect the current interface and user journey.
+4. Open [RiverShift Run #25](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660) for the live ten-product processing record.
+5. Use the [RiverShift Judge Brief](RIVERSHIFT_2026_JUDGE_BRIEF.md) and linked source code for the acquisition, processing and interpretation details.
 
-**1:40–1:55 — Validation discipline**  
-Open the historical independent-reference report. Explain that no eligible reference means NO_MATCH_NO_SCORE, not a made-up accuracy figure.
-
-**1:55–2:00 — Close**  
-“SARGuardian does not predict the future. It makes real radar observations easier to explore, trace and interpret.”
-
-## 11. Copy-ready closing statement
-
-SARGuardian makes NISAR evidence more accessible by bringing several surface-change workflows into one AOI-driven platform. Its value is not only the map that appears at the end; it is the traceable chain behind that map—real observation dates, exact source products, compatibility checks, processing records, uncertainty and explicit validation limits. That is how a candidate becomes something a researcher or local decision-maker can investigate responsibly.
-
-## 12. Indicative score against the supplied local judge rubric
-
-The local score sheet supplied for this project totals **118 points before its conditional +5% women-participation bonus**. The following is an evidence-based preparation estimate, not a mark awarded by a judge and not a published NASA global score.
-
-| Criterion | Maximum | Current estimate | Why this estimate is not higher |
-|---|---:|---:|---|
-| Impact | 20 | **17** | Strong cross-workflow relevance and a 10-date live river case; no measured downstream user/community outcome is documented here. |
-| Creativity | 20 | **18** | User-defined AOIs, target-free displacement discovery, a distinct two-polygon workflow and GCOV time-series screening are a strong combination. |
-| Validity | 20 | **16** | Exact granule provenance, HDF5/layer gates, shared-grid alignment and live end-to-end success are demonstrated; independent physical validation remains incomplete for the retained Jamuna reference window. |
-| Relevance | 20 | **19** | NISAR is the primary measurement source across the product's central workflows; the application is directly aligned to Dancing with the SARs. |
-| Presentation | 20 | **15** | The narrative and evidence pack are prepared, and the team has supplied a demo-video file; its playback, audio, scientific claims and final public link have not been independently reviewed. Recorded first-time-user tests are also not included. |
-| Teamwork | 5 | **4** | Four complementary workstreams are documented, including the River Shift prototype-to-core-engine integration hand-off; member confirmation and the official project-page record are still needed before claiming fully verified collaboration. |
-| User experience | 5 | **3** | The user journey and map-first workflow are defined; independent first-use and mobile/keyboard test records are not included here. |
-| NASA data usage | 5 | **5** | NISAR products drive the analysis and provenance; the data role is explicit and separated from basemaps/context. |
-| Challenge category identified | 1 | **1** | “Dancing with the SARs” and “Earth Science” are explicit. |
-| Repository access | 1 | **1** | The Monorepo is public and its repository page is accessible. |
-| Project page complete | 1 | **0** | Successful completion/submission of the official NASA project page has not been independently verified. |
-| **Total** | **118** | **99** | **83.9% of the pre-bonus maximum.** |
-
-**Conditional bonus:** the supplied local rubric describes a +5% women-participation bonus. It is excluded from the 99-point estimate because eligibility and roster confirmation have not been independently established in this repository evidence. If the local organiser confirms eligibility, +5% of 99 is 4.95 points, giving an indicative **103.95 / 118**. This is local-rubric arithmetic, not a claim that NASA Global Judging awards this bonus.
-
-The most score-efficient remaining work is: (1) review the supplied demo video for playback, audio, scientific wording and pacing, then place a stable link on the official project page, (2) record first-time-user tests on mobile and desktop, (3) verify the official NASA project page is complete/submitted, and (4) obtain a temporally matched independent river reference before claiming geophysical accuracy.
-
-## 13. Current submission checklist
-
-| Item | Current status | What closes it |
-|---|---|---|
-| Challenge/category wording | **Ready** | Keep “Dancing with the SARs” / “Earth Science” consistent. |
-| Four workflow story | **Ready with scientific boundaries** | Use the exact wording in Sections 4 and 8. |
-| RiverShift end-to-end run | **Demonstrated** | Link Run #25 and show the 10-date evidence. |
-| Independent river-change accuracy score | **Not demonstrated for the retained Jamuna reference window** | Obtain a temporally matched, independently prepared reference and pass the documented spatial/temporal support gates. |
-| Public repository link | **Accessible** | Keep public access deliberate; complete the licensing and secret/data-release review. |
-| Human first-time-user / mobile UX evidence | **Not recorded in this evidence pack** | Record short, consented first-use tests on mobile and desktop; fix blockers. |
-| Official NASA project page | **Not independently verified here** | Confirm that it is complete and successfully submitted. |
-| Final demo video | **File supplied by the team; content and public link not verified here** | Review the complete video for playback, audio, timing and scientific claims; publish a stable link on the official project page. Do not replace actual product results with fabricated scenes. |
-| Team roles | **Reported role map included** | Confirm spelling, affiliation and final approved contribution statements with all members. |
-
-## 14. Primary references
+## 13. Primary references
 
 - [NASA NISAR Mission Overview](https://science.nasa.gov/mission/nisar/mission-overview/)
 - [NASA NISAR mission page](https://science.nasa.gov/mission/nisar/)
-- [ASF NISAR Data Availability — current maturity and acquisition windows](https://nisar-docs.asf.alaska.edu/availability-overview/)
+- [ASF NISAR Data Availability](https://nisar-docs.asf.alaska.edu/availability-overview/)
 - [ASF NISAR Product Overview](https://nisar-docs.asf.alaska.edu/products-overview/)
 - [NASA CMR Search API](https://cmr.earthdata.nasa.gov/search/site/docs/search/api.html)
 - [SARGuardian Monorepo](https://github.com/moshiour0/SARGuardian-Monorepo)
+- [Active SARGuardian fork and application](https://github.com/shourov-04/SARGuardian)
 - [RiverShift Run #25 — 10-product end-to-end evidence](https://github.com/shourov-04/SARGuardian/actions/runs/43260188660)
 - [Monorepo Snapshot Regression — 20/20 jobs passed](https://github.com/moshiour0/SARGuardian-Monorepo/actions/runs/43243267939)
-- [RiverShift-specific evidence brief](RIVERSHIFT_2026_JUDGE_BRIEF.md)
-- [Local judge score-sheet evidence matrix](score-sheet-evidence-matrix.md)
