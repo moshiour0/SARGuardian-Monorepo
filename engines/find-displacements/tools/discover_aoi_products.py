@@ -725,6 +725,11 @@ def main() -> int:
     except Exception as exc:
         print(f"ERROR={type(exc).__name__}:{str(exc)[:500]}", file=sys.stderr)
         return 2
+    if not manifest.get("products"):
+        # Fail here with a clear error instead of writing an empty manifest
+        # that dies misleadingly at the Drive folder step.
+        print("ERROR=AOI_DISCOVERY_NO_PRODUCTS_SELECTED", file=sys.stderr)
+        return 2
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     matrix = [
