@@ -598,15 +598,19 @@ def _refresh_workflow_state(store: Any, record: dict[str, Any]) -> dict[str, Any
             if isinstance(run_url, str) and run_url.startswith("https://github.com/"):
                 updates["github_run_url"] = run_url
             if status == "completed":
+                # P0-1: persist the diagnosis (conclusion + run URL), not just
+                # the verdict, so the next failure is actionable from the row.
+                terminal_message = (
+                    "GitHub Actions completed without a verified RiverShift result callback."
+                    if conclusion == "success"
+                    else "GitHub Actions reported a terminal RiverShift worker failure."
+                )
+                terminal_message = f"{terminal_message} (conclusion={conclusion}; run={run_url})"
                 updates.update({
                     "state": JobState.FAILED.value,
                     "stage": "terminal_validation_failed",
                     "error_code": "WORKER_CALLBACK_MISSING" if conclusion == "success" else "GITHUB_ACTIONS_WORKER_FAILED",
-                    "error_message": (
-                        "GitHub Actions completed without a verified RiverShift result callback."
-                        if conclusion == "success"
-                        else "GitHub Actions reported a terminal RiverShift worker failure."
-                    ),
+                    "error_message": terminal_message,
                 })
             if not updates:
                 return record
