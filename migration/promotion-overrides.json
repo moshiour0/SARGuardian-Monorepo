@@ -258,14 +258,15 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/main.py",
       "destination_path": "apps/api/app/main.py",
       "source_blob_sha": "27316589dbfd4213f16c0de9ebd22beb8434ccae",
-      "destination_blob_sha": "e1dc263cf0e9258f950572bb01b90800c263d92d",
+      "destination_blob_sha": "9e4891845bb4130113140a842961d4a49ef43243",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Persist Firebase owner mappings and expose authenticated compact status/active routes; all status-state persistence updates now also filter by the verified owner UID.",
+      "reason": "Persist Firebase owner mappings and expose authenticated compact status/active routes; all status-state persistence updates now also filter by the verified owner UID. P0-1: persist the terminal-failure diagnosis (GitHub conclusion and run URL) in the stored error message, not just the verdict.",
       "implementation_commits": [
         "b1f8f7a389d1ab6b880fc8b50b24ec1efe7b2720",
         "5c479f3741e2cf1eb9d12ef40498ce1ed959fce3",
-        "60c5b947f13fe87d57fc89b61cbb63da1cad5b95"
+        "60c5b947f13fe87d57fc89b61cbb63da1cad5b95",
+        "caeae3081460c551815b9cbbaa53dc075f0182a1"
       ],
       "verification_paths": [
         "apps/api/tests/test_main.py",
@@ -497,16 +498,17 @@
       "source_path": "migration/source-snapshots/dynamic/Backend/app/river_shift_jobs.py",
       "destination_path": "apps/api/app/river_shift_jobs.py",
       "source_blob_sha": "e3c702c854e8381d84d09a0db8b85fcaaa89328a",
-      "destination_blob_sha": "da350ed750446606c938d314b2642863990c32c9",
+      "destination_blob_sha": "7e15bbe6638a84c41de91b2c202854ea4710a042",
       "mode": "100644",
       "object_type": "blob",
-      "reason": "Add an authenticated owner-scoped RiverShift status endpoint with a compact lifecycle-only response, throttle redundant GitHub fallback checks and skip unchanged database updates.",
+      "reason": "Add an authenticated owner-scoped RiverShift status endpoint with a compact lifecycle-only response, throttle redundant GitHub fallback checks and skip unchanged database updates. P0-1: persist the terminal-failure diagnosis (GitHub conclusion and run URL) in the stored RiverShift error message.",
       "implementation_commits": [
         "89482ebee4eaa34f7ff86cd5359f789397e69483",
         "6fe3436757effd0330575fd4a86e9301ef85b4ca",
         "65b5960dc024d91fb30739b864ee32156a0aaff0",
         "780b286f0316dfb01b3cb943fe66f0c6f6342154",
-        "09b0eb62f2e127d6d2e7ceac173a518a9197bb5f"
+        "09b0eb62f2e127d6d2e7ceac173a518a9197bb5f",
+        "faff992ccdae6a83de87af7b475a3bdc924e5cf1"
       ],
       "verification_paths": [
         "apps/api/tests/test_river_shift_jobs.py"
@@ -587,6 +589,54 @@
         "engines/river-shift/tools/river_shift/tests/test_process_gcov_job.py"
       ],
       "promotion_scope": "RiverShift GCOV engine promotion"
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/discover_aoi_products.py",
+      "destination_path": "engines/find-displacements/tools/discover_aoi_products.py",
+      "source_blob_sha": "dafe7b6cd6eb62c4c77d033044751c670577d583",
+      "destination_blob_sha": "d092da24e0f4475df50193452beb724d51a8c410",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Fail closed with AOI_DISCOVERY_NO_PRODUCTS_SELECTED instead of writing an empty manifest that dies misleadingly at the Drive folder step.",
+      "implementation_commits": [
+        "cd3b23a645c344341d6f4e217ae377e061549228"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_discover_aoi_products.py"
+      ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/download_nisar_product.py",
+      "destination_path": "engines/find-displacements/tools/download_nisar_product.py",
+      "source_blob_sha": "307d84c874d480b76a77070abae9390a7b6546b6",
+      "destination_blob_sha": "de0cffacf62ab9ee7bbdc27ae743c1a40d501c41",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Retry transient ASF product-download failures up to 3 attempts; deterministic header-length mismatches stay terminal.",
+      "implementation_commits": [
+        "cd3b23a645c344341d6f4e217ae377e061549228"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_plan_aoi_retries.py"
+      ]
+    },
+    {
+      "promotion_scope": "Find Displacements tools promotion",
+      "source_path": "migration/source-snapshots/backend-main/tools/drive_resumable_upload.py",
+      "destination_path": "engines/find-displacements/tools/drive_resumable_upload.py",
+      "source_blob_sha": "84a6b32c39d456644fe6af1a6d803b26de12b27b",
+      "destination_blob_sha": "497b95429a136c9321e47114d813f561c82b573d",
+      "mode": "100644",
+      "object_type": "blob",
+      "reason": "Surface the Drive OAuth token-refresh error code (for example invalid_grant) in DRIVE_TOKEN_REFRESH_HTTP_* so revoked versus transient failures are distinguishable.",
+      "implementation_commits": [
+        "cd3b23a645c344341d6f4e217ae377e061549228"
+      ],
+      "verification_paths": [
+        "engines/find-displacements/tools/tests/test_aggregate_aoi_run.py"
+      ]
     }
   ]
 }
