@@ -637,6 +637,9 @@ def get_displacement_job_status(
                     if conclusion == "success"
                     else "GitHub Actions reported a terminal worker failure before its startup callback."
                 )
+                # P0-1: persist the diagnosis, not just the verdict, so the
+                # next failure is actionable from the stored row alone.
+                message = f"{message} (conclusion={conclusion}; run={run_url})"
                 updates |= {
                     "state": JobState.FAILED.value,
                     "stage": "terminal_validation_failed",
@@ -669,6 +672,8 @@ def get_displacement_job_status(
                 if workflow_status[1] == "success"
                 else "GitHub Actions reported a terminal worker failure."
             )
+            # P0-1: persist the diagnosis, not just the verdict.
+            message = f"{message} (conclusion={workflow_status[1]}; run={record.get('github_run_url')})"
             try:
                 record = store.update_displacement_job_status(owner_uid, job_id, {
                     "state": JobState.FAILED.value,
@@ -785,6 +790,8 @@ def get_displacement_job(job_id: UUID, user: dict = Depends(get_current_user)) -
             if status == "completed":
                 code = "WORKER_CALLBACK_MISSING" if conclusion == "success" else "GITHUB_ACTIONS_WORKER_FAILED"
                 message = "GitHub Actions completed without a verified success callback." if conclusion == "success" else "GitHub Actions reported a terminal worker failure before its startup callback."
+                # P0-1: persist the diagnosis, not just the verdict.
+                message = f"{message} (conclusion={conclusion}; run={run_url})"
                 updates |= {"state": JobState.FAILED.value, "stage": "terminal_validation_failed", "error_code": code, "error_message": message}
                 should_persist = True
             if should_persist:
@@ -802,6 +809,8 @@ def get_displacement_job(job_id: UUID, user: dict = Depends(get_current_user)) -
         if status and status[0] == "completed":
             code = "WORKER_CALLBACK_MISSING" if status[1] == "success" else "GITHUB_ACTIONS_WORKER_FAILED"
             message = "GitHub Actions completed without a verified success callback." if status[1] == "success" else "GitHub Actions reported a terminal worker failure."
+            # P0-1: persist the diagnosis, not just the verdict.
+            message = f"{message} (conclusion={status[1]}; run={record.get('github_run_url')})"
             try:
                 record = store.update_displacement_job(job_id, {"state": JobState.FAILED.value, "stage": "terminal_validation_failed", "error_code": code, "error_message": message})
             except PersistenceError:

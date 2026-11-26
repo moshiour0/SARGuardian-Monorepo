@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""Fail-closed structural contract checks for the Monorepo live-retention port."""
+"""Fail-closed structural contract checks for the Monorepo live-retention port.
+
+Owner-approved relaxation (Option A, 2026-11-24): the eight retention tools
+are no longer required to be byte-identical between the immutable source
+snapshots and the promoted copies. The source map pins the reviewed source
+blobs; the promoted map pins the promoted copies, which differ for two
+files because the P0 retry fixes are retained (3-attempt granule download
+retry in download_nisar_product.py; Drive OAuth error code in
+drive_resumable_upload.py). This deliberately relaxes the "fixed P05023
+replay is byte-identical to the reviewed source" invariant, and it touches
+decisions D-3 (P05023) and D-4 (paper claim): the replay is no longer
+author-exact for those two tools. Do NOT apply the retry edits to
+migration/source-snapshots/; snapshots are immutable.
+"""
 
 from __future__ import annotations
 
@@ -15,9 +28,23 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "sarguardian-live-validation.yml"
 EXPECTED_SCIENCE_COMMIT = "ab547ecc82bcc4d6ccef545a59852536c2beacc6"
-EXPECTED_TOOL_BLOBS = {
+EXPECTED_SOURCE_TOOL_BLOBS = {
     "download_nisar_product.py": "307d84c874d480b76a77070abae9390a7b6546b6",
     "drive_resumable_upload.py": "84a6b32c39d456644fe6af1a6d803b26de12b27b",
+    "validate_product_aoi.py": "97b9be365df3a5876f8a2499a955f340782a3f15",
+    "sarguardian_hdf5_archive.py": "d056aa86c3341eed92a6f39b515d418d610efc00",
+    "verify_reader_equivalence.py": "56fc6b98b4b3cdb83225ae6239cfbf008c17d26a",
+    "aggregate_streamed_outputs.py": "6211b0565323ff4d044658162654ce629ab2b29b",
+    "time_window.py": "e8473d0ed03aeba9ba53679d8648df60723e6d46",
+    "requirements-retention.txt": "f86daa08bb8ea461b9746260df8e025b83f553bf",
+}
+
+# Promoted copies. Identical to the source map except for the two P0 retry
+# fixes retained under Option A (see module docstring): the 3-attempt
+# granule download retry and the Drive OAuth error code.
+EXPECTED_PROMOTED_TOOL_BLOBS = {
+    "download_nisar_product.py": "de0cffacf62ab9ee7bbdc27ae743c1a40d501c41",
+    "drive_resumable_upload.py": "497b95429a136c9321e47114d813f561c82b573d",
     "validate_product_aoi.py": "97b9be365df3a5876f8a2499a955f340782a3f15",
     "sarguardian_hdf5_archive.py": "d056aa86c3341eed92a6f39b515d418d610efc00",
     "verify_reader_equivalence.py": "56fc6b98b4b3cdb83225ae6239cfbf008c17d26a",
@@ -113,12 +140,17 @@ def main() -> int:
 
     source_tools = ROOT / "migration" / "source-snapshots" / "backend-main" / "tools"
     promoted_tools = ROOT / "engines" / "find-displacements" / "tools"
-    for name, expected_blob in EXPECTED_TOOL_BLOBS.items():
+    if set(EXPECTED_SOURCE_TOOL_BLOBS) != set(EXPECTED_PROMOTED_TOOL_BLOBS):
+        fail("source and promoted retention tool pin sets differ")
+    for name in EXPECTED_SOURCE_TOOL_BLOBS:
         source_path = source_tools / name
         promoted_path = promoted_tools / name
         if not source_path.is_file() or not promoted_path.is_file():
             fail(f"retention tool source/promoted path is missing: {name}")
-        for label, path in (("source", source_path), ("promoted", promoted_path)):
+        for label, path, expected_blob in (
+            ("source", source_path, EXPECTED_SOURCE_TOOL_BLOBS[name]),
+            ("promoted", promoted_path, EXPECTED_PROMOTED_TOOL_BLOBS[name]),
+        ):
             data = path.read_bytes()
             actual_blob = hashlib.sha1(
                 b"blob " + str(len(data)).encode("ascii") + bytes([0]) + data
@@ -155,7 +187,7 @@ def main() -> int:
         f"science_commit={EXPECTED_SCIENCE_COMMIT} "
         "manual_only=true repository_gate=true per_run_consent=true "
         "drive_receipts=true automatic_raw_deletion=false "
-        f"exact_tool_blobs={len(EXPECTED_TOOL_BLOBS)}/{len(EXPECTED_TOOL_BLOBS)} "
+        f"exact_tool_blobs={len(EXPECTED_SOURCE_TOOL_BLOBS) + len(EXPECTED_PROMOTED_TOOL_BLOBS)}/{len(EXPECTED_SOURCE_TOOL_BLOBS) + len(EXPECTED_PROMOTED_TOOL_BLOBS)} "
         "historical_git_object=PASS"
     )
     return 0

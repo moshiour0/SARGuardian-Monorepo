@@ -114,8 +114,23 @@ class Drive:
 
             if r.status_code != 200:
                 status = r.status_code
+                error_code = ""
+                try:
+                    body = r.json()
+                    error_code = str((body or {}).get("error") or "")
+                except Exception:
+                    error_code = ""
                 r.close()
-                raise DriveError(f"DRIVE_TOKEN_REFRESH_HTTP_{status}")
+                # Surface the OAuth error code (invalid_grant vs
+                # invalid_client vs temporarily_unavailable) so a revoked
+                # token and a transient Google error no longer look alike.
+                # Only the short error code is kept, never the response body.
+                suffix = (
+                    f"_{error_code}"
+                    if error_code and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]{0,63}", error_code)
+                    else ""
+                )
+                raise DriveError(f"DRIVE_TOKEN_REFRESH_HTTP_{status}{suffix}")
             try:
                 token = r.json().get("access_token")
             except (ValueError, AttributeError):

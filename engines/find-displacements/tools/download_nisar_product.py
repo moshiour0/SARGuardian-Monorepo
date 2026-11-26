@@ -48,6 +48,38 @@ def download_exact_product_with_timeout(
     connect_timeout_seconds: int = 30,
     read_timeout_seconds: int = 120,
     progress_interval_bytes: int = 128 * 1024 * 1024,
+    download_attempts: int = 3,
+) -> int:
+    """Stream one authenticated ASF object, retrying transient transfer failures."""
+    for attempt in range(1, download_attempts + 1):
+        try:
+            return _download_exact_product_once(
+                session, url, out_path, expected_bytes,
+                connect_timeout_seconds=connect_timeout_seconds,
+                read_timeout_seconds=read_timeout_seconds,
+                progress_interval_bytes=progress_interval_bytes,
+            )
+        except Exception as exc:
+            # A header length mismatch is deterministic: the same object
+            # reports the same size on every attempt, so retrying it only
+            # re-downloads a file that can never match.
+            if not is_retryable_remote_failure(exc) or "response_header=" in str(exc):
+                raise
+            if attempt >= download_attempts:
+                raise
+            _sleep_before_retry("https_product_download", attempt, str(exc))
+    raise RuntimeError("DOWNLOAD_RETRIES_EXHAUSTED")
+
+
+def _download_exact_product_once(
+    session: Any,
+    url: str,
+    out_path: Path,
+    expected_bytes: int | None,
+    *,
+    connect_timeout_seconds: int = 30,
+    read_timeout_seconds: int = 120,
+    progress_interval_bytes: int = 128 * 1024 * 1024,
 ) -> int:
     """Stream one authenticated ASF object with bounded idle waits and progress logs."""
     if not trusted_asf_url(url):
@@ -163,6 +195,13 @@ def safe_remote_error(exc: BaseException) -> str:
 
 def is_retryable_remote_failure(exc: BaseException) -> bool:
     """Classify only transient HTTP/network failures for automated whole-step retry."""
+    if type(exc).__name__ == "ASFAuthenticationError":
+        # asf_search raises this (not a RequestException) for URS token
+        # validation failures, including transient 5xx/timeouts.
+        return True
+    if "DOWNLOAD_EMPTY_RESPONSE_BODY" in str(exc):
+        # An empty body for a multi-GB object is a transient transfer fault.
+        return True
     response = getattr(exc, "response", None)
     status = getattr(response, "status_code", None)
     if status is not None:
@@ -198,6 +237,20 @@ def _sleep_before_retry(stage: str, attempt: int, detail: str) -> None:
     time.sleep(delay)
 
 
+def _is_transient_auth_failure(exc: BaseException) -> bool:
+    """True for auth failures worth one more attempt: network errors and asf_search auth errors."""
+    if isinstance(exc, requests.exceptions.RequestException):
+        return True
+    if type(exc).__name__ == "ASFAuthenticationError":
+        return True
+    try:
+        import asf_search.exceptions as asf_exceptions
+
+        return isinstance(exc, asf_exceptions.ASFAuthenticationError)
+    except Exception:
+        return False
+
+
 def build_authenticated_session_with_retry(
     acquisition: Any, attempts: int = 2, *, force_credentials: bool = False
 ) -> Any:
@@ -209,14 +262,23 @@ def build_authenticated_session_with_retry(
         print("EARTHDATA_AUTH_MODE=pre_generated_user_token", file=sys.stderr)
         # ASFSession applies the token as a Bearer credential. This avoids calling
         # /api/users/find_or_create_token for each newly constructed session.
-        return asf_search.ASFSession().auth_with_token(token)
+        # auth_with_token performs a live URS validation POST; retry it like
+        # the credential path instead of failing on one transient error.
+        for attempt in range(1, attempts + 1):
+            try:
+                return asf_search.ASFSession().auth_with_token(token)
+            except Exception as exc:
+                if not _is_transient_auth_failure(exc) or attempt >= attempts:
+                    raise
+                _sleep_before_retry("earthdata_authentication", attempt, str(exc))
+        raise RuntimeError("EARTHDATA_AUTHENTICATION_RETRIES_EXHAUSTED")
 
     print("EARTHDATA_AUTH_MODE=username_password_token_exchange", file=sys.stderr)
     for attempt in range(1, attempts + 1):
         try:
             return acquisition.build_session()
-        except requests.exceptions.RequestException as exc:
-            if attempt >= attempts:
+        except Exception as exc:
+            if not _is_transient_auth_failure(exc) or attempt >= attempts:
                 raise
             _sleep_before_retry("earthdata_authentication", attempt, str(exc))
     raise RuntimeError("EARTHDATA_AUTHENTICATION_RETRIES_EXHAUSTED")
